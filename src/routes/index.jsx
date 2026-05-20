@@ -5,6 +5,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import AppLayout from "../layout/AppLayout";
 
 import LandingPage from "../login/page/LandingPage";
+import OnboardingPage from "../onboarding/page/OnboardingPage";
 
 const router = createBrowserRouter([
   {
@@ -12,11 +13,11 @@ const router = createBrowserRouter([
     element: <LandingPage />,
   },
 
- /* {
+  {
     path: "/onboarding",
     element: <OnboardingPage />,
   },
-
+/*
  {
   path: "/dashboard",
   element: (

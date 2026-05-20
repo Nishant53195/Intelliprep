@@ -1,0 +1,6241 @@
+const gsSyllabus = [
+  {
+    id: "ancient-history",
+    type: "GS",
+    paper: "GS1",
+    name: "Ancient History",
+
+    topics: [
+  {
+    id: "stone-age",
+    name: "Stone Age",
+    subtopics: [
+      {
+        id: "paleolithic-age",
+        name: "Paleolithic Age",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "mesolithic-age",
+        name: "Mesolithic Age",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "neolithic-age",
+        name: "Neolithic Age",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "chalcolithic-age",
+    name: "Chalcolithic Age",
+    subtopics: [
+      {
+        id: "settlements",
+        name: "Settlements",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "importance-of-chalcolithic-phase",
+        name: "Importance of chalcolithic phase",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "limitation-of-chalcolithic-phase",
+        name: "Limitation of chalcolithic phase",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "indus-valley-civilization",
+    name: "Indus Valley Civilization",
+    subtopics: [
+      {
+        id: "town-planning-and-structures",
+        name: "Town Planning and Structures",
+        estimatedMinutes: 45,
+        difficulty: 2,
+      },
+      {
+        id: "agriculture-and-domestication-of-animals",
+        name: "Agriculture and Domestication of Animals",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "technology-and-crafts",
+        name: "Technology and Crafts",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "trade-and-commerce",
+        name: "Trade and Commerce",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "social-organization-and-polity",
+        name: "Social Organization and Polity",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "religious-practices",
+        name: "Religious Practices",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "the-harappan-script-weights-and-measures",
+        name: "The Harappan Script, Weights and Measures",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "harappan-pottery",
+        name: "Harappan Pottery",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "seals-and-sealings",
+        name: "Seals and Sealings",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "terracotta-figurines-and-stone-work",
+        name: "Terracotta Figurines and Stone Work",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "end-of-the-indus-culture",
+        name: "End of the Indus Culture",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "aryan-culture",
+    name: "Aryan Culture",
+    subtopics: [
+      {
+        id: "the-horse-its-domestication-and-diffusion",
+        name: "The Horse, its Domestication and Diffusion",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "the-war-chariot-and-spoked-wheels",
+        name: "The War Chariot and Spoked Wheels",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "horse-remains-in-the-subcontinent",
+        name: "Horse Remains in the Subcontinent",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "pit-dwelling-cremation-and-the-fire-cult",
+        name: "Pit-dwelling, Cremation and The Fire Cult",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "animal-horse-sacrifice",
+        name: "Animal, Horse Sacrifice",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "the-cult-of-soma-and-svastika",
+        name: "The Cult of Soma and Svastika",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "vedic-age",
+    name: "Vedic Age",
+    subtopics: [
+      {
+        id: "arrival-of-indo-aryans",
+        name: "Arrival of Indo-Aryans",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "tribal-conflicts",
+        name: "Tribal Conflicts",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "cattle-rearing-and-agriculture",
+        name: "Cattle Rearing and Agriculture",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "tribal-chiefdoms-tribe-and-family",
+        name: "Tribal Chiefdoms, Tribe and family",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "social-differentiation-and-gods",
+        name: "Social Differentiation and Gods",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+      {
+        id: "use-of-iron-in-later-vedic",
+        name: "Use of Iron in later vedic",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "agriculture-art-crafts-and-settlements",
+        name: "Agriculture, Art & Crafts and Settlements",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "political-organization-in-later-vedic",
+        name: "Political Organization in later vedic",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "social-organization-and-gods-in-later-vedic",
+        name: "Social Orgnization and gods in later vedic",
+        estimatedMinutes: 45,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "jainism",
+    name: "Jainism",
+    subtopics: [
+      {
+        id: "cause-of-origin",
+        name: "Cause of Origin",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "mahavira-and-jainism",
+        name: "Mahavira and Jainism",
+        estimatedMinutes: 20,
+        difficulty: 1,
+      },
+      {
+        id: "doctrines-of-jainism",
+        name: "Doctrines of Jainism",
+        estimatedMinutes: 50,
+        difficulty: 4,
+      },
+      {
+        id: "spread-of-jainism",
+        name: "Spread of Jainism",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "buddhism",
+    name: "Buddhism",
+    subtopics: [
+      {
+        id: "gautam-buddha-and-buddhism",
+        name: "Gautam Buddha and Buddhism",
+        estimatedMinutes: 25,
+        difficulty: 1,
+      },
+      {
+        id: "doctrines-of-buddhism",
+        name: "Doctrines of Buddhism",
+        estimatedMinutes: 55,
+        difficulty: 4,
+      },
+      {
+        id: "spread-of-buddhism",
+        name: "Spread of Buddhism",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "mahajanapadas-and-rise-of-magadha",
+    name: "Mahajanapadas & Rise of Magadha",
+    subtopics: [
+      {
+        id: "conditions-for-rise-of-large-states",
+        name: "Conditions for rise of large states",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "the-mahajanapadas",
+        name: "The Mahajanapadas",
+        estimatedMinutes: 45,
+        difficulty: 3,
+      },
+      {
+        id: "haryanka-dynasty",
+        name: "Haryanka Dynasty",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "shishunaga-dynasty",
+        name: "Shishunaga Dynasty",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "nanda-dynasty",
+        name: "Nanda Dynasty",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "maurya-dynasty-intro",
+        name: "Maurya Dynasty",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "iranian-and-macedonian-invasions",
+    name: "Iranian & Macedonian Invasions",
+    subtopics: [
+      {
+        id: "iranian-invasion",
+        name: "Iranian Invasion",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "alexanders-invasion",
+        name: "Alexanders Invasion",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "effects-of-the-invasion",
+        name: "Effects of the invasion",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "society-in-the-age-of-buddha",
+    name: "Society in the age of Buddha (mahajanpadas)",
+    subtopics: [
+      {
+        id: "second-urbanization-and-rural-economy",
+        name: "Second Urbanization and Rural Economy",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+      {
+        id: "administrative-system-army-and-taxation",
+        name: "Administrative System , Army and Taxation",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "social-orders-and-legislation",
+        name: "Social Orders and Legislation",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "maurya-empire",
+    name: "Maurya Empire",
+    subtopics: [
+      {
+        id: "chandragupta-maurya",
+        name: "Chandragupta Maurya",
+        estimatedMinutes: 35,
+        difficulty: 2,
+      },
+      {
+        id: "ashoka",
+        name: "Ashoka",
+        estimatedMinutes: 45,
+        difficulty: 3,
+      },
+      {
+        id: "ashokas-inscriptions",
+        name: "Ashokas Inscriptions",
+        estimatedMinutes: 55,
+        difficulty: 4,
+      },
+      {
+        id: "impact-of-kalinga-war",
+        name: "Impact of Kalinga war",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "internal-policy-and-buddhism",
+        name: "Internal policy and Buddhism",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "state-and-economic-controls",
+        name: "State and economic controls",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+      {
+        id: "spread-of-material-culture",
+        name: "Spread of material culture",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "neglect-of-nw-frontier-and-china-wall",
+        name: "Neglect of NW frontier & China wall",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "central-asian-contact",
+    name: "Central Asian Contact",
+    subtopics: [
+      {
+        id: "the-indo-greeks",
+        name: "The Indo-greeks",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "the-shakas-and-the-parthians",
+        name: "The Shakas and The Parthians",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "the-kushans",
+        name: "The Kushans",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+      {
+        id: "structures-better-cavalry-and-new-elements",
+        name: "Structures, Better cavalry and New elements in Indian Society",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "trade-agriculture-and-polity",
+        name: "Trade, Agriculture and Polity",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "origin-of-mahayana-buddhism",
+        name: "Origin of Mahayana Buddhism",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "languages-science-and-technology",
+        name: "Languages, Science and technology",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "the-satvahana-phase",
+    name: "The Satvahana Phase",
+    subtopics: [
+      {
+        id: "satvahana-political-history",
+        name: "Political history",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "satvahana-social-organisation",
+        name: "Social organisation and material culture",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "satvahana-administration-and-religion",
+        name: "Administration and Religion",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "history-in-deep-south",
+    name: "History in deep south",
+    subtopics: [
+      {
+        id: "megalithic-era",
+        name: "Megalithic Era",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "state-formation-and-development",
+        name: "State, formation and development of civilisation",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "the-three-early kingdoms",
+        name: "The three early kingdoms",
+        estimatedMinutes: 45,
+        difficulty: 3,
+      },
+      {
+        id: "rise-of-social-classes-south",
+        name: "Rise of social classes",
+        estimatedMinutes: 45,
+        difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "crafts-commerce-and-urban-growth",
+    name: "Crafts, Commerce and Urban Growth",
+    subtopics: [
+      {
+        id: "crafts-and-craftsmen",
+        name: "Crafts and Craftsmen",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "types-of-merchant",
+        name: "Types of merchant",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "trade-routes-and-centers",
+        name: "Trade routes and centers",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "money-economy-and-urban-growth",
+        name: "money economy and urban growth",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "gupta-empire",
+    name: "Gupta Empire",
+    subtopics: [
+      {
+        id: "gupta-background",
+        name: "Background",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "chandragupta-i",
+        name: "Chandragupta I",
+        estimatedMinutes: 15,
+        difficulty: 1,
+      },
+      {
+        id: "samudragupta",
+        name: "Samudragupta",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "chandragupta-ii",
+        name: "Chandragupta II",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "system-of-administration",
+        name: "System of administration",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+      {
+        id: "trends-in-trade-and-economy",
+        name: "Trends in Trade and Economy",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "social-developments",
+        name: "Social Developments",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "science-and-technology",
+        name: "Science and Technology",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "spread-of-civilisation",
+    name: "Spread of civilisation",
+    subtopics: [
+      {
+        id: "orrisa-and-eastern-and-southern-mp",
+        name: "Orrisa and Eastern and Southern MP",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "bengal-and-assam",
+        name: "Bengal and Assam",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "harsha-age",
+    name: "Harsha Age",
+    subtopics: [
+      {
+        id: "harsha-kingdom",
+        name: "Harsha Kingdom",
+        estimatedMinutes: 35,
+        difficulty: 2,
+      },
+      {
+        id: "harsha-administration",
+        name: "Administration",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "buddhism-under-harsha",
+        name: "Buddhism under Harsha",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "india-relation-with-asian-country-and-transition",
+    name: "India relation with Asian country and transition",
+    subtopics: [
+      {
+        id: "buddhism-in-srilanka-myanmar-and-china",
+        name: "Buddhism in Srilanka, Myanmar and CHina",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "christianity-and-west-asian-relations",
+        name: "Christianity and West Asian Relations",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "changes in-varna-system",
+        name: "Changes in Varna system",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "rise-of-regional-identities",
+        name: "Rise of regional identities",
+        estimatedMinutes: 40,
+        difficulty: 4,
+      },
+    ],
+  },
+],
+  },
+
+  {
+     id: "medieval-history",
+    type: "GS",
+    paper: "GS1",
+    name: "Medieval History",
+
+    topics: [
+  {
+    id: "indian-and-the-world",
+    name: "Indian and the World",
+    subtopics: [
+      {
+        id: "europe",
+        name: "Europe",
+        estimatedMinutes: 15,
+        difficulty: 1,
+      },
+      {
+        id: "the-arab-world",
+        name: "The Arab World",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "africa",
+        name: "Africa",
+        estimatedMinutes: 10,
+        difficulty: 1,
+      },
+    ],
+  },
+  {
+    id: "northern-india-and-age-of-three-empires",
+    name: "Northern India and Age of three Empires",
+    subtopics: [
+      {
+        id: "struggle-for-domination-in-north-india-and-palas",
+        name: "Struggle for domination in North India and Palas",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "the-pratiharas",
+        name: "The Pratiharas",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "the-rashtrakutas",
+        name: "The Rashtrakutas",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "political-ideas-and-organisation-three-empires",
+        name: "Political Ideas and Organisation",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "south-india-and-the-chola-empire",
+    name: "South India and The Chola Empire",
+    subtopics: [
+      {
+        id: "the-rise-of-chola-empire",
+        name: "The rise of Chola Empire",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "age-of-rajaraja-and-rajendra-i",
+        name: "Age of Rajaraja and Rajendra I",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "chola-government-and-local-self-government",
+        name: "Chola government and Local Self Government",
+        estimatedMinutes: 50,
+        difficulty: 4,
+      },
+      {
+        id: "chola-cultural-life",
+        name: "Cultural Life",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "economic-and-social-life-during-1000-ad",
+    name: "Economic and Social Life during 1000 AD",
+    subtopics: [
+      {
+        id: "trade-and-commerce-1000ad",
+        name: "Trade and Commerce",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "nature-of-society-and-caste-system-1000ad",
+        name: "Nature of society and caste system",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "condition-of-women-1000ad",
+        name: "Condition of Women",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "dress-food-and-amusements-1000ad",
+        name: "Dress, food and amusements",
+        estimatedMinutes: 10,
+        difficulty: 1,
+      },
+      {
+        id: "education-science-and-religious-learning-1000ad",
+        name: "Education, Science and Religious learning",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "the-age-of-conflicts",
+    name: "The age of conflicts",
+    subtopics: [
+      {
+        id: "the-ghaznavids",
+        name: "The Ghaznavids",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "the-rajput-states",
+        name: "The Rajput States",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "the-turkish-conquest",
+        name: "The turkish conquest",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "the-battle-of-tarain",
+        name: "The battle of Tarain",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "turkish-conquest-of-the-ganga-valley",
+        name: "Turkish conquest of the Ganga valley",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "cause-of-the-defeat-of-the-rajputs",
+        name: "Cause of the defeat of the Rajputs",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "the-delhi-sultanate-till-mameluks",
+    name: "The Delhi Sultanate till Mameluks",
+    subtopics: [
+      {
+        id: "the-mameluks",
+        name: "The mameluks",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "struggle-for-establishment-of-a-strong-monarchy",
+        name: "Struggle for establishment of a strong monarchy",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "iltutmish",
+        name: "Iltutmish",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "raziya",
+        name: "Raziya",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "era-of-balban",
+        name: "Era of Balban",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "the-mongols-and-problem-of-nw-frontier",
+        name: "The mongols and problem of NW frontier",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "internal-rebellions-mameluks",
+        name: "Internal Rebellions",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "the-delhi-sultanate-post-mameluks",
+    name: "The Delhi Sultanate post Mameluks",
+    subtopics: [
+      {
+        id: "the-khaljis",
+        name: "The Khaljis",
+        estimatedMinutes: 45,
+        difficulty: 3,
+      },
+      {
+        id: "the-tughlaqs",
+        name: "The Tughlaqs",
+        estimatedMinutes: 50,
+        difficulty: 4,
+      },
+      {
+        id: "expansion-of-delhi-sultanate",
+        name: "Expansion of Delhi Sultanate",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "internal-reforms-and-experiments",
+        name: "Internal reforms and experiments",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+      {
+        id: "disintegration-of-sultanate-and-firuz",
+        name: "Disintegration of sultanate and Firuz",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "delhi-sultanate-system",
+    name: "Delhi Sultanate System",
+    subtopics: [
+      {
+        id: "the-sultan",
+        name: "The Sultan",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "central-administration-sultanate",
+        name: "Central administration",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "local-administration-sultanate",
+        name: "Local administration",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "economic-and-social-life-sultanate",
+        name: "Economic and Social Life",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "peasants-and-rural-gentry",
+        name: "Peasants and Rural Gentry",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "trade-industry-and-merchants-sultanate",
+        name: "Trade, Industry and Merchants",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "the-nobles-sultanate",
+        name: "The nobles",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "town-life-slaves-and-artisans",
+        name: "Town life , Slaves and Artisans",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "caste-social-manners-and-customs-sultanate",
+        name: "Caste, Social manners and Customs",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "nature-of-state-and-religious-freedom",
+        name: "Nature of State and Religious freedom",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "the-age-of-vijayanagara-and-the-bahmanids",
+    name: "The Age of Vijayanagara and the Bahmanids",
+    subtopics: [
+      {
+        id: "the-vijayanagara-empire-foundation",
+        name: "The Vijayanagara Empire foundation",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "kings-of-vijayanagara",
+        name: "Kings of Vijayanagara",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+      {
+        id: "bahmani-conflict",
+        name: "Bahmani conflict",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "the-bahmani-kingdom",
+        name: "The Bahmani kingdom",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "mahmud-gawan",
+        name: "Mahmud Gawan",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "climax-and-disintegration-of-empire-south",
+        name: "Climax and disintegration of Empire",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "the-advent of-portugese",
+        name: "The advent of Portugese",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "struggle-for-empire-in-north-india",
+    name: "Struggle for empire in North India",
+    subtopics: [
+      {
+        id: "begal-assam-and-odisha",
+        name: "Bengal, Assam and Odisha",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "gujarat-regional-state",
+        name: "Gujarat",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "mahmud-begarha",
+        name: "Mahmud Begarha",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "malwa-and-mewar",
+        name: "Malwa and Mewar",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "northwest-and-north-india-regional",
+        name: "Northwest and North India",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "kashmir-regional-state",
+        name: "Kashmir",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "cultural-developments-medieval",
+    name: "Cultural Developments",
+    subtopics: [
+      {
+        id: "religious-ideas-and-beliefs-medieval",
+        name: "Religious Ideas and Beliefs",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "the-sufi-movement",
+        name: "The Sufi movement",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+      {
+        id: "the-chisti-and-suharwardi-silsilahs",
+        name: "The Chisti and Suharwardi Silsilahs",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "the-bhakti-movement",
+        name: "The Bhakti movement",
+        estimatedMinutes: 50,
+        difficulty: 4,
+      },
+      {
+        id: "the-vaishnavaite-movement",
+        name: "The Vaishnavaite movement",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "mughal-empire-foundation",
+    name: "Mughal Empire Foundation",
+    subtopics: [
+      {
+        id: "central-asia-and-babur",
+        name: "Central Asia and Babur",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "conquest-of-india-babur",
+        name: "Conquest of India",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "the-battle-of-panipat-and-khanwa",
+        name: "The battle of Panipat and Khanwa",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "the-afghans-conflict",
+        name: "The Afghans",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "humayun-conquest-of-gujarat",
+        name: "Humayun conquest of Gujarat",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "sher-shah-and-sur-empire",
+        name: "Sher Shah and Sur empire",
+        estimatedMinutes: 45,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "mughal-empire-under-akbar",
+    name: "Mughal Empire under Akbar",
+    subtopics: [
+      {
+        id: "contest-with-the-nobility",
+        name: "Contest with the nobility",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "early-expansion-akbar",
+        name: "Early expansion",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "administration-akbar",
+        name: "Administration",
+        estimatedMinutes: 45,
+        difficulty: 3,
+      },
+      {
+        id: "mansabdari-and-army",
+        name: "Mansabdari and Army",
+        estimatedMinutes: 50,
+        difficulty: 4,
+      },
+      {
+        id: "organisation-of-government-akbar",
+        name: "Organisation of government",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "relations-with-rajputs-akbar",
+        name: "Relations with rajputs",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+      {
+        id: "rebellions-akbar",
+        name: "Rebellions",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "toward-integration-akbar",
+        name: "Toward integration",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "mughals-deccan-and-south",
+    name: "Mughals Deccan and South",
+    subtopics: [
+      {
+        id: "mughal-advance-towards-deccan",
+        name: "Mughal advance towards Deccan",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "conquest-of-berar-ahmadnagar",
+        name: "Conquest of Berar, Ahmadnagar",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "rise-of-malik-ambar",
+        name: "Rise of Malik Ambar",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "extinction-of-ahmadnagar",
+        name: "Extinction of Ahmadnagar",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "india-in-first-half-of-seventeenth-century",
+    name: "India in first half of Seventeenth Century",
+    subtopics: [
+      {
+        id: "political-and-administrative-developments-17th-early",
+        name: "Political and Administrative Developments",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "nur-jahan",
+        name: "Nur Jahan",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "shah-jahan",
+        name: "Shah Jahan",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "mahabat-khan",
+        name: "Mahabat Khan",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "shah-jahan-and-balkh-campaign",
+        name: "Shah Jahan and Balkh campaign",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "mughal-persian-relation",
+        name: "Mughal-Persian relation",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "growth-of-administration-17th-early",
+        name: "Growth of administration",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "life-under-mughals",
+    name: "Life under Mughals",
+    subtopics: [
+      {
+        id: "economic-and-social-conditions-mughal-life",
+        name: "Economic and Social conditions",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "standard-of-living-mughal",
+        name: "Standard of living",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "the-ruling-classes-mughal",
+        name: "The ruling classes",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "the-middle-strata-mughal",
+        name: "The middle strata",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "trade-and-commerce-mughal-life",
+        name: "Trade and Commerce",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "climax-of-mughals",
+    name: "Climax of Mughals",
+    subtopics: [
+      {
+        id: "problem-of-succession-climax",
+        name: "Problem of succession",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "aurangzeb-reign",
+        name: "Aurangzeb reign",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+      {
+        id: "political-development-in-north-india-climax",
+        name: "Poitical deveopment in North India",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "developments-in-north-east-and-east-india",
+        name: "Developments in North East and East India",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "popular-revolts-jats-afghans-and-sikhs",
+        name: "Popular Revolts , Jats , Afghans and Sikhs",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "relation-with-rajputs-aurangzeb",
+        name: "Relation with rajputs",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "marathas",
+    name: "Marathas",
+    subtopics: [
+      {
+        id: "rise-of-marathas",
+        name: "Rise of Marathas",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "shivaji",
+        name: "Shivaji",
+        estimatedMinutes: 35,
+        difficulty: 2,
+      },
+      {
+        id: "treaty-of-purandar",
+        name: "Treaty of Purandar",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "shivaji-administration-and-achievements",
+        name: "Shivaji administration and achievements",
+        estimatedMinutes: 45,
+        difficulty: 4,
+      },
+      {
+        id: "aurangzeb-and-deccani-states-phases",
+        name: "Aurangzeb and Deccani States Phases",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+      {
+        id: "decline-of-mughals",
+        name: "Decline of Mughals",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+]
+
+},
+ {
+     id: "modern-history",
+    type: "GS",
+    paper: "GS1",
+    name: "Modern History",
+
+    topics: [
+{
+id: "the-later-mughals",
+name: "The later Mughals",
+subtopics: [
+{
+id: "later-mughals-sub",
+name: "Later Mughals",
+estimatedMinutes: 30,
+difficulty: 2,
+},
+],
+},
+{
+id: "autonomous-states-rise",
+name: "Autonomous States rise",
+subtopics: [
+{
+id: "successor-states-hyderabad-carnatic-bengal-awadh",
+name: "Successor states as Hyderabad, Carnatic, Bengal and Awadh",
+estimatedMinutes: 30,
+difficulty: 2,
+},
+{
+id: "new-states-marathas-sikhs-jats-afghans",
+name: "New States as Marathas, Sikhs, Jats and Afghans",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "independent-kingdoms-mysore-kerala-rajputs",
+name: "Independent Kingdoms of Mysore, Kerala and Rajputs",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "india-on-the-eve-of-british-conquest",
+name: "India on the eve of British conquest",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+],
+},
+{
+id: "rise-of-british",
+name: "Rise of British",
+subtopics: [
+{
+id: "emergence-of-capitalism-imperialism-europe",
+name: "Emergence of Capitalism and Imperialism in Europe",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "arrival-of-europeans-15th-century-onwards",
+name: "Arrival of the Europeans (15th Century Onwards)",
+estimatedMinutes: 15,
+difficulty: 1,
+},
+{
+id: "the-portuguese",
+name: "The Portuguese",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "the-dutch",
+name: "The Dutch",
+estimatedMinutes: 15,
+difficulty: 1,
+},
+{
+id: "the-english",
+name: "The English",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "the-danes",
+name: "The Danes",
+estimatedMinutes: 10,
+difficulty: 1,
+},
+{
+id: "the-french",
+name: "The French",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+],
+},
+{
+id: "the-carnatic-war",
+name: "The Carnatic War",
+subtopics: [
+{
+id: "english-east-india-company-trading-to-political",
+name: "English East India Company: From Trading Company to Political Power",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "anglo-french-struggle-supremacy-carnatic-wars",
+name: "Anglo-French Struggle for Supremacy: The Carnatic Wars",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "first-carnatic-war",
+name: "First Carnatic War",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "second-carnatic-war",
+name: "Second Carnatic War",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "third-carnatic-war",
+name: "Third Carnatic War",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "reasons-defeat-french-against-english",
+name: "Reasons for Defeat of the French Against the English",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+],
+},
+{
+id: "from-plassey-to-buxar",
+name: "From Plassey to Buxar",
+subtopics: [
+{
+id: "british-conquest-bengal-plassey-buxar",
+name: "British Conquest of Bengal-Plassey to Buxar (1757-65)",
+estimatedMinutes: 15,
+difficulty: 1,
+},
+{
+id: "plassey-buxar-backgrounder",
+name: "Backgrounder",
+estimatedMinutes: 15,
+difficulty: 1,
+},
+{
+id: "battle-of-plassey",
+name: "Battle of Plassey",
+estimatedMinutes: 30,
+difficulty: 2,
+},
+{
+id: "battle-of-buxar",
+name: "Battle of Buxar",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "evaluation-political-events-bengal",
+name: "Evaluation of Political Events in Bengal",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+],
+},
+{
+id: "conquest-of-mysore",
+name: "Conquest of Mysore",
+subtopics: [
+{
+id: "mysore-british-intervention",
+name: "British intervention",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "first-anglo-mysore-war",
+name: "First Anglo-Mysore War",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "second-anglo-mysore-war",
+name: "Second Anglo-Mysore War",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "third-anglo-mysore-war",
+name: "Third Anglo-Mysore War",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "fourth-anglo-mysore-war",
+name: "Fourth Anglo-Mysore War",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+],
+},
+{
+id: "conquest-of-maratha",
+name: "Conquest of Maratha",
+subtopics: [
+{
+id: "first-anglo-maratha-war",
+name: "First Anglo-Maratha War",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "second-anglo-maratha-war",
+name: "Second Anglo-Maratha War",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "third-anglo-maratha-war",
+name: "Third Anglo-Maratha War",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+],
+},
+{
+id: "expansion-beyond-india",
+name: "Expansion beyond India",
+subtopics: [
+{
+id: "expansion-nepal",
+name: "Nepal",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "expansion-burma",
+name: "Burma",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "expansion-afghanistan",
+name: "Afghanistan",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+],
+},
+{
+id: "north-india-conquest",
+name: "North India conquest",
+subtopics: [
+{
+id: "conquest-sindh",
+name: "Sindh",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "conquest-punjab",
+name: "Punjab",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "conquest-awadh",
+name: "Awadh",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+],
+},
+{
+id: "indian-economy-changes-and-impact-till-1858",
+name: "Indian Economy Changes and Impact till 1858",
+subtopics: [
+{
+id: "economic-model-british-east-india-company",
+name: "Economic Model of British East India Company",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "changing-phases-colonialism-impact",
+name: "Changing Phases of Colonialism and Impact",
+estimatedMinutes: 40,
+difficulty: 4,
+},
+{
+id: "changes-agrarian-structure-impact-economy",
+name: "Changes in Indian Agrarian Structure and Impact on Economy",
+estimatedMinutes: 35,
+difficulty: 4,
+},
+{
+id: "permanent-settlement",
+name: "Permanent Settlement",
+estimatedMinutes: 45,
+difficulty: 4,
+},
+{
+id: "ryotwari-system",
+name: "Ryotwari System",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "mahalwari-system",
+name: "Mahalwari System",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "economic-impact-general",
+name: "Economic Impact",
+estimatedMinutes: 45,
+difficulty: 4,
+},
+],
+},
+{
+id: "political-impact-till-1858",
+name: "Political Impact till 1858",
+subtopics: [
+{
+id: "regulating-act-1773",
+name: "Regulating Act 1773",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "pitts-india-act-1784",
+name: "Pitt's India Act 1784",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "act-of-1786",
+name: "Act of 1786",
+estimatedMinutes: 10,
+difficulty: 1,
+},
+{
+id: "charter-act-of-1793",
+name: "Charter Act of 1793",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "charter-act-of-1813",
+name: "Charter Act of 1813",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "charter-act-of-1833",
+name: "Charter Act of 1833",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "charter-act-of-1853",
+name: "Charter Act of 1853",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "government-of-india-act-1858",
+name: "Government of India Act 1858",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+],
+},
+{
+id: "indian-administration-till-1858",
+name: "Indian Administration till 1858",
+subtopics: [
+{
+id: "indian-administration-under-british",
+name: "Indian Administration under the British",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "the-home-government",
+name: "The Home Government",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "the-government-of-india-admin",
+name: "The Government of India",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "financial-and-revenue-administration",
+name: "The Financial and Revenue Administration",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "organization-civil-services-army-police",
+name: "Organization of the Civil Services, the Army and the Police",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "organisation-judicial-services",
+name: "Organisation of the Judicial Services",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "economic-policy-admin",
+name: "Economic Policy",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "social-policy-admin",
+name: "Social Policy",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "educational-policy-admin",
+name: "Educational Policy",
+estimatedMinutes: 45,
+difficulty: 4,
+},
+],
+},
+{
+id: "rise-of-national-consciousness",
+name: "Rise of National Consciousness",
+subtopics: [
+{
+id: "national-consciousness-factors",
+name: "Factors",
+estimatedMinutes: 30,
+difficulty: 2,
+},
+{
+id: "lord-lytton-policies",
+name: "Lord Lytton Policies",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "ilbert-bill-controversy",
+name: "Ilbert Bill controversy",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "rise-of-national-movement",
+name: "Rise of national movement",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "peasant-movements-early",
+name: "Peasant movements",
+estimatedMinutes: 40,
+difficulty: 3,
+},
+{
+id: "tribal-movements-early",
+name: "Tribal movements",
+estimatedMinutes: 45,
+difficulty: 4,
+},
+{
+id: "literary-activities-nationalism",
+name: "Literary activities",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "associations-and-organisations-early",
+name: "Associations and organisations",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+],
+},
+{
+id: "uprisings-upto-1857",
+name: "Uprisings upto 1857",
+subtopics: [
+{
+id: "bengal-revolts",
+name: "Bengal Revolts",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "eastern-india-revolts",
+name: "Eastern India revolts",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "western-india-revolts",
+name: "Western India revolts",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "southern-india-revolts",
+name: "Southern India revolts",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "northern-india-revolts-early",
+name: "Northern India revolts",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+],
+},
+{
+id: "1857-revolt",
+name: "1857 revolt",
+subtopics: [
+{
+id: "1857-causes",
+name: "Causes",
+estimatedMinutes: 45,
+difficulty: 3,
+},
+{
+id: "1857-storm-centers-and-leaders",
+name: "Storm centers and leaders",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "1857-defeat-and-cause",
+name: "Defeat and its cause",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "1857-significance",
+name: "Significance",
+estimatedMinutes: 35,
+difficulty: 4,
+},
+{
+id: "1857-consequence",
+name: "Conseuence of revolt",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+],
+},
+{
+id: "uprisings-post-1857",
+name: "Uprisings post 1857",
+subtopics: [
+{
+id: "indigo-revolt-and-mappila-revolt",
+name: "Indigo revolt and Mappila revolt",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "pabna-revolt-and-deccan-riots",
+name: "Pabna revolt and Deccan riots",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "koya-revolt-and-munda-revolt",
+name: "Koya revolt and Munda revolt",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "rampa-rebellion",
+name: "Rampa rebellion",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "working-class-movements",
+name: "Working class movements",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+],
+},
+{
+id: "socio-religious-movements-in-eastern-india",
+name: "Socio Religious movements in Eastern India",
+subtopics: [
+{
+id: "aim-classification-methods-reform",
+name: "Aim, classification and methods of reform",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "raja-ram-mohan-roy-reform",
+name: "Raja Ram Mohan Roy",
+estimatedMinutes: 30,
+difficulty: 2,
+},
+{
+id: "the-brahmo-samaj",
+name: "The Brahmo Samaj",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "derozio-and-young-bengal-movement",
+name: "Derozio and Young bengal movement",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "ishwar-chandra-vidyasagar",
+name: "Ishwar Chandra Vidyasagar",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "rk-paramhansa-and-swami-vivekananda",
+name: "RK Paramhansa and Swami Vivekananda",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+],
+},
+{
+id: "socio-religious-movements-in-western-india",
+name: "Socio Religious movements in Western India",
+subtopics: [
+{
+id: "balshahtri-jambhekar",
+name: "Balshahtri Jambhekar",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "dadoba-panduranga-and-paramhansa-mandali",
+name: "Dadoba Panduranga and Paramhansa Mandali",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "jyotiba-phule",
+name: "Jyotiba Phule",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "student-literary-and-scientific-society",
+name: "Student Literary and Scientific society",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "karsondas-mulji",
+name: "Karsondas Mulji",
+estimatedMinutes: 10,
+difficulty: 1,
+},
+{
+id: "lokahitwadi-gopal-hari",
+name: "Lokahitwadi Gopal Hari",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "bhikaji-gokhale",
+name: "Bhikaji Gokhale",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "rg-bhandarkar",
+name: "RG Bhandarkar",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "mg-ranade",
+name: "MG Ranade",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "chiplunkar-and-deccan-society",
+name: "Chiplunkar and Deccan Society",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "gg-agarkar",
+name: "GG Agarkar",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "gk-gokhale-and-servants-of-india-society",
+name: "GK Gokhale and Servants of India Society",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "depressed-class-mission",
+name: "Depressed Class Mission",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+],
+},
+{
+id: "socio-religious-movements-in-north-and-south-india",
+name: "Socio Religious movements in North and South India",
+subtopics: [
+{
+id: "swami-dayananad-and-arya-samaj",
+name: "Swami Dayananad and Arya Samaj",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "deva-samaj",
+name: "Deva Samaj",
+estimatedMinutes: 15,
+difficulty: 1,
+},
+{
+id: "the-theosophical-movement",
+name: "The Theosophical Movement",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "radhakanta-deb-and-dharma-sabha",
+name: "Radhakanta deb and Dharma Sabha",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "pandit-madan-mohan-malviya-and-mahamandala",
+name: "Pandit Madan Mohan Malviya and Mahamandala",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "radhaswami-movement",
+name: "Radhaswami Movement",
+estimatedMinutes: 15,
+difficulty: 1,
+},
+],
+},
+{
+id: "socio-religious-movements-in-other-religion",
+name: "Socio Religious movements in other religion",
+subtopics: [
+{
+id: "muslims-movements",
+name: "Muslims movements",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "sikh-and-parsi-movements",
+name: "Sikh and Parsi movements",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "non-brahmin-movements",
+name: "Non Brahmin movements",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "miscellaneous-movements",
+name: "Miscellaneous movements",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+],
+},
+{
+id: "india-before-congress",
+name: "India before Congress",
+subtopics: [
+{
+id: "political-associations-bengal-presidency",
+name: "Political Associations in Bengal Presidency",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "role-of-raja-ram-mohan-roy-pre-inc",
+name: "Role of Raja Ram Mohan Roy (1774-1833)",
+estimatedMinutes: 15,
+difficulty: 1,
+},
+{
+id: "bangbhasha-prakashika-sabha-1836",
+name: "Bangbhasha Prakashika Sabha (1836)",
+estimatedMinutes: 10,
+difficulty: 2,
+},
+{
+id: "landholders-society-1838",
+name: "Landholders Society (1838)",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "bengal-british-india-society-1843",
+name: "Bengal British India Society (1843)",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "british-indian-association-1851",
+name: "British Indian Association (1851)",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "indian-league-1875",
+name: "Indian League (1875)",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "indian-association-1876",
+name: "Indian Association (1876)",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "bombay-association",
+name: "Bombay Association",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "poona-sabha",
+name: "Poona Sabha",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "bombay-presidency-association",
+name: "Bombay Presidency Association",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "madras-association",
+name: "Madras Association",
+estimatedMinutes: 10,
+difficulty: 2,
+},
+{
+id: "madras-mahajan-sabha",
+name: "Madras Mahajan Sabha",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "east-india-association",
+name: "East India Association",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+],
+},
+{
+id: "formation-of-congress",
+name: "Formation of Congress",
+subtopics: [
+{
+id: "inc-formation",
+name: "Formation",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "theory-of-safety-valve",
+name: "Theory of Safety Valve",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+],
+},
+{
+id: "moderate-phase",
+name: "Moderate Phase",
+subtopics: [
+{
+id: "moderate-composition-leaders",
+name: "Composition and Leaders",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "moderate-method-demands",
+name: "Method and Demands",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "moderate-british-reaction-evaluation",
+name: "British reaction and evaluation",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+],
+},
+{
+id: "extremists-phase",
+name: "Extremists Phase",
+subtopics: [
+{
+id: "extremist-cause-leaders",
+name: "Cause and Leaders",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "extremist-demand-programmes",
+name: "Demand and programmes",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "extremist-assessment",
+name: "Assessment",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+],
+},
+{
+id: "swadeshi-movement",
+name: "Swadeshi Movement",
+subtopics: [
+{
+id: "curzon-attack",
+name: "Curzon Attack",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "bengal-partition",
+name: "Bengal Partition",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "swadeshi-and-boycott-movement",
+name: "Swadeshi and boycott movement",
+estimatedMinutes: 40,
+difficulty: 3,
+},
+{
+id: "swadeshi-polity-and-participations",
+name: "polity and participations",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "swadeshi-decline-and-reason",
+name: "Decline and reason for it",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "impact-of-swadeshi-movements",
+name: "Impact of Swadeshi movements",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+],
+},
+{
+id: "revolutionary-movements",
+name: "Revolutionary Movements",
+subtopics: [
+{
+id: "revolutionary-reasons-methods",
+name: "Reasons and Methods",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "revolutionary-activity-maharashtra",
+name: "Activity in Maharashtra",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "revolutionary-activity-bengal",
+name: "Activity in Bengal",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "revolutionary-activity-other-provinces",
+name: "Activity in Other provinces",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "ghadar-movement",
+name: "Ghadar movement",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+],
+},
+{
+id: "home-rule-league",
+name: "Home Rule League",
+subtopics: [
+{
+id: "home-rule-factors-formation",
+name: "Factors and Formation",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "home-rule-league-details",
+name: "Home Rule League",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "declination-of-home-rule",
+name: "Declination of Home Rule",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+],
+},
+{
+id: "gandhiji-in-south-africa",
+name: "Gandhiji in South Africa",
+subtopics: [
+{
+id: "gandhiji-early-life",
+name: "Gandhiji Early life",
+estimatedMinutes: 15,
+difficulty: 1,
+},
+{
+id: "gandhiji-career-south-africa",
+name: "Gandhiji career in South Africa",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+],
+},
+{
+id: "gandhiji-in-india",
+name: "Gandhiji in India",
+subtopics: [
+{
+id: "champaran-ahmedabad-and-kheda",
+name: "Champaran, Ahmedabad and Kheda",
+estimatedMinutes: 40,
+difficulty: 3,
+},
+{
+id: "rowlatt-satyagraha-and-jallianwala-bagh",
+name: "Rowlatt Satyagraha and jallianwala bagh",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "gandhi-early-evaluation",
+name: "evaluation",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+],
+},
+{
+id: "constituional-developments",
+name: "Constituional developments",
+subtopics: [
+{
+id: "indian-councils-act-1861",
+name: "Indian Councils Act 1861",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "indian-councils-act-of-1892",
+name: "Indian Councils Act of 1892",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "morley-minto-reforms-1909",
+name: "Morley-Minto Reforms 1909",
+estimatedMinutes: 40,
+difficulty: 4,
+},
+{
+id: "montague-chelmsford-reforms-1919",
+name: "Montague-Chelmsford Reforms 1919",
+estimatedMinutes: 45,
+difficulty: 4,
+},
+],
+},
+{
+id: "khilafat-and-non-cooperation",
+name: "Khilafat and Non Cooperation",
+subtopics: [
+{
+id: "khilafat-movement-1919-22",
+name: "Khilafat Movement (1919-22)",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "all-india-khilafat-conference-delhi",
+name: "All India Khilafat Conference (Delhi, 22-23 November 1919)",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "alliance-with-congress-role-of-gandhi-1920",
+name: "Alliance with Congress and Role of Gandhi (1920)",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "non-cooperation-intro",
+name: "Non-Cooperation",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "program-of-non-cooperation-movement",
+name: "Program of Non-Cooperation Movement",
+estimatedMinutes: 30,
+difficulty: 2,
+},
+{
+id: "government-response-ncm",
+name: "Govemnment Response",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "extent-of-participation-ncm",
+name: "Extent of Participation",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "spread-of-movement-local-variations",
+name: "Spread of the Movement and Local Variations",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "chauri-chaura-decline-of-movement",
+name: "Chauri Chaura (5th February 1922) and Decline of the Movement",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "significance-of-non-cooperation-movement",
+name: "Significance of Non-Cooperation Movement",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+],
+},
+{
+id: "swarajists",
+name: "Swarajists",
+subtopics: [
+{
+id: "formation-of-swaraj-party",
+name: "Formation of Swaraj party",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "swarajist-aim-objective-program",
+name: "Aim , objective and program",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "method-election-works-of-swarajists",
+name: "Method , election and works of Swarajists",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+],
+},
+{
+id: "rise-of-communalism",
+name: "Rise of communalism",
+subtopics: [
+{
+id: "meaning-of-communalism",
+name: "Meaning of Communalism",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "factors-responsible-rise-growth-communalism",
+name: "Factors Responsible for the Rise and Growth of Communalism in India",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "growth-of-communalism-20th-century",
+name: "Growth of Communalism in the 20th Century",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "partition-bengal-anti-partition-communal",
+name: "Partition of Bengal and Anti-Partition Movement (1905)",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "simla-deputation-1906",
+name: "Simla Deputation (1st October 1906)",
+estimatedMinutes: 20,
+difficulty: 3,
+},
+{
+id: "formation-of-muslim-league-1906",
+name: "Formation of the Muslim League (30th December 1906)",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "introduction-separate-electorates-1909",
+name: "Introduction of Separate Electorates (1909)",
+estimatedMinutes: 25,
+difficulty: 4,
+},
+{
+id: "formation-of-hindu-mahasabha-1915",
+name: "Formation of the Hindu Mahasabha (1915)",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "lucknow-pact-1916",
+name: "Lucknow Pact (1916)",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+],
+},
+{
+id: "second-phase-of-revolutionary-movements",
+name: "Second phase of revolutionary movements",
+subtopics: [
+{
+id: "revolutionaries-northern-india",
+name: "Revolutionaries in Northern India",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "hra-ideology",
+name: "HRA Ideology",
+estimatedMinutes: 20,
+difficulty: 3,
+},
+{
+id: "kakori-robbery",
+name: "Kakori Robbery",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "hsra-details",
+name: "HSRA",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "saunders-murder-case",
+name: "Saunders Murder Case",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "assembly-bomb-case",
+name: "Assembly Bomb Case",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "second-lahore-conspiracy-case-trials",
+name: "Second Lahore Conspiracy Case Trials",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "revolutionaries-bengal-phase2",
+name: "Revolutionaries in Bengal",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "chittagong-armoury-raid-1930",
+name: "The Chittagong Armoury Raid (18th April 1930)",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "rev-decline-and-significance-phase2",
+name: "Decline and significance",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+],
+},
+{
+id: "left-movements",
+name: "Left Movements",
+subtopics: [
+{
+id: "mn-ray-left",
+name: "MN Ray",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "peshawar-conspiracy-case-1922-23",
+name: "Peshawar Conspiracy Case (1922-23)",
+estimatedMinutes: 20,
+difficulty: 3,
+},
+{
+id: "early-communist-groups",
+name: "Early Communist Groups",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "kanpur-bolshevik-conspiracy-case-1924",
+name: "Kanpur (Cawnpore) Bolshevik Conspiracy Case (1924)",
+estimatedMinutes: 20,
+difficulty: 3,
+},
+{
+id: "formation-of-communist-party-of-india",
+name: "Formation of the Communist Party of India",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "formation-of-congress-socialist-party-1934",
+name: "Formation of the Congress Socialist Party (Bombay, October 1934)",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "minor-leftist-parties",
+name: "Minor Leftist Parties",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "the-forward-block-1939",
+name: "The Forward Block (1939)",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "revolutionary-socialist-party-1940",
+name: "Revolutionary Socialist Party (1940)",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "other-left-parties-misc",
+name: "Other Left Parties",
+estimatedMinutes: 10,
+difficulty: 2,
+},
+{
+id: "weaknesses-of-left-movement",
+name: "Weaknesses of the Left Movement",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "congress-reaction-formation-csp",
+name: "Congress Reaction to the Formation of Congress Socialist Party",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "growth-socialist-ideas-inc",
+name: "Growth of Socialist Ideas in the Indian National Congress",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "left-role-of-nehru-and-bose",
+name: "Role of Nehru and Bose",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+],
+},
+{
+id: "growth-of-peasant-and-worker-movement",
+name: "Growthof peasant and worker movement",
+subtopics: [
+{
+id: "why-trade-unions-emerged",
+name: "Why trade unions emerged",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "aituc-details",
+name: "AITUC",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "bardoli-satyagraha",
+name: "Bardoli Satyagraha",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "bakasht-movement",
+name: "Bakasht movement",
+estimatedMinutes: 20,
+difficulty: 3,
+},
+{
+id: "burdwan-satyagraha",
+name: "Burdwan Satyagraha",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "congress-response-peasant-worker",
+name: "Congress response",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+],
+},
+{
+id: "princely-states",
+name: "Princely States",
+subtopics: [
+{
+id: "princely-1740-1765-struggle-equality",
+name: "1740 to 1765-Struggle for Equality",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "princely-1765-1813-policy-ring-fence",
+name: "1765 to 1813- Policy of Ring Fence",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+{
+id: "princely-1813-1857-policy-subordinate-isolation",
+name: "1813 to 1857-Policy of Subordinate Isolation",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "princely-1857-1935-policy-subordinate-union",
+name: "1857 to 1935-Policy of Subordinate Union",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "the-chamber-of-princes",
+name: "The Chamber of Princes",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "indian-states-committee",
+name: "Indian States Committee",
+estimatedMinutes: 20,
+difficulty: 3,
+},
+{
+id: "princely-1935-1947-policy-equal-federation",
+name: "1935 to 1947-Policy of Equal Federation",
+estimatedMinutes: 25,
+difficulty: 3,
+},
+],
+},
+{
+id: "simon-commission-topic",
+name: "Simon Commission",
+subtopics: [
+{
+id: "simon-commission-dates",
+name: "Simon Commission (8 November 1927)",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "simon-boycott-movement",
+name: "Simon Boycott Movement",
+estimatedMinutes: 25,
+difficulty: 2,
+},
+{
+id: "simon-rise-young-leaders",
+name: "Rise of Young Leaders",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "police-repression-death-lalaji",
+name: "Police Repression and death of Lalaji",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "delhi-proposals-1927",
+name: "Delhi Proposals (December 1927)",
+estimatedMinutes: 20,
+difficulty: 3,
+},
+{
+id: "all-parties-conference-nehru-report-jinnah-points",
+name: "All Parties Conference, Nehru Report and Jinnah's Fourteen Points",
+estimatedMinutes: 45,
+difficulty: 4,
+},
+{
+id: "delhi-manifesto",
+name: "Delhi Manifesto",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+{
+id: "independence-pledge-1930",
+name: "Independence Pledge (26 January 1930)",
+estimatedMinutes: 15,
+difficulty: 1,
+},
+{
+id: "report-of-simon-commission-1930",
+name: "Report of the Simon Commission (7th June 1930)",
+estimatedMinutes: 20,
+difficulty: 3,
+},
+],
+},
+{
+id: "civil-disobedient-movement",
+name: "Civil Disobedient Movement",
+subtopics: [
+{
+id: "gandhiji-eleven-points",
+name: "Gandhiji eleven points",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "dandi-march-and-programme",
+name: "Dandi March and its programme",
+estimatedMinutes: 30,
+difficulty: 2,
+},
+{
+id: "salt-satyagrahas-regions",
+name: "Salt satyagrahas",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "decline-of-first-phase-cdm",
+name: "Decline of first phase",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "first-rtc",
+name: "First RTC",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "gamma-irwin-pact",
+name: "Gandhi-Irwin Pact",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "second-rtc",
+name: "Second RTC",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "communal-award",
+name: "Communa Award",
+estimatedMinutes: 35,
+difficulty: 4,
+},
+{
+id: "third-rtc",
+name: "Third RTC",
+estimatedMinutes: 15,
+difficulty: 2,
+},
+],
+},
+{
+id: "constituional-developments-till-1935",
+name: "Constituional developments till 1935",
+subtopics: [
+{
+id: "act-of-1935-details",
+name: "Act of 1935",
+estimatedMinutes: 50,
+difficulty: 4,
+},
+],
+},
+{
+id: "election-fo-1937",
+name: "Election fo 1937",
+subtopics: [
+{
+id: "ministries-1937",
+name: "ministries",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+],
+},
+{
+id: "quit-india-movement-topic",
+name: "Quit India movement",
+subtopics: [
+{
+id: "individual-satyagraha",
+name: "Individual Satyagraha",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "cripps-mission",
+name: "Cripps mission",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "qim-details",
+name: "QIM",
+estimatedMinutes: 45,
+difficulty: 4,
+},
+{
+id: "rajaji-formula-desai-plan",
+name: "Rajaji formula, Desai plan",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+],
+},
+{
+id: "post-war-movements",
+name: "Post war movements",
+subtopics: [
+{
+id: "wavell-plan-and-shimla conference",
+name: "Wavell plan and Shimla conference",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+{
+id: "cabinet-missions",
+name: "Cabinet Missions",
+estimatedMinutes: 40,
+difficulty: 4,
+},
+{
+id: "interim-government-details",
+name: "Interim government",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+],
+},
+{
+id: "freedom-topic",
+name: "Freedom",
+subtopics: [
+{
+id: "attlee-announcement",
+name: "Attlee announcement",
+estimatedMinutes: 20,
+difficulty: 2,
+},
+{
+id: "mountbatten-plan-details",
+name: "Mountbatten Plan",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "indian-independence-act-1947",
+name: "Indian Independence Act 1947",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+],
+},
+{
+id: "ina-and-rin",
+name: "INA and RIN",
+subtopics: [
+{
+id: "indian-national-army-details",
+name: "Indian national army",
+estimatedMinutes: 35,
+difficulty: 3,
+},
+{
+id: "royal-indian-navy-mutiny",
+name: "Royal Indian Navy mutiny",
+estimatedMinutes: 30,
+difficulty: 3,
+},
+],
+},
+]
+
+},
+ {
+     id: "post-independence",
+    type: "GS",
+    paper: "GS1",
+    name: "Post Independence History",
+
+    topics: [
+  {
+    id: "partition",
+    name: "Partition",
+    subtopics: [
+      {
+        id: "logic-and-reasoning-behind-partition",
+        name: "Logic and Reasoning behind Partition",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "process-of-partition",
+        name: "Process of partition",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "impact-of-partition",
+        name: "Impact of partition",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "integration-of-princely-states",
+    name: "Integration of Princely States",
+    subtopics: [
+      {
+        id: "lapse-of-paramountcy",
+        name: "Lapse of paramountcy",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "role-of-mountbatten-in-integration",
+        name: "Role of mountbatten in integration",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "sardar-patel-role",
+        name: "Sardar Patel role",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "process-of-integration",
+        name: "Process of integration",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "integration-of-tribals",
+    name: "Integration of tribals",
+    subtopics: [
+      {
+        id: "planning-and-programmes-tribal",
+        name: "Planning and Programmes",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "tribal-development",
+        name: "Tribal Development",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "pandit-nehru-approach-and-measures-taken",
+        name: "Pandit Nehru approach and measures taken",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "reorganization-of-states",
+    name: "Reorganization of States",
+    subtopics: [
+      {
+        id: "organisation-of-states-after-integration",
+        name: "Organisation of states after integration",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "outcome-of-linguistic-reorganisation",
+        name: "outcome of linguistic reorganisation",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "challenges-created-by-state-reorganisation",
+        name: "challenges created by State reorganisation",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "minority-languages",
+        name: "Minority Languages",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "small-vs-big-size-states",
+        name: "Small vs Big size States",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "issue-of-official-language",
+        name: "Issue of official language",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "three-language-formula-nep-2020",
+        name: "Three language formula NEP 2020",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "regionalism-growth",
+        name: "Regionalism growth",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "nationalism-vs-regionalism",
+        name: "Nationalism vs Regionalism",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "federalism-and-regionalism",
+        name: "Federalism and Regionalism",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "achievements-post-independence",
+    name: "Achievements Post independence",
+    subtopics: [
+      {
+        id: "resettling-refugees-post-partition",
+        name: "Resettling Refugees Post-Partition",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "making-an-electoral-democracy",
+        name: "Making an Electoral Democracy",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "development-of-science-and-technology",
+        name: "Development of Science and Technology",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "development-in-the-field-of-education",
+        name: "Development in the Field of Education",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "dams-and-steel-plants-new-temples-of-india",
+        name: "Dams and Steel Plants: New Temples of India",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "creating-democratic-institutions",
+        name: "Creating Democratic Institutions",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "social-change-post-independence",
+        name: "Social Change",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "community-development-programmes",
+        name: "Community Development Programmes",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "socialism-and-communalism",
+        name: "Socialism and Communalism",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "nam",
+        name: "NAM",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "relationship-with-neighbours-and-superpowers",
+        name: "Relationship with Neighbours and superpowers",
+        estimatedMinutes: 50,
+        difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "shastri-jee-to-indira-gandhi",
+    name: "Shastri Jee to Indira Gandhi",
+    subtopics: [
+      {
+        id: "the-shastris-years",
+        name: "The Shastris years",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "early-years-of-indira-gandhi",
+        name: "Early years of Indira Gandhi",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "emergence-of-multiparty-system",
+    name: "Emergence of multiparty system",
+    subtopics: [
+      {
+        id: "congress-system-1947-1967",
+        name: "Congress System 1947-1967",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "decline-of-congress",
+        name: "Decline of congress",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "opposition-parties",
+        name: "Opposition parties",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "market-polity-system",
+        name: "Market polity system",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "multiparty-system-details",
+        name: "Multiparty system",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "loose-bi-polar-alliance-system",
+        name: "Loose Bi-polar Alliance system",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "emergence-of-indira-gandhi",
+    name: "Emergence of Indira Gandhi",
+    subtopics: [
+      {
+        id: "election-of-1967",
+        name: "Election of 1967",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "congress-dominance",
+        name: "Congress dominance",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "pakistan-creation",
+        name: "Pakistan creation",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "pokhran-i",
+        name: "Pokhran I",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "jp-movement-and-era-of-emergency",
+    name: "JP Movement & Era of emergency",
+    subtopics: [
+      {
+        id: "early-protest-and-start-of-jp-movement",
+        name: "Early protest and start of JP movement",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "era-of-emergency",
+        name: "Era of emergency",
+        estimatedMinutes: 45,
+        difficulty: 4,
+      },
+      {
+        id: "janta-dal-government",
+        name: "Janta Dal government",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "revival-of-congress-and-punjab-crisis",
+    name: "Revival of Congress and Punjab Crisis",
+    subtopics: [
+      {
+        id: "punjab-crisis",
+        name: "Punjab crisis",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "operation-bluestar",
+        name: "Operation bluestar",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "era-of-rajiv-gandhi",
+    name: "Era of Rajiv Gandhi",
+    subtopics: [
+      {
+        id: "early-years-of-rajiv-gandhi",
+        name: "Early years of Rajiv Gandhi",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "bhopal-gas-tragedy",
+        name: "Bhopal Gas Tragedy",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "foreign-policy-of-rajiv-gandhi",
+        name: "Foreign Policy of Rajiv Gandhi",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "assam-crisis-and-its-resolution",
+        name: "Assam Crisis and its Resolution",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "politics-after-rajiv-gandhi",
+    name: "Politics after Rajiv Gandhi",
+    subtopics: [
+      {
+        id: "the-national-front-government",
+        name: "The National Front Government",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "united-front-government",
+        name: "United Front Government",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "atal-bihari-government",
+        name: "Atal Bihari Government",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "land-reforms-and-cooperatives",
+    name: "Land Reforms and Cooperatives",
+    subtopics: [
+      {
+        id: "phases-of-land-reform",
+        name: "Phases of land reform",
+        estimatedMinutes: 45,
+        difficulty: 4,
+      },
+      {
+        id: "bhoodan-movement",
+        name: "Bhoodan movement",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "cooperativity and-community",
+        name: "Cooperativity and Community",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "green-revolution",
+    name: "Green Revolution",
+    subtopics: [
+      {
+        id: "start-of-green-revolution",
+        name: "Start of Green Revolution",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "phases-of-green-revolution",
+        name: "Phases of Green Revolution",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "indian-economy-since-independence",
+    name: "Indian Economy since Independence",
+    subtopics: [
+      {
+        id: "planning-commission",
+        name: "Planning Commission",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "five-years-plan",
+        name: "Five Years Plan",
+        estimatedMinutes: 45,
+        difficulty: 4,
+      },
+      {
+        id: "lpg-reform",
+        name: "LPG reform",
+        estimatedMinutes: 45,
+        difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "india-during-2000-to-2014",
+    name: "India during 2000 to 2014",
+    subtopics: [
+      {
+        id: "kandahar-incident",
+        name: "Kandahar incident",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "agra-summit",
+        name: "Agra summit",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "godhra-riots",
+        name: "Godhra Riots",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "upa-government",
+        name: "UPA government",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+]
+},
+{
+     id: "world-history",
+    type: "GS",
+    paper: "GS1",
+    name: "World History",
+
+    topics: [
+  {
+    id: "middle-ages-and-renaissance",
+    name: "Middle Ages and Renaissance",
+    subtopics: [
+      {
+        id: "background-of-medieval-europe",
+        name: "Background of Medieval Europe",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "renaissance-in-europe",
+        name: "Renaissance in Europe",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "industrial-revolution",
+    name: "Industrial Revolution",
+    subtopics: [
+      {
+        id: "pre-requisite-to-industrial-revolution",
+        name: "Pre-requisite to industrial revolution",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "why-industrial-revolution-began-in-england",
+        name: "Why Industrial Revolution began in England?",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "industrial-revolution-and-impact-on-society",
+        name: "Industrial revolution and impact on society",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "industrial-revolution-and-impact-on-economy",
+        name: "Industrial Revolution and impact on economy",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "industrial-revolution-in-america-usa",
+        name: "Industrial Revolution in America (USA)",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "industrial-revolution-in-russia",
+        name: "Industrial Revolution in Russia",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "french-revolution",
+    name: "French Revolution",
+    subtopics: [
+      {
+        id: "old-regime-in-france-and-europe",
+        name: "Old regime in France and Europe",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "napoleon-era",
+    name: "Napoleon Era",
+    subtopics: [
+      {
+        id: "early-expedition-and-rise-of-directory",
+        name: "Early expedition and Rise of Directory",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "reforms-of-napoleon",
+        name: "Reforms of Napoleon",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "napoleonic-wars-and-decline-of-napoleon",
+        name: "Napoleonic wars and Decline of Napoleon",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "the-congress-of-viewna-1815",
+        name: "The Congress of Vienna, 1815",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "american-revolution",
+    name: "American Revolution",
+    subtopics: [
+      {
+        id: "condition-of-us-before-revolution",
+        name: "Condition of US before revolution",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "causes-of-american-revolution-before-1763",
+        name: "Causes of American Revolution before 1763",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "causes-of-american-revolution-after-1763",
+        name: "Causes of American Revolution after 1763",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "course-of-revolution",
+        name: "Course of Revolution",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "effects-of-american-revolution",
+        name: "Effects of American Revolution",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "unification-of-germany",
+    name: "Unification of Germany",
+    subtopics: [
+      {
+        id: "background-and-congress-of-vienna-germany",
+        name: "Background and Congress of Vienna",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "causes-behind-unification-of-germany",
+        name: "Causes behind Unification of Germany",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "process-of-german-unification",
+        name: "Process of German Unification",
+        estimatedMinutes: 40,
+        difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "unification-of-italy",
+    name: "Unification of Italy",
+    subtopics: [
+      {
+        id: "causes-behind-italian-unification",
+        name: "Causes behind Italian Unification",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "process-of-italian-unification",
+        name: "Process of Italian Unification",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "important-personalities-of-italian-unification",
+        name: "Important Personalities of Italian Unification",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "world-war-i",
+    name: "World War I",
+    subtopics: [
+      {
+        id: "events-that-shaped-ww-i-part-i",
+        name: "Events that shaped WW I (Part I)",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "events-that-shaped-ww-i-part-ii",
+        name: "Events that shaped WW I (Part II)",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "events-that-shaped-world-war-i-part-iii",
+        name: "Events that shaped World War I (Part III)",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "course-of-world-war-i",
+        name: "Course of World War I",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "events-after-the-world-war-i",
+        name: "Events after the World War I",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "consequences-of-world-war-i",
+        name: "Consequences of World War I",
+        estimatedMinutes: 40,
+        difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "league-of-nations",
+    name: "League of Nations",
+    subtopics: [
+      {
+        id: "foundation-of-league-of-nations",
+        name: "Foundation of League of Nations",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "organisation-of-league-of-nations",
+        name: "Organisation of League of Nations",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "achievement-of-league-of-nations",
+        name: "Achievement of League of Nations",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "why-league-of-nations-failed",
+        name: "Why League of Nations failed?",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "russian-revolution",
+    name: "Russian Revolution",
+    subtopics: [
+      {
+        id: "situation-before-russia-revolution",
+        name: "Situation before Russia Revolution",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "causes-behind-russia-revolution",
+        name: "Causes behind Russia Revolution",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "course-of-russian-revolution",
+        name: "Course of Russian Revolution",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "important-personalities-in-russian-revolution",
+        name: "Important Personalities in Russian revolution",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "after-russian-revolution-stalin-era",
+        name: "After Russian Revolution: Stalin Era",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "world-between-world-wars",
+    name: "World between World Wars",
+    subtopics: [
+      {
+        id: "world-between-1919-23",
+        name: "World Between 1919-23",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "the-great-depression",
+        name: "The Great Depression",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "world-between-1924-39",
+        name: "World between 1924-39",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "fascism-rise",
+        name: "Fascism",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "nazism-rise",
+        name: "Nazism",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "world-war-ii",
+    name: "World War II",
+    subtopics: [
+      {
+        id: "cause-and-course-of-world-war-ii-part-i",
+        name: "Cause and Course of World War II (Part I)",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "cause-and-course-of-world-war-ii-part-ii",
+        name: "Cause and Course of World War II (Part II)",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "allied-forces-became-victorious",
+        name: "Allied forces became victorious",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "consequences-of-world-war-ii",
+        name: "Consequences of World War II",
+        estimatedMinutes: 40,
+        difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "cold-war",
+    name: "Cold War",
+    subtopics: [
+      {
+        id: "causes-of-cold-war",
+        name: "Causes of Cold War",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "cold-war-and-korea",
+        name: "Cold War and Korea",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "cold-war-and-vietnam",
+        name: "Cold War and Vietnam",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "cold-war-latin-america-middle-east-eastern-europe",
+        name: "Cold War: Latin America, Middle East and Eastern Europe",
+        estimatedMinutes: 40,
+        difficulty: 4,
+      },
+      {
+        id: "cold-war-from-brinkmanship-to-detente",
+        name: "Cold War: From Brinkmanship to Détente",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "cold-war-germany-and-russia",
+        name: "Cold War: Germany and Russia",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "chinese-revolution",
+    name: "Chinese Revolution",
+    subtopics: [
+      {
+        id: "china-before-revolution",
+        name: "China before revolution",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "revolution-in-china",
+        name: "Revolution in China",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "china-under-mao",
+        name: "China under Mao",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "modern-china-topic",
+        name: "Modern China",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "japan-history",
+    name: "Japan",
+    subtopics: [
+      {
+        id: "japan-before-meiji-restoration",
+        name: "Japan before Meiji Restoration",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "japan-after-meiji-restoration",
+        name: "Japan after Meiji restoration",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "africa-history",
+    name: "Africa",
+    subtopics: [
+      {
+        id: "imperialism-in-africa",
+        name: "Imperialism in Africa",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "colonisation-of-africa",
+        name: "Colonisation of Africa",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "scramble-of-africa",
+        name: "Scramble of Africa",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "resistance-movement-in-africa",
+        name: "Resistance Movement in Africa",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "philosophies",
+    name: "Philosophies",
+    subtopics: [
+      {
+        id: "philosophy-colonialism",
+        name: "Colonialism",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "philosophy-imperialism",
+        name: "Imperialism",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "philosophy-capitalism",
+        name: "Capitalism",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "philosophy-communism",
+        name: "Communism",
+        estimatedMinutes: 40,
+        difficulty: 4,
+      },
+      {
+        id: "philosophy-socialism",
+        name: "Socialism",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+    ],
+  },
+]
+},
+{
+     id: "art-culture",
+    type: "GS",
+    paper: "GS1",
+    name: "Art & Culture",
+
+   topics: [
+  {
+    id: "architecture-in-india",
+    name: "Architecture in India",
+    subtopics: [
+      {
+        id: "influence-of-buddhism-and-jainism-on-indian-architecture",
+        name: "Influence of Buddhism and Jainism on Indian Architecture.",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "impact-of-persian-and-greek-invasion-on-indian-architectural-styles",
+        name: "Impact of Persian and Greek Invasion on Indian Architectural Styles",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "mauryan-architecture",
+        name: "Mauryan Architecture",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "post-mauryan-architecture",
+        name: "Post-Mauryan Architecture",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "architectural-development-during-gupta-age",
+        name: "Architectural Development During Gupta Age.",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "temple-architecture",
+        name: "Temple Architecture",
+        estimatedMinutes: 60,
+        difficulty: 4,
+      },
+      {
+        id: "pallavas-as-great-temple-builders",
+        name: "Pallavas as Great Temple Builders",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "emergence-of-nalanda-as-centre-of-learning",
+        name: "Emergence of Nalanda as Centre of Learning",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "medieval-period-architecture",
+        name: "Medieval Period Architecture",
+        estimatedMinutes: 50,
+        difficulty: 4,
+      },
+      {
+        id: "modern-architecture",
+        name: "Modern Architecture",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "post-independence-period-arch",
+        name: "Post-Independence Period",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "utility-and-relevance-of-architectural-structures-today-and-in-the-past",
+        name: "Utility and Relevance of Architectural structures today and in the Past",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "conservation-and-preservation-of-architectural-structures",
+        name: "Conservation and Preservation of Architectural Structures",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "spread-of-indian-culture-to-southeast-asia",
+        name: "Spread of Indian Culture to Southeast Asia",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "some-of-the-temple-architecturesin-southeast-asia",
+        name: "Some of the Temple Architecturesin Southeast Asia",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "sculptures-in-india",
+    name: "Sculptures in India",
+    subtopics: [
+      {
+        id: "meaning-of-sculpture",
+        name: "Meaning of Sculpture",
+        estimatedMinutes: 10,
+        difficulty: 1,
+      },
+      {
+        id: "harappan-sculpture",
+        name: "Harappan Sculpture",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "mauryan-sculpture",
+        name: "Mauryan Sculpture",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "post-mauryan-sculpture",
+        name: "Post Mauryan Sculpture",
+        estimatedMinutes: 45,
+        difficulty: 4,
+      },
+      {
+        id: "kushan-sculpture",
+        name: "Kushan Sculpture",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "gupta-sculpture",
+        name: "Gupta Sculpture",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "himachal-and-kashmir-sculpture",
+        name: "Himachal and Kashmir Sculpture",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "pala-dynasty-sculpture",
+        name: "Pala Dynasty Sculpture",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "early-south-indian-sculpture",
+        name: "Early South Indian Sculpture",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "coins-in-india",
+    name: "Coins in India",
+    subtopics: [
+      {
+        id: "coins-introduction",
+        name: "Introduction",
+        estimatedMinutes: 10,
+        difficulty: 1,
+      },
+      {
+        id: "the-historical-significance-of-numismatics",
+        name: "The Historical Significance of Numismatics.",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "comparison-of-coin-used-in-india",
+        name: "Comparison of Coin Used In India",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "punch-marked-coins",
+        name: "Punch-Marked Coins",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "dynastic-coins",
+        name: "Dynastic coins",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "south-indian-coins",
+        name: "South Indian Coins",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "coins-in-mediaeval-india",
+        name: "Coins In Mediaeval India",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "coinage-in-modern-times",
+        name: "Coinage In Modern Times",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "foreign-coins-discovered-in-india",
+        name: "Foreign Coins Discovered In India",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "post-independence-coins",
+        name: "Post Independence Coins",
+        estimatedMinutes: 10,
+        difficulty: 1,
+      },
+    ],
+  },
+  {
+    id: "pottery-tradition-in-india",
+    name: "Pottery Tradition in India",
+    subtopics: [
+      {
+        id: "types-of-pottery",
+        name: "Types of pottery",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "time-period-of-pottery-and-downfall",
+        name: "Time period of pottery and downfall",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "paintings-in-india",
+    name: "Paintings in India",
+    subtopics: [
+      {
+        id: "paintings-evolution-and-principles",
+        name: "Evolution and Principles",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "ancient-paintings",
+        name: "Ancient paintings",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "murals-and-miniatures",
+        name: "Murals and Miniatures",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+      {
+        id: "rajasthani-school-paintings",
+        name: "Rajasthani school",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "pahari-school-paintings",
+        name: "Pahari School",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "ragamala-paintings",
+        name: "Ragamala paintings",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "south-paintings",
+        name: "South paintings",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "modern-period-paintings",
+        name: "Modern Period",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "literature-topic",
+    name: "Literature",
+    subtopics: [
+      {
+        id: "literature-basics",
+        name: "Basics",
+        estimatedMinutes: 10,
+        difficulty: 1,
+      },
+      {
+        id: "vedic-literature",
+        name: "Vedic Literature",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "classical-sanskrit-literatures",
+        name: "Classical Sanskrit Literatures",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "buddhistan-literatures",
+        name: "Buddhist Literatures",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "jain-literature",
+        name: "Jain Literature",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "dravidian-literature",
+        name: "Dravidian Literature",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "medieval-literature",
+        name: "Medieval Literature",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "modern-literature",
+        name: "Modern Literature",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "philosophy-topic",
+    name: "Philosophy",
+    subtopics: [
+      {
+        id: "orthodox-school",
+        name: "Orthodox school",
+        estimatedMinutes: 45,
+        difficulty: 4,
+      },
+      {
+        id: "heterodox-school",
+        name: "Heterodox school",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "awards-and-honors",
+    name: "Awards & Honors",
+    subtopics: [
+      {
+        id: "bharat-ratna",
+        name: "Bharat Ratna",
+        estimatedMinutes: 15,
+        difficulty: 1,
+      },
+      {
+        id: "padma-awards",
+        name: "Padma awards",
+        estimatedMinutes: 15,
+        difficulty: 1,
+      },
+      {
+        id: "sahitya-akademy-award",
+        name: "Sahitya Akademy award",
+        estimatedMinutes: 15,
+        difficulty: 1,
+      },
+      {
+        id: "national-film-award",
+        name: "National Film award",
+        estimatedMinutes: 15,
+        difficulty: 1,
+      },
+    ],
+  },
+  {
+    id: "music-and-dance",
+    name: "Music and Dance",
+    subtopics: [
+      {
+        id: "classical-music",
+        name: "Classical Music",
+        estimatedMinutes: 80,
+        difficulty: 4,
+      },
+      {
+        id: "classical-dance",
+        name: "Classical Dance",
+        estimatedMinutes: 120,
+        difficulty: 4,
+      },
+    ],
+  },
+]
+},
+{
+     id: "physical-geography",
+    type: "GS",
+    paper: "GS1",
+    name: "Physical Geography",
+
+    topics: [
+  {
+    id: "interior-of-the-earth",
+    name: "Interior of the Earth",
+    subtopics: [
+      {
+        id: "direct-and-indirect-sources",
+        name: "Direct and Indirect Sources",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "seismic-waves-and-its-types",
+        name: "Seismic Waves and its types",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "internal-structure-of-earth",
+        name: "Internal Structure of Earth",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "earths-magnetic-field",
+    name: "Earths Magnetic Field",
+    subtopics: [
+      {
+        id: "dynamo-theory",
+        name: "Dynamo theory",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "magnetic-poles-and-reversal",
+        name: "Magnetic Poles and Reversal",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "compass-and-geomagnetic-poles",
+        name: "Compass and Geomagnetic Poles",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "auroras-and-geomagnetic-storms",
+        name: "Auroras and Geomagnetic Storms",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "van-allen-belt",
+        name: "Van Allen Belt",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "geomorphic-movements",
+    name: "Geomorphic Movements",
+    subtopics: [
+      {
+        id: "endogenic-movements-force",
+        name: "Endogenic movements force",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "endogenic-movements-classification",
+        name: "Endogenic movements classification",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "diastrophism",
+        name: "Diastrophism",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "catastrophism",
+        name: "Catastrophism",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "exogenic-movements-force",
+        name: "Exogenic movements force",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "denudation",
+        name: "Denudation",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "weathering",
+        name: "Weathering",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "tectonics",
+    name: "Tectonics",
+    subtopics: [
+      {
+        id: "tectonics-concepts",
+        name: "Concepts",
+        estimatedMinutes: 15,
+        difficulty: 1,
+      },
+      {
+        id: "continental-drift-theory",
+        name: "Continental Drift Theory",
+        estimatedMinutes: 35,
+        difficulty: 2,
+      },
+      {
+        id: "seafloor-spreading",
+        name: "Seafloor Spreading",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "plate-tectonics-theory",
+        name: "Plate Tectonics theory",
+        estimatedMinutes: 45,
+        difficulty: 4,
+      },
+      {
+        id: "comparison-between-cdt-sf-pt",
+        name: "Comparison between CDT, SF, PT",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "convergent-boundary",
+    name: "Convergent Boundary",
+    subtopics: [
+      {
+        id: "ocean-ocean-convergence",
+        name: "Ocean-Ocean convergence",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "formation-of-different-island-arc",
+        name: "Formation of different Island Arc",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "continent-ocean-convergence",
+        name: "Continent-Ocean Convergence",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "formation-of-cordilleras",
+        name: "Formation of Cordilleras",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "rockies-and-andes-formation",
+        name: "Rockies and Andes formation",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "continent-continent-convergence",
+        name: "Continent-Continent Convergence",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "himalayas-alps-urals-formation",
+        name: "Himalayas, Alps, Urals formation",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "new-guinea-convergence",
+        name: "New Guinea Convergence",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "divergent-boundary",
+    name: "Divergent Boundary",
+    subtopics: [
+      {
+        id: "rift-valleys",
+        name: "Rift valleys",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "great-african-rift-valley",
+        name: "Great African Rift Valley",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "mountains",
+    name: "Mountains",
+    subtopics: [
+      {
+        id: "fold-mountains",
+        name: "Fold mountains",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "block-mountains",
+        name: "Block mountains",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "volcanic-mountains",
+        name: "Volcanic mountains",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "famous-peaks",
+        name: "Famous Peaks",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "volcanism",
+    name: "Volcanism",
+    subtopics: [
+      {
+        id: "lava-types",
+        name: "Lava types",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "extrusive-landforms",
+        name: "Extrusive landforms",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "intrusive-landforms",
+        name: "Intrusive Landforms",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "volcanism-types",
+        name: "Volcanism types",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "hotspot-volcano",
+        name: "Hotspot volcano",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "geysers-and-hot-spring",
+        name: "Geysers and Hot Spring",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "volcanism-distribution",
+        name: "Distribution",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "rocks",
+    name: "Rocks",
+    subtopics: [
+      {
+        id: "types-of-rock",
+        name: "Types of Rock",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "rock-cycle",
+        name: "Rock Cycle",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "tsunami",
+    name: "Tsunami",
+    subtopics: [
+      {
+        id: "tsunami-mechanism",
+        name: "Mechanism",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "warning-system-in-india",
+        name: "Warning System in India",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "erosions",
+    name: "Erosions",
+    subtopics: [
+      {
+        id: "water-erosion",
+        name: "Water Erosion",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "landslides",
+        name: "Landslides",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "glacial-erosion",
+        name: "Glacial Erosion",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "wind-erosion",
+        name: "Wind erosion",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "fluvial-landforms",
+    name: "Fluvial Landforms",
+    subtopics: [
+      {
+        id: "fluvial-erosional-landforms",
+        name: "Erosional landforms",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "fluvial-depositional-landforms",
+        name: "Depositional landforms",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "karst-landforms",
+    name: "Karst Landforms",
+    subtopics: [
+      {
+        id: "karst-erosional-landforms",
+        name: "Erosional landforms",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "karst-depositional-landforms",
+        name: "Depositional landforms",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "marine-landforms",
+    name: "Marine Landforms",
+    subtopics: [
+      {
+        id: "marine-erosional-landforms",
+        name: "Erosional landforms",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "marine-depositional-landforms",
+        name: "Depositional landforms",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "glacial-landforms",
+    name: "Glacial Landforms",
+    subtopics: [
+      {
+        id: "glacial-erosional-landforms",
+        name: "Erosional landforms",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "glacial-depositional-landforms",
+        name: "Depositional landforms",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "arid-landforms",
+    name: "Arid Landforms",
+    subtopics: [
+      {
+        id: "arid-erosional-landforms",
+        name: "Erosional landforms",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "arid-depositional-landforms",
+        name: "Depositional landforms",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "motion-of-earth",
+    name: "Motion of Earth",
+    subtopics: [
+      {
+        id: "latitudes",
+        name: "Latitudes",
+        estimatedMinutes: 15,
+        difficulty: 1,
+      },
+      {
+        id: "longitudes",
+        name: "Longitudes",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "rotation",
+        name: "Rotation",
+        estimatedMinutes: 15,
+        difficulty: 1,
+      },
+      {
+        id: "revolution",
+        name: "Revolution",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "atmosphere",
+    name: "Atmosphere",
+    subtopics: [
+      {
+        id: "atmosphere-evolution",
+        name: "Evolution",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "atmosphere-composition",
+        name: "Composition",
+        estimatedMinutes: 15,
+        difficulty: 1,
+      },
+      {
+        id: "atmosphere-structure-and-importance",
+        name: "Structure and Importance",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "temperature-distribution-on-earth",
+    name: "Temperature Distribution on Earth",
+    subtopics: [
+      {
+        id: "transfer-of-heat",
+        name: "Transfer of heat",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "factors-affecting-temperature-distribution",
+        name: "Factors affecting distribution",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "mean-annual-temperature",
+        name: "Mean Annual Temperature",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "heat-balance",
+        name: "Heat Balance",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "heat-budget",
+        name: "Heat Budget",
+        estimatedMinutes: 40,
+        difficulty: 4,
+      },
+      {
+        id: "lapse-rate-and-adiabatic-lapse-rate",
+        name: "Lapse Rate and Adiabatic Lapse rate",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "temperature-inversion",
+        name: "Temperature inversion",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "pressure-and-wind-systems",
+    name: "Pressure and Wind Systems",
+    subtopics: [
+      {
+        id: "pressure-cells-intro",
+        name: "Pressure Cells",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "isobars",
+        name: "Isobars",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "factors-affecting-wind-movements",
+        name: "Factors affecting wind movements",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "pressure-belts",
+        name: "Pressure Belts",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "cells-in-pressure-system",
+        name: "Cells in pressure system",
+        estimatedMinutes: 30,
+        difficulty: 4,
+      },
+      {
+        id: "primary-and-secondary-winds",
+        name: "Primary and Secondary Winds",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "local-winds",
+        name: "Local Winds",
+        estimatedMinutes: 35,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "water-cycle",
+    name: "Water Cycle",
+    subtopics: [
+      {
+        id: "humidity",
+        name: "Humidity",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "evaporation",
+        name: "Evaporation",
+        estimatedMinutes: 15,
+        difficulty: 1,
+      },
+      {
+        id: "condensation-and-its-forms",
+        name: "Condensation and its forms",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "cloud-and-types",
+        name: "Cloud and types",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "precipitation-and-its-types",
+        name: "Precipitation and its types",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "thunderstorm",
+    name: "Thunderstorm",
+    subtopics: [
+      {
+        id: "thunderstorm-stages",
+        name: "Stages",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "thunderstorm-types",
+        name: "Types",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "tornado",
+        name: "Tornado",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "lightning",
+        name: "Lightning",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "hailstorm",
+        name: "Hailstorm",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "tropical-cyclone",
+    name: "Tropical Cyclone",
+    subtopics: [
+      {
+        id: "tropical-cyclone-conditions",
+        name: "Conditions",
+        estimatedMinutes: 30,
+        difficulty: 4,
+      },
+      {
+        id: "development-of-cyclone",
+        name: "Development of cyclone",
+        estimatedMinutes: 40,
+        difficulty: 4,
+      },
+      {
+        id: "path-of-cyclone",
+        name: "Path of cyclone",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "damages-by-tropical-cyclone",
+        name: "Damages by tropical cyclone",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "naming-of-cyclone",
+        name: "Naming of cyclone",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "warning-of-cyclone",
+        name: "Warning of cyclone",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "jet-stream",
+    name: "Jet Stream",
+    subtopics: [
+      {
+        id: "geostrophic-winds",
+        name: "Geostrophic winds",
+        estimatedMinutes: 25,
+        difficulty: 4,
+      },
+      {
+        id: "permanent-jet-streams",
+        name: "Permanent Jet Streams",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "temporary-jet-streams",
+        name: "Temporary Jet streams",
+        estimatedMinutes: 25,
+        difficulty: 4,
+      },
+      {
+        id: "influence-of-jet-streams",
+        name: "Influence of Jet streams",
+        estimatedMinutes: 30,
+        difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "temperate-cyclones",
+    name: "Temperate Cyclones",
+    subtopics: [
+      {
+        id: "air-masses",
+        name: "Air masses",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "front-and-its-types",
+        name: "Front and its types",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "origin-and-development-of-temperate-cyclones",
+        name: "Origin and development of temperate cyclones",
+        estimatedMinutes: 40,
+        difficulty: 4,
+      },
+      {
+        id: "polar-vortex",
+        name: "Polar Vortex",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "el-nino",
+    name: "El Nino",
+    subtopics: [
+      {
+        id: "walker-cell",
+        name: "Walker Cell",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "enso",
+        name: "ENSO",
+        estimatedMinutes: 40,
+        difficulty: 4,
+      },
+      {
+        id: "iod",
+        name: "IOD",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+      {
+        id: "modoki",
+        name: "Modoki",
+        estimatedMinutes: 25,
+        difficulty: 4,
+      },
+      {
+        id: "la-nina",
+        name: "La Nina",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "tropical-humid-climates",
+    name: "Tropical Humid Climates",
+    subtopics: [
+      {
+        id: "tropical-wet",
+        name: "Tropical Wet",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "tropical-monsoon",
+        name: "Tropical Monsoon",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "savanna",
+        name: "Savanna",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "dry-climate",
+    name: "Dry Climate",
+    subtopics: [
+      {
+        id: "hot-desert",
+        name: "Hot Desert",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "mid-latitude",
+        name: "Mid-Latitude",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "steppe",
+        name: "Steppe",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "warm-temperature",
+    name: "Warm Temperature",
+    subtopics: [
+      {
+        id: "mediterranean",
+        name: "Mediterranean",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "warm-temperate-eastern-margin",
+        name: "Warm temperate Eastern Margin",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "british-type",
+        name: "British Type",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "cold-snow",
+    name: "Cold Snow",
+    subtopics: [
+      {
+        id: "taiga",
+        name: "Taiga",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "laurentian",
+        name: "Laurentian",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "cold-climates",
+    name: "Cold Climates",
+    subtopics: [
+      {
+        id: "tundra-climate",
+        name: "Tundra climate",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "ocean-reliefs",
+    name: "Ocean Reliefs",
+    subtopics: [
+      {
+        id: "ocean-major-reliefs",
+        name: "Major reliefs",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "ocean-minor-reliefs",
+        name: "Minor Reliefs",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "major-oceans-and-seas",
+    name: "Major Oceans and Seas",
+    subtopics: [
+      {
+        id: "oceans-by-size",
+        name: "Oceans by size",
+        estimatedMinutes: 10,
+        difficulty: 1,
+      },
+      {
+        id: "pacific-ocean",
+        name: "Pacific Ocean",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "atlantic-ocean",
+        name: "Atlantic Ocean",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "indian-ocean",
+        name: "Indian Ocean",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "marginal-seas",
+        name: "Marginal Seas",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "currents",
+    name: "Currents",
+    subtopics: [
+      {
+        id: "currents-pacific-ocean",
+        name: "Pacific ocean",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "currents-atlantic-ocean",
+        name: "Atlantic Ocean",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "currents-indian-ocean",
+        name: "Indian Ocean",
+        estimatedMinutes: 35,
+        difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "tides",
+    name: "Tides",
+    subtopics: [
+      {
+        id: "tides-bulges",
+        name: "Bulges",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "tides-types",
+        name: "Types",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "tidal-bores",
+        name: "Tidal Bores",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "temperature-distribution-of-oceans",
+    name: "Temperature distribution of Oceans",
+    subtopics: [
+      {
+        id: "ocean-source-of-heat",
+        name: "Source of heat",
+        estimatedMinutes: 10,
+        difficulty: 1,
+      },
+      {
+        id: "ocean-temp-factors",
+        name: "Factors",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "ocean-vertical-distribution",
+        name: "Vertical distribution",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "ocean-horizontal-distribution",
+        name: "Horiizontal distribution",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "ocean-salinity",
+    name: "Ocean Salinity",
+    subtopics: [
+      {
+        id: "salinity-factors",
+        name: "Factors",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "salinity-vertical-variation",
+        name: "Vertical Variation",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+    ],
+  },
+]
+},
+{
+     id: "indian-geography",
+    type: "GS",
+    paper: "GS1",
+    name: "Indian Geography",
+
+    topics: [
+  {
+    id: "india-as-a-unit",
+    name: "India as a unit",
+    subtopics: [
+      {
+        id: "indias-frontier",
+        name: "Indias frontier",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "major-physical-divisions-of-india",
+        name: "Major Physical Divisions of India",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "rock-system",
+    name: "Rock System",
+    subtopics: [
+      {
+        id: "archaen-system",
+        name: "Archaen system",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "dharwar-system",
+        name: "Dharwar system",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "purana-system",
+        name: "Purana System",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "dravidian-system",
+        name: "Dravidian System",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "gondwana-system",
+        name: "Gondwana System",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "jurrasic-system",
+        name: "Jurrasic system",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "deccan-trap",
+        name: "Deccan trap",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "tertiary-system",
+        name: "Tertiary system",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "himalayan-ranges",
+    name: "Himlayan Ranges",
+    subtopics: [
+      {
+        id: "shiwaliks",
+        name: "Shiwaliks",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "lesser-himalayas",
+        name: "Lesser Himalayas",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "the-greater-himalayas",
+        name: "The Greater Himalayas",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "trans-himalayas",
+        name: "Trans Himalayas",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "purvanchal",
+        name: "Purvanchal",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "himalayan-passes-and-valleys",
+    name: "Himalayan Passes & Valleys",
+    subtopics: [
+      {
+        id: "passes-in-greater-himalays",
+        name: "Passes in Greater Himalays",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "valleys",
+        name: "Valleys",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "glaciers",
+        name: "Glaciers",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "indo-gangetic-brahmaputra-plain",
+    name: "Indo-Gangetic-Brahmaputra plain",
+    subtopics: [
+      {
+        id: "plain-formation",
+        name: "Formation",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "plain-features",
+        name: "Features",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "plain-divisions",
+        name: "Divisions",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "plain-significance",
+        name: "Significance",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "peninsular-plateau",
+    name: "Peninsular Plateau",
+    subtopics: [
+      {
+        id: "marwar-plateau",
+        name: "Marwar Plateau",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "central-highland",
+        name: "Central Highland",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "bundelkhand-and-baghelkhand",
+        name: "Bundelkhand and Baghelkhand",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "malwa-and-chotanagpur",
+        name: "Malwa and chotanagpur",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "meghalaya-and-deccan",
+        name: "Meghalaya and Deccan",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "hill-ranges",
+    name: "Hill Ranges",
+    subtopics: [
+      {
+        id: "aravali",
+        name: "Aravali",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "vindhyan",
+        name: "Vindhyan",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "satpura",
+        name: "Satpura",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "western-ghats",
+        name: "Western Ghats",
+        estimatedMinutes: 40,
+        difficulty: 4,
+      },
+      {
+        id: "eastern-ghats",
+        name: "Eastern ghats",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "hill-ranges-significance",
+        name: "Significance",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "coastlines-of-india",
+    name: "Coastlines of India",
+    subtopics: [
+      {
+        id: "east-coast",
+        name: "East coast",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "west-coast",
+        name: "West Coast",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "emergence-and-sumergence-coastlines",
+        name: "Emergence and Sumergence coastlines",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "coastlines-significance",
+        name: "Significance",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "indian-islands",
+    name: "Indian Islands",
+    subtopics: [
+      {
+        id: "andaman-and-nicobar",
+        name: "Andaman and Nicobar",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "lakshadweep",
+        name: "Lakshadweep",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "new-moore-island",
+        name: "New moore Island",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "drainage-systems",
+    name: "Drainage Systems",
+    subtopics: [
+      {
+        id: "drainage-patterns",
+        name: "Patterns",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "major-system-of-india",
+        name: "Major system of India",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "himalayan-river-system",
+    name: "Himalayan River System",
+    subtopics: [
+      {
+        id: "indus-system",
+        name: "Indus system",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "ganga-system",
+        name: "Ganga",
+        estimatedMinutes: 45,
+        difficulty: 3,
+      },
+      {
+        id: "brahmaputra-system",
+        name: "Brahmaputra",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "peninsular-system",
+    name: "Peninsular System",
+    subtopics: [
+      {
+        id: "east-flowing-1",
+        name: "East Flowing 1",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "east-flowing-2",
+        name: "East Flowing 2",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "east-flowing-3",
+        name: "East Flowing 3",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "west-flowing-rivers",
+        name: "West Flowing",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "indian-monsoons",
+    name: "Indian Monsoons",
+    subtopics: [
+      {
+        id: "mechanism-of-monsoon",
+        name: "Mechanism of monsoon",
+        estimatedMinutes: 45,
+        difficulty: 4,
+      },
+      {
+        id: "role-of-itcz-jet-stream-and-stj",
+        name: "Role of ITCZ,Jet Stream and STJ",
+        estimatedMinutes: 50,
+        difficulty: 5,
+      },
+      {
+        id: "role-of-tibet-somali-and-iod",
+        name: "Role of Tibet, Somali and IOD",
+        estimatedMinutes: 45,
+        difficulty: 5,
+      },
+    ],
+  },
+  {
+    id: "indian-climate",
+    name: "Indian Climate",
+    subtopics: [
+      {
+        id: "features-of-rainfall",
+        name: "Features of rainfall",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "factors-affecting-indian-climate",
+        name: "factors affecting climate",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "indian-seasons",
+        name: "Seasons",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "indian-climatic-regions",
+        name: "Climatic Regions",
+        estimatedMinutes: 40,
+        difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "natural-vegetation-of-india",
+    name: "Natural Vegetation of India",
+    subtopics: [
+      {
+        id: "moist-tropical-forest",
+        name: "Moist Tropical Forest",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "dry-tropical-forest",
+        name: "Dry Tropical Forest",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "montane-subtropical-forest",
+        name: "Montane Subtropical forest",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "montane-temperate-forest",
+        name: "Montane Temperate forest",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "alpine-forests",
+        name: "Alpine Forests",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "soil-topic",
+    name: "Soil",
+    subtopics: [
+      {
+        id: "soil-types",
+        name: "Soil types",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "soil-profile",
+        name: "Soil profile",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "factors-affecting-soil-formation",
+        name: "Factors affecting soil formation",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "soil-groups-of-india",
+        name: "Soil groups of india",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+      {
+        id: "soil-distribution-in-india",
+        name: "Soil distribution in India",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+]
+},
+
+
+
+
+
+];
+
+      
+export default gsSyllabus;

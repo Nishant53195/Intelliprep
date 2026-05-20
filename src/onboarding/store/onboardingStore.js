@@ -4,12 +4,12 @@ import gsSubjects from "../../constants/gsSubjects"
 
 import optionalSubjects from "../../constants/optionalSubjects";
 
-//import optionalSyllabus from "../modules/syllabus/data/optionalSyllabus";
+import optionalSyllabus from "../../constants/optionalSyllabus";
 
 const defaultOptional =
   optionalSubjects[0];
 
-/*function getOptionalTopics(
+function getOptionalTopics(
   optionalSubject
 ) {
   return optionalSyllabus
@@ -24,7 +24,7 @@ const defaultOptional =
       (paper) =>
         paper.topics || []
     );
-}*/
+}
 
 const initialState = {
   hydrated: false,
@@ -54,10 +54,10 @@ const initialState = {
     ...gsSubjects,
   ],
 
-/* optionalSequence:
+optionalSequence:
   getOptionalTopics(
     defaultOptional?.name
-  ),*/
+  ),
 };
 
 const useOnboardingStore =
