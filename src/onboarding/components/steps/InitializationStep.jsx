@@ -4,6 +4,8 @@ import { saveOnboarding } from "../../../database/repositories/onboardingReposit
 import useLoginStore from "../../../login/store/loginStore"; 
 import OnboardingCard from "../OnboardingCard";
 import { useNavigate } from "react-router-dom";
+import { initializeSyllabus } from "../../../syllabus/engine/initializeSyllabus";
+import { initializeSchedule } from "../../../scheduler/engine/initializeSchedule";
 
 function InitializationStep() {
   const navigate = useNavigate();
@@ -135,6 +137,17 @@ function InitializationStep() {
               gsSequence,
               optionalSequence,
             });
+
+            // 2. Initialize syllabus
+  const normalizedData =
+    await initializeSyllabus();
+
+    // 3. Initialize schedule
+  await initializeSchedule(
+    user.uid,
+    dailyStudyHours
+  );
+
             
             completeOnboarding();
             navigate("/dashboard");

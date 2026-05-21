@@ -1,6 +1,6 @@
 const optionalSyllabus = [
   {
-    id: "sociology",
+    id: "sociology1",
     type: "OPTIONAL",
     paper: "PAPER_1",
     name: "Sociology Paper 1",
@@ -30,7 +30,7 @@ const optionalSyllabus = [
   },
 
   {
-    id: "sociology-paper-2",
+    id: "sociology2",
     type: "OPTIONAL",
     paper: "PAPER_2",
     name: "Sociology Paper 2",
@@ -53,7 +53,7 @@ const optionalSyllabus = [
   },
 
   {
-    id: "mathematics-paper-1",
+    id: "mathematics1",
     type: "OPTIONAL",
     paper: "PAPER_1",
     name: "Mathematics Paper 1",
@@ -517,7 +517,7 @@ const optionalSyllabus = [
   },
 
   {
-    id: "mathematics-paper-2",
+    id: "mathematics2",
     type: "OPTIONAL",
     paper: "PAPER_2",
     name: "Mathematics Paper 2",
