@@ -60,7 +60,7 @@ export async function updateTask(
   id,
   updates
 ) {
-  return db.tasks.update(
+  return db.schedule_tasks.update(
     id,
     updates
   );

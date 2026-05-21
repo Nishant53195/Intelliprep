@@ -16,7 +16,7 @@ function InitializationStep() {
   const name = useOnboardingStore((state) => state.name);
   const attemptYear = useOnboardingStore((state) => state.attemptYear);
   const optionalSubject = useOnboardingStore((state) => state.optionalSubject);
-  const dailyStudyHours = useOnboardingStore((state) => state.dailyStudyHours);
+  const dailyStudyHours = useOnboardingStore((state) => state.studyHoursPerDay);
   const gsSequence = useOnboardingStore((state) => state.gsSequence);
   const optionalSequence = useOnboardingStore((state) => state.optionalSequence);
   
