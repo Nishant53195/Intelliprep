@@ -1,16 +1,17 @@
 function SortableSubjectItem({
   subject,
+  pxDense = false,
 }) {
   return (
-    <div className="rounded-xl bg-slate-800 p-4">
-      <div className="flex items-center justify-between">
-        <span>
+    <div className={`rounded-md bg-slate-800/60 truncate ${pxDense ? "p-1.5" : "p-3"}`}>
+      <div className="flex items-center justify-between gap-2 truncate">
+        <span className="text-xs font-medium text-slate-200 truncate">
           {subject.name}
         </span>
 
-        {subject.lockedAfterPrelims && (
-          <span className="rounded-full bg-amber-500/20 px-3 py-1 text-xs text-amber-300">
-            After Prelims
+        {subject.lockedAfterPrelims && !pxDense && (
+          <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] text-amber-400 font-semibold shrink-0">
+            Post-Prelims
           </span>
         )}
       </div>

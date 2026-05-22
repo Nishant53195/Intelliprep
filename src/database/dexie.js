@@ -4,424 +4,70 @@ import Dexie from "dexie";
 
 export const db = new Dexie("intelliprep_database");
 
-/*
-|--------------------------------------------------------------------------
-| VERSION 3
-|--------------------------------------------------------------------------
-| Intelligence Layer Expansion
-| - Effective Progress Engine
-| - Subject Health Engine
-| - Confidence + Retention System
-| - Scheduler Intelligence Foundation
-|--------------------------------------------------------------------------
-*/
-
-db.version(3).stores({
+db.version(6).stores({
   /*
   |--------------------------------------------------------------------------
-  | USERS
+  | CORE AUTH & CONFIG STORES (Cleaned of all structural spaces/newlines)
   |--------------------------------------------------------------------------
   */
-  users: `
-    id,
-    email,
-    role
-  `,
+  users: 'id,email,role',
+  
+  onboarding_config: 'userId,completed,attemptYear,dailyStudyTarget,optionalSubject',
 
   /*
   |--------------------------------------------------------------------------
-  | ONBOARDING
+  | SYLLABUS DATA METADATA STORES
   |--------------------------------------------------------------------------
   */
-  onboarding_config: `
-    id,
-    userId,
-    completed,
-    attemptYear,
-    dailyStudyTarget,
-    optionalSubject
-  `,
+  subjects: 'id,type,paper,name,order',
+  
+  topics: 'id,subjectId,name,estimatedMinutes,pyqFrequency,currentRelevance,status',
+  
+  subtopics: 'id,subjectId,topicId,paper,type,name,estimatedMinutes,difficulty,status',
+  
+  subtopic_progress: 'id,subtopicId,totalMinutes,completedMinutes,remainingMinutes,status,completedAt',
 
   /*
   |--------------------------------------------------------------------------
-  | SUBJECTS
+  | ENGINE TRACKING SYSTEMS
   |--------------------------------------------------------------------------
   */
-  subjects: `
-    id,
-    type,
-    paper,
-    name,
-    order
-  `,
+  schedule_tasks: 'id,userId,subjectId,topicId,subtopicId,revisionId,type,scheduledDate,status,intensityMode,generationType,sourceType,priorityScore,carryForwardCount,recoveryInjectedAt,orderIndex,isRecoveryTask,originalScheduledDate,completedAt,createdAt,[userId+scheduledDate],[scheduledDate+status]',
+  
+  revisions: 'id,userId,subjectId,topicId,subtopicId,sourceTaskId,linkedScheduleTaskId,revisionStage,dueDate,completedAt,recallQuality,memoryState,intervalDays,nextRevisionDate,revisionCount,status,createdAt,[userId+dueDate+status]',
 
   /*
   |--------------------------------------------------------------------------
-  | TOPICS
-  |--------------------------------------------------------------------------
-  | Static syllabus metadata only
+  | PERFORMANCE TESTING STORES
   |--------------------------------------------------------------------------
   */
-  topics: `
-    id,
-    subjectId,
-    name,
-    estimatedMinutes,
-    pyqFrequency,
-    currentRelevance,
-    status
-  `,
+  prelims_tests: 'id,userId,testMode,type,subjectId,topicId,subtopicId,totalQuestions,attemptedCount,correctCount,wrongCount,skippedCount,score,accuracy,completionTime,*taggedWrongTopics,*errorTypes,createdAt,[userId+createdAt],[userId+testMode]',
+  
+  mains_tests: 'id,userId,sourceType,subjectId,topicId,maxMarks,marksObtained,wordCountAllowed,wordCountDone,timeTaken,*shortcomings,createdAt,[userId+createdAt]',
 
   /*
   |--------------------------------------------------------------------------
-  | SUBTOPICS
+  | KNOWLEDGE GRAPH COMPREHENSION STORES
   |--------------------------------------------------------------------------
   */
-  subtopics: `
-    id,
-    subjectId,
-    topicId,
-    paper,
-    type,
-    name,
-    estimatedMinutes,
-    difficulty,
-    status
-  `,
+  pyqs: 'id,year,paper,type,subjectId,topicId,subtopicId,difficulty,*keywords,*linkedCurrentAffairs,*linkedWeakTopics',
+  
+  current_affairs: 'id,title,summary,source,date,paperTag,subjectTag,topicTag,subtopicTag,importanceScore,*issueEvolutionIds,createdBy,createdAt,[subjectTag+date],[paperTag+date]',
 
   /*
   |--------------------------------------------------------------------------
-  | SUBTOPIC PROGRESS
+  | REAL-TIME ANALYTICAL UTILITY LAYERS
   |--------------------------------------------------------------------------
   */
-  subtopic_progress: `
-    id,
-    subtopicId,
-    totalMinutes,
-    completedMinutes,
-    remainingMinutes,
-    status
-  `,
-
-  /*
-  |--------------------------------------------------------------------------
-  | TOPIC INTELLIGENCE
-  |--------------------------------------------------------------------------
-  | Core Intelligence Engine
-  |--------------------------------------------------------------------------
-  */
-  topic_intelligence: `
-    id,
-
-    userId,
-    topicId,
-    subjectId,
-
-    completionScore,
-    confidenceScore,
-    retentionScore,
-
-    effectiveProgress,
-
-    importanceScore,
-    healthScore,
-
-    decayRisk,
-    decayRate,
-
-    weakTopicCount,
-    revisionMissCount,
-
-    lastRevisedAt,
-    nextReviewAt,
-
-    intelligenceState,
-
-    updatedAt,
-
-    [userId+topicId],
-    [userId+subjectId],
-    [userId+importanceScore],
-    [userId+effectiveProgress]
-  `,
-
-  /*
-  |--------------------------------------------------------------------------
-  | SUBJECT INTELLIGENCE
-  |--------------------------------------------------------------------------
-  */
-  subject_intelligence: `
-    id,
-
-    userId,
-    subjectId,
-
-    coverageScore,
-    confidenceScore,
-    retentionScore,
-
-    weakTopicDensity,
-    revisionHealth,
-
-    effectiveProgress,
-    healthScore,
-
-    stabilityState,
-
-    updatedAt,
-
-    [userId+subjectId],
-    [userId+healthScore]
-  `,
-
-  /*
-  |--------------------------------------------------------------------------
-  | USER PERFORMANCE PROFILE
-  |--------------------------------------------------------------------------
-  | Scheduler + Burnout Engine Foundation
-  |--------------------------------------------------------------------------
-  */
-  user_performance_profile: `
-    id,
-
-    userId,
-
-    avgCompletionRate,
-    avgStudyMinutes,
-
-    consistencyScore,
-
-    fatigueRisk,
-
-    strongestDay,
-    weakestDay,
-
-    lastCalculatedAt
-  `,
-
-  /*
-  |--------------------------------------------------------------------------
-  | SCHEDULE TASKS
-  |--------------------------------------------------------------------------
-  */
-  schedule_tasks: `
-    id,
-
-    userId,
-
-    subjectId,
-    topicId,
-    subtopicId,
-
-    revisionId,
-
-    type,
-
-    scheduledDate,
-
-    [userId+scheduledDate],
-    [scheduledDate+status],
-
-    status,
-
-    intensityMode,
-    generationType,
-    sourceType,
-
-    priorityScore,
-
-    carryForwardCount,
-
-    recoveryInjectedAt,
-
-    orderIndex,
-
-    isRecoveryTask,
-
-    originalScheduledDate,
-
-    completedAt,
-
-    createdAt
-  `,
-
-  /*
-  |--------------------------------------------------------------------------
-  | REVISIONS
-  |--------------------------------------------------------------------------
-  */
-  revisions: `
-    id,
-
-    userId,
-
-    subjectId,
-    topicId,
-    subtopicId,
-
-    sourceTaskId,
-    linkedScheduleTaskId,
-
-    revisionStage,
-
-    dueDate,
-
-    [userId+dueDate+status],
-
-    completedAt,
-
-    recallQuality,
-    memoryState,
-
-    intervalDays,
-    nextRevisionDate,
-
-    revisionCount,
-
-    status,
-
-    createdAt
-  `,
-
-  /*
-  |--------------------------------------------------------------------------
-  | WEAK TOPICS
-  |--------------------------------------------------------------------------
-  */
-  weak_topics: `
-    id,
-
-    userId,
-
-    subjectId,
-    topicId,
-
-    confidence,
-
-    decayRate,
-
-    lastReviewedAt,
-    nextReviewAt,
-
-    mistakeCount,
-
-    weaknessType,
-
-    state,
-
-    [userId+topicId],
-    [userId+state]
-  `,
-
-  /*
-  |--------------------------------------------------------------------------
-  | REFLECTIONS
-  |--------------------------------------------------------------------------
-  */
-  reflections: `
-    id,
-
-    userId,
-
-    date,
-
-    energyLevel,
-    focusQuality,
-
-    confidenceScore,
-
-    distractions,
-
-    [userId+date]
-  `,
-
-  /*
-  |--------------------------------------------------------------------------
-  | PRELIMS TESTS
-  |--------------------------------------------------------------------------
-  */
-  prelims_tests: `
-    id,
-
-    userId,
-
-    type,
-
-    subjectId,
-    topicId,
-
-    score,
-    accuracy,
-
-    createdAt
-  `,
-
-  /*
-  |--------------------------------------------------------------------------
-  | MAINS TESTS
-  |--------------------------------------------------------------------------
-  */
-  mains_tests: `
-    id,
-
-    userId,
-
-    subjectId,
-    topicId,
-
-    maxMarks,
-    marksObtained,
-
-    timeTaken,
-
-    createdAt
-  `,
-
-  /*
-  |--------------------------------------------------------------------------
-  | PYQS
-  |--------------------------------------------------------------------------
-  */
-  pyqs: `
-    id,
-
-    year,
-
-    paper,
-    type,
-
-    subjectId,
-    topicId,
-    subtopicId,
-
-    keywords
-  `,
-
-  /*
-  |--------------------------------------------------------------------------
-  | CURRENT AFFAIRS
-  |--------------------------------------------------------------------------
-  */
-  current_affairs: `
-    id,
-
-    date,
-
-    paperTag,
-    subjectTag,
-    topicTag,
-
-    importanceScore
-  `,
-
-  /*
-  |--------------------------------------------------------------------------
-  | SYNC QUEUE
-  |--------------------------------------------------------------------------
-  */
-  sync_queue: `
-    id,
-    status,
-    createdAt
-  `,
+  topic_intelligence: 'id,userId,topicId,subjectId,completionScore,confidenceScore,retentionScore,effectiveProgress,importanceScore,healthScore,decayRisk,decayRate,weakTopicCount,revisionMissCount,lastRevisedAt,nextReviewAt,intelligenceState,updatedAt,[userId+topicId],[userId+subjectId],[userId+importanceScore],[userId+effectiveProgress]',
+  
+  subject_intelligence: 'id,userId,subjectId,coverageScore,confidenceScore,retentionScore,weakTopicDensity,revisionHealth,effectiveProgress,healthScore,stabilityState,updatedAt,[userId+subjectId],[userId+healthScore]',
+  
+  weak_topics: 'id,userId,subjectId,topicId,confidence,decayRate,lastReviewedAt,nextReviewAt,mistakeCount,*weaknessType,state,*sourceHistory,[userId+topicId],[userId+state]',
+  
+  user_performance_profile: 'id,userId,avgCompletionRate,avgStudyMinutes,consistencyScore,fatigueRisk,strongestDay,weakestDay,lastCalculatedAt',
+  
+  reflections: 'id,userId,date,energyLevel,focusQuality,confidenceScore,*distractions,[userId+date]',
+  
+  sync_queue: 'id,status,createdAt'
 });

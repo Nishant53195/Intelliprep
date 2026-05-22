@@ -128,7 +128,6 @@ function InitializationStep() {
         <button
           onClick={async () => {
             await saveOnboarding({
-              id: crypto.randomUUID(),
               userId: user?.uid,
               completed: true,
               name,
