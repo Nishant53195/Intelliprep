@@ -3,15 +3,16 @@ import {
   useState,
 } from "react";
 
-import {
-  getSubjectProgress,
-} from "../services/getSubjectProgress";
-
 import useOrderedSubjects
 from "../services/useOrderedSubjects";
 
 import TopicExplorer
 from "./TopicExplorer";
+
+import {
+  getSubjectAnalytics,
+} from "../services/subjectAnalyticsEngine";
+
 
 function SyllabusProgressView() {
   const [
@@ -66,22 +67,40 @@ useEffect(() => {
   async function enrich() {
     const enriched =
       await Promise.all(
-        subjects.map(
-          async (
-            subject
-          ) => {
-            const progress =
-              await getSubjectProgress(
-                subject.id
-              );
+       subjects.map(
+  async (subject) => {
+    try {
+      const analytics =
+  await getSubjectAnalytics(
+    subject.id
+  );
 
-            return {
-              ...subject,
+return {
+  ...subject,
+  ...analytics,
+};
+    } catch (error) {
+      console.error(
+        "Subject intelligence error",
+        error
+      );
 
-              ...progress,
-            };
-          }
-        )
+      return {
+        ...subject,
+
+        progress: 0,
+
+        effectiveProgress: 0,
+
+        healthScore: 0,
+
+        confidenceScore: 0,
+
+        weakTopicsCount: 0,
+      };
+    }
+  }
+)
       );
 
     setEnrichedSubjects(
@@ -89,11 +108,12 @@ useEffect(() => {
     );
   }
 
-  if (
-    subjects?.length
-  ) {
-    enrich();
-  }
+  if (!subjects) {
+  setEnrichedSubjects([]);
+  return;
+}
+
+enrich();
 }, [subjects]);
 
   return (
@@ -146,18 +166,75 @@ useEffect(() => {
                     subject.name
                   }
                 </h3>
-                <p className="mt-3 text-sm text-slate-500">
-  {subject.progress}%
-  completed
-</p>
+    <div className="mt-4 space-y-2">
+  <div className="flex items-center justify-between text-sm">
+    <span className="text-slate-500">
+      Completion
+    </span>
 
-<div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-  <div
-    className="h-full rounded-full bg-emerald-500"
-    style={{
-      width: `${subject.progress}%`,
-    }}
-  />
+    <span className="font-semibold text-slate-700">
+      {subject.completionProgress}%
+    </span>
+  </div>
+
+  <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+    <div
+      className="h-full rounded-full bg-emerald-500"
+      style={{
+        width: `${subject.completionProgress}%`,
+      }}
+    />
+  </div>
+
+  <div className="grid grid-cols-2 gap-2 pt-2 text-xs">
+    <div className="rounded-xl bg-slate-50 p-2">
+      <p className="text-slate-400">
+        Effective
+      </p>
+
+      <p className="font-bold text-indigo-600">
+        {
+          subject.effectiveProgress
+        }%
+      </p>
+    </div>
+
+    <div className="rounded-xl bg-slate-50 p-2">
+      <p className="text-slate-400">
+        Health
+      </p>
+
+      <p className="font-bold text-emerald-600">
+        {
+          subject.healthScore
+        }
+      </p>
+    </div>
+
+    <div className="rounded-xl bg-slate-50 p-2">
+      <p className="text-slate-400">
+        Confidence
+      </p>
+
+      <p className="font-bold text-amber-600">
+        {
+          subject.confidenceScore
+        }%
+      </p>
+    </div>
+
+    <div className="rounded-xl bg-slate-50 p-2">
+      <p className="text-slate-400">
+        Weak Topics
+      </p>
+
+      <p className="font-bold text-rose-600">
+        {
+          subject.weakTopicsCount
+        }
+      </p>
+    </div>
+  </div>
 </div>
               </div>
             )

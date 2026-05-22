@@ -1,13 +1,53 @@
+// src/database/dexie.js
+
 import Dexie from "dexie";
 
 export const db = new Dexie("intelliprep_database");
 
-db.version(1).stores({
-  users: "id,email",
+/*
+|--------------------------------------------------------------------------
+| VERSION 3
+|--------------------------------------------------------------------------
+| Intelligence Layer Expansion
+| - Effective Progress Engine
+| - Subject Health Engine
+| - Confidence + Retention System
+| - Scheduler Intelligence Foundation
+|--------------------------------------------------------------------------
+*/
 
-  onboarding_config:  "id,userId,completed,attemptYear,optionalSubject",
+db.version(3).stores({
+  /*
+  |--------------------------------------------------------------------------
+  | USERS
+  |--------------------------------------------------------------------------
+  */
+  users: `
+    id,
+    email,
+    role
+  `,
 
-   subjects: `
+  /*
+  |--------------------------------------------------------------------------
+  | ONBOARDING
+  |--------------------------------------------------------------------------
+  */
+  onboarding_config: `
+    id,
+    userId,
+    completed,
+    attemptYear,
+    dailyStudyTarget,
+    optionalSubject
+  `,
+
+  /*
+  |--------------------------------------------------------------------------
+  | SUBJECTS
+  |--------------------------------------------------------------------------
+  */
+  subjects: `
     id,
     type,
     paper,
@@ -15,103 +55,373 @@ db.version(1).stores({
     order
   `,
 
+  /*
+  |--------------------------------------------------------------------------
+  | TOPICS
+  |--------------------------------------------------------------------------
+  | Static syllabus metadata only
+  |--------------------------------------------------------------------------
+  */
   topics: `
     id,
     subjectId,
     name,
     estimatedMinutes,
-    importanceScore,
-    currentRelevance,
     pyqFrequency,
-    healthScore,
+    currentRelevance,
     status
   `,
 
+  /*
+  |--------------------------------------------------------------------------
+  | SUBTOPICS
+  |--------------------------------------------------------------------------
+  */
   subtopics: `
-  id,
-  subjectId,
-  topicId,
-  paper,
-  type,
-  name,
-  estimatedMinutes,
-  difficulty,
-  status
-`,
+    id,
+    subjectId,
+    topicId,
+    paper,
+    type,
+    name,
+    estimatedMinutes,
+    difficulty,
+    status
+  `,
 
-subtopic_progress:
-  `id, 
-  subtopicId,
-  totalMinutes, 
-  completedMinutes, 
-  remainingMinutes, 
-  status`,
+  /*
+  |--------------------------------------------------------------------------
+  | SUBTOPIC PROGRESS
+  |--------------------------------------------------------------------------
+  */
+  subtopic_progress: `
+    id,
+    subtopicId,
+    totalMinutes,
+    completedMinutes,
+    remainingMinutes,
+    status
+  `,
 
+  /*
+  |--------------------------------------------------------------------------
+  | TOPIC INTELLIGENCE
+  |--------------------------------------------------------------------------
+  | Core Intelligence Engine
+  |--------------------------------------------------------------------------
+  */
+  topic_intelligence: `
+    id,
+
+    userId,
+    topicId,
+    subjectId,
+
+    completionScore,
+    confidenceScore,
+    retentionScore,
+
+    effectiveProgress,
+
+    importanceScore,
+    healthScore,
+
+    decayRisk,
+    decayRate,
+
+    weakTopicCount,
+    revisionMissCount,
+
+    lastRevisedAt,
+    nextReviewAt,
+
+    intelligenceState,
+
+    updatedAt,
+
+    [userId+topicId],
+    [userId+subjectId],
+    [userId+importanceScore],
+    [userId+effectiveProgress]
+  `,
+
+  /*
+  |--------------------------------------------------------------------------
+  | SUBJECT INTELLIGENCE
+  |--------------------------------------------------------------------------
+  */
+  subject_intelligence: `
+    id,
+
+    userId,
+    subjectId,
+
+    coverageScore,
+    confidenceScore,
+    retentionScore,
+
+    weakTopicDensity,
+    revisionHealth,
+
+    effectiveProgress,
+    healthScore,
+
+    stabilityState,
+
+    updatedAt,
+
+    [userId+subjectId],
+    [userId+healthScore]
+  `,
+
+  /*
+  |--------------------------------------------------------------------------
+  | USER PERFORMANCE PROFILE
+  |--------------------------------------------------------------------------
+  | Scheduler + Burnout Engine Foundation
+  |--------------------------------------------------------------------------
+  */
+  user_performance_profile: `
+    id,
+
+    userId,
+
+    avgCompletionRate,
+    avgStudyMinutes,
+
+    consistencyScore,
+
+    fatigueRisk,
+
+    strongestDay,
+    weakestDay,
+
+    lastCalculatedAt
+  `,
+
+  /*
+  |--------------------------------------------------------------------------
+  | SCHEDULE TASKS
+  |--------------------------------------------------------------------------
+  */
   schedule_tasks: `
-  id,
-  userId,
-  subjectId,
-  topicId,
-  subtopicId,
-  revisionId,
-  type,
-  scheduledDate,
-  estimatedMinutes,
-  actualMinutes,
-  status,
-  intensityMode,
-  generationType,
-  sourceType,
-  priorityScore,
-  carryForwardCount,
-  recoveryInjectedAt,    
-  orderIndex,
-  isRecoveryTask,
-  originalScheduledDate,
-  completedAt,
-  createdAt
-`,
+    id,
 
- revisions: `
-  id,
-  userId,
+    userId,
 
-  subjectId,
-  topicId,
-  subtopicId,
+    subjectId,
+    topicId,
+    subtopicId,
 
-  sourceTaskId,
-  linkedScheduleTaskId,
+    revisionId,
 
-  revisionStage,
+    type,
 
-  dueDate,
-  completedAt,
+    scheduledDate,
 
-  recallQuality,
-  memoryState,
+    [userId+scheduledDate],
+    [scheduledDate+status],
 
-  intervalDays,
-  nextRevisionDate,
+    status,
 
-  revisionCount,
+    intensityMode,
+    generationType,
+    sourceType,
 
-  status,
+    priorityScore,
 
-  createdAt
-`,
+    carryForwardCount,
 
-  weak_topics: "id,userId,topicId,severity",
+    recoveryInjectedAt,
 
-  reflections: "id,userId,date",
+    orderIndex,
 
-  prelims_tests: "id,userId,createdAt",
+    isRecoveryTask,
 
-  mains_tests: "id,userId,createdAt",
+    originalScheduledDate,
 
-  pyqs: "id,year,paper",
+    completedAt,
 
-  current_affairs: "id,date",
+    createdAt
+  `,
 
-  sync_queue: "id,status,createdAt",
+  /*
+  |--------------------------------------------------------------------------
+  | REVISIONS
+  |--------------------------------------------------------------------------
+  */
+  revisions: `
+    id,
+
+    userId,
+
+    subjectId,
+    topicId,
+    subtopicId,
+
+    sourceTaskId,
+    linkedScheduleTaskId,
+
+    revisionStage,
+
+    dueDate,
+
+    [userId+dueDate+status],
+
+    completedAt,
+
+    recallQuality,
+    memoryState,
+
+    intervalDays,
+    nextRevisionDate,
+
+    revisionCount,
+
+    status,
+
+    createdAt
+  `,
+
+  /*
+  |--------------------------------------------------------------------------
+  | WEAK TOPICS
+  |--------------------------------------------------------------------------
+  */
+  weak_topics: `
+    id,
+
+    userId,
+
+    subjectId,
+    topicId,
+
+    confidence,
+
+    decayRate,
+
+    lastReviewedAt,
+    nextReviewAt,
+
+    mistakeCount,
+
+    weaknessType,
+
+    state,
+
+    [userId+topicId],
+    [userId+state]
+  `,
+
+  /*
+  |--------------------------------------------------------------------------
+  | REFLECTIONS
+  |--------------------------------------------------------------------------
+  */
+  reflections: `
+    id,
+
+    userId,
+
+    date,
+
+    energyLevel,
+    focusQuality,
+
+    confidenceScore,
+
+    distractions,
+
+    [userId+date]
+  `,
+
+  /*
+  |--------------------------------------------------------------------------
+  | PRELIMS TESTS
+  |--------------------------------------------------------------------------
+  */
+  prelims_tests: `
+    id,
+
+    userId,
+
+    type,
+
+    subjectId,
+    topicId,
+
+    score,
+    accuracy,
+
+    createdAt
+  `,
+
+  /*
+  |--------------------------------------------------------------------------
+  | MAINS TESTS
+  |--------------------------------------------------------------------------
+  */
+  mains_tests: `
+    id,
+
+    userId,
+
+    subjectId,
+    topicId,
+
+    maxMarks,
+    marksObtained,
+
+    timeTaken,
+
+    createdAt
+  `,
+
+  /*
+  |--------------------------------------------------------------------------
+  | PYQS
+  |--------------------------------------------------------------------------
+  */
+  pyqs: `
+    id,
+
+    year,
+
+    paper,
+    type,
+
+    subjectId,
+    topicId,
+    subtopicId,
+
+    keywords
+  `,
+
+  /*
+  |--------------------------------------------------------------------------
+  | CURRENT AFFAIRS
+  |--------------------------------------------------------------------------
+  */
+  current_affairs: `
+    id,
+
+    date,
+
+    paperTag,
+    subjectTag,
+    topicTag,
+
+    importanceScore
+  `,
+
+  /*
+  |--------------------------------------------------------------------------
+  | SYNC QUEUE
+  |--------------------------------------------------------------------------
+  */
+  sync_queue: `
+    id,
+    status,
+    createdAt
+  `,
 });

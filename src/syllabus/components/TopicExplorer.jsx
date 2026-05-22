@@ -10,6 +10,9 @@ import {
   db,
 } from "../../database/dexie";
 
+import useTopicIntelligenceMap
+from "../hooks/useTopicIntelligenceMap";
+
 function TopicExplorer({
   subject,
 
@@ -44,6 +47,20 @@ function TopicExplorer({
 
   /*
    --------------------------
+   TOPIC INTELLIGENCE MAP
+   --------------------------
+  */
+
+  const intelligenceMap =
+    useTopicIntelligenceMap(
+      topics.map(
+        (topic) =>
+          topic.id
+      )
+    );
+
+  /*
+   --------------------------
    SUBTOPICS
    --------------------------
   */
@@ -65,12 +82,18 @@ function TopicExplorer({
       [selectedTopic]
     ) || [];
 
-    const firstIncompleteTopic =
-  topics.find(
-    (topic) =>
-      topic.status !==
-      "COMPLETED"
-  );
+  /*
+   --------------------------
+   FIRST INCOMPLETE TOPIC
+   --------------------------
+  */
+
+  const firstIncompleteTopic =
+    topics.find(
+      (topic) =>
+        topic.status !==
+        "COMPLETED"
+    );
 
   return (
     <div className="mt-8">
@@ -109,13 +132,44 @@ function TopicExplorer({
           {topics.map(
             (topic) => {
               const completed =
-  topic.status ===
-  "COMPLETED";
+                topic.status ===
+                "COMPLETED";
 
-const inProgress =
-  !completed &&
-  firstIncompleteTopic
-    ?.id === topic.id;
+              const intelligence =
+                intelligenceMap[
+                  topic.id
+                ];
+
+              const inProgress =
+                !completed &&
+                firstIncompleteTopic
+                  ?.id ===
+                  topic.id;
+
+              const isWeak =
+                intelligence
+                  ?.intelligenceState ===
+                "WEAK";
+
+              const isCritical =
+                intelligence
+                  ?.intelligenceState ===
+                "CRITICAL";
+
+              const isStrong =
+                intelligence
+                  ?.intelligenceState ===
+                "STRONG";
+
+              const highDecay =
+                intelligence
+                  ?.decayRisk >=
+                70;
+
+              const highImportance =
+                intelligence
+                  ?.importanceScore >=
+                80;
 
               return (
                 <div
@@ -143,17 +197,105 @@ const inProgress =
                     )}
                   </div>
 
-                  <p className="mt-3 text-sm text-slate-500">
-                    {
-  completed
-    ? "Completed"
+                  <div className="mt-4 space-y-3">
+                    <p className="text-sm text-slate-500">
+                      {
+                        completed
+                          ? "Completed"
+                          : inProgress
+                          ? "In Progress"
+                          : "Pending"
+                      }
+                    </p>
 
-    : inProgress
-    ? "In Progress"
+                    {intelligence && (
+                      <>
+                        {/* METRICS */}
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="rounded-lg bg-slate-50 p-2">
+                            <p className="text-slate-400">
+                              Effective
+                            </p>
 
-    : "Pending"
-}
-                  </p>
+                            <p className="font-bold text-indigo-600">
+                              {
+                                intelligence.effectiveProgress
+                              }%
+                            </p>
+                          </div>
+
+                          <div className="rounded-lg bg-slate-50 p-2">
+                            <p className="text-slate-400">
+                              Health
+                            </p>
+
+                            <p className="font-bold text-emerald-600">
+                              {
+                                intelligence.healthScore
+                              }
+                            </p>
+                          </div>
+
+                          <div className="rounded-lg bg-slate-50 p-2">
+                            <p className="text-slate-400">
+                              Importance
+                            </p>
+
+                            <p className="font-bold text-amber-600">
+                              {
+                                intelligence.importanceScore
+                              }
+                            </p>
+                          </div>
+
+                          <div className="rounded-lg bg-slate-50 p-2">
+                            <p className="text-slate-400">
+                              Decay
+                            </p>
+
+                            <p className="font-bold text-rose-600">
+                              {
+                                intelligence.decayRisk
+                              }%
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* CHIPS */}
+                        <div className="flex flex-wrap gap-2">
+                          {isStrong && (
+                            <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                              STRONG
+                            </div>
+                          )}
+
+                          {isWeak && (
+                            <div className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                              WEAK
+                            </div>
+                          )}
+
+                          {isCritical && (
+                            <div className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
+                              CRITICAL
+                            </div>
+                          )}
+
+                          {highImportance && (
+                            <div className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
+                              HIGH PRIORITY
+                            </div>
+                          )}
+
+                          {highDecay && (
+                            <div className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+                              REVISION RISK
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               );
             }

@@ -1,4 +1,7 @@
 import { db } from "../dexie";
+import {
+  emitIntelligenceEvent,
+} from "../../syllabus/services/intelligenceEventService";
 
 export async function saveSubjects(subjects) {
   await db.subjects.bulkPut(subjects);
@@ -42,14 +45,48 @@ export async function getSubtopics() {
 export async function completeSubtopic(
   subtopicId
 ) {
-  return await db.subtopics
-    .update(subtopicId, {
+  /*
+   --------------------------
+   UPDATE SUBTOPIC
+   --------------------------
+  */
+
+  await db.subtopics.update(
+    subtopicId,
+    {
       status:
         "COMPLETED",
 
       completedAt:
         new Date(),
-    });
+    }
+  );
+
+  /*
+   --------------------------
+   FETCH SUBTOPIC
+   --------------------------
+  */
+
+  const subtopic =
+    await db.subtopics.get(
+      subtopicId
+    );
+
+  if (!subtopic) {
+    return;
+  }
+
+  /*
+   --------------------------
+   SYNC INTELLIGENCE
+   --------------------------
+  */
+
+  await emitIntelligenceEvent({
+  topicId:
+    subtopic.topicId,
+});
 }
 
 export async function completeTopic(

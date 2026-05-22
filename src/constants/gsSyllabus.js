@@ -6230,10 +6230,539 @@ difficulty: 3,
   },
 ]
 },
-
-
-
-
+{
+     id: "human-geography",
+    type: "GS",
+    paper: "GS1",
+    name: "Human Geography",
+    topics: [
+  {
+    id: "major-tribes-of-india",
+    name: "Major Tribes of India",
+    subtopics: [
+      {
+        id: "scheduled-tribes",
+        name: "Scheduled Tribes",
+        estimatedMinutes: 15,
+        difficulty: 1,
+      },
+      {
+        id: "pvtgs",
+        name: "Particularly Vulnerable Tribal Groups",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "tribes-of-himalayan-region",
+        name: "Tribes of the Himalayan Region",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "tribes-of-north-east-region",
+        name: "Tribes of North-East Region",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "tribes-of-central-india-region",
+        name: "Tribes of Central India Region",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "tribes-of-eastern-india-region",
+        name: "Tribes of Eastern India Region",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "tribes-of-western-india-region",
+        name: "Tribes of Western India Region",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "tribes-of-southern-india-region",
+        name: "Tribes of Southern India Region",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "tribes-of-the-island-region",
+        name: "Tribes of the Island Region",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "population",
+    name: "Population",
+    subtopics: [
+      {
+        id: "factors-of-distribution",
+        name: "Factors of distribution",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "trends-in-population-growth",
+        name: "Trends in population growth",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "population-composition",
+        name: "population composition",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "demographic-dividend",
+        name: "demographic dividend",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "census-and-demographic-components",
+    name: "Census and Demographic Components",
+    subtopics: [
+      {
+        id: "india-census-2011",
+        name: "India Census 2011",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "national-family-health-survey",
+        name: "National Family Health Survey",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "migration",
+    name: "Migration",
+    subtopics: [
+      {
+        id: "streams-of-migration",
+        name: "Streams of migration",
+        estimatedMinutes: 15,
+        difficulty: 1,
+      },
+      {
+        id: "migration-of-india",
+        name: "migration of India",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "consequences-of-migration",
+        name: "Consequences of migration",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "recommendations-to-address-issue-of-migrants",
+        name: "Recommendations to address issue of migrants",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "human-settlements",
+    name: "Human Settlements",
+    subtopics: [
+      {
+        id: "types-and-patterns",
+        name: "Types and Patterns",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "rural-settlements",
+        name: "Rural settlements",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "urban-settlements",
+        name: "Urban settlements",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "internation-trade",
+    name: "Internation Trade",
+    subtopics: [
+      {
+        id: "evolution-of-international-trade",
+        name: "Evolution of International Trade",
+        estimatedMinutes: 15,
+        difficulty: 1,
+      },
+      {
+        id: "basis-of-international-trade",
+        name: "Basis of International Trade",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "important-aspects-of-international-trade",
+        name: "Important Aspects of International Trade",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "case-for-free-trade",
+        name: "Case for Free Trade",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "gateways-of-international-trade",
+        name: "Gateways of International Trade",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "india-international-trade",
+        name: "India International Trade",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "major-ports-of-india",
+    name: "Major Ports of India",
+    subtopics: [
+      {
+        id: "ports-of-the-east-coast",
+        name: "Ports of The East Coast",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "west-coast-ports",
+        name: "West Coast",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "indian-ports-as-gateways-of-trade",
+        name: "Indian Ports as Gateways of Trade",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "issues-and-challenges-with-indian-ports",
+        name: "Issues and Challenges with Indian Ports",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "government-initiatives",
+        name: "Government Initiatives",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "transport-and-communication",
+    name: "Transport and Communication",
+    subtopics: [
+      {
+        id: "land-transport",
+        name: "Land Transport",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "water-transport",
+        name: "Water Transport",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "communications",
+        name: "Communications",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "transport-and-communication-in-india",
+    name: "Transport and Communication in India",
+    subtopics: [
+      {
+        id: "road-transport-in-india",
+        name: "Road Transport in India",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "rail-transport-in-india",
+        name: "Rail Transport in India",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "water-transport-in-india",
+        name: "Water Transport",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "air-transport",
+        name: "Air Transport",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "oil-and-gas-pipelines",
+        name: "Oil and Gas Pipelines",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "communication-networks",
+        name: "Communication Networks",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "planning-and-sustainable-development",
+    name: "Planning and Sustainable Development",
+    subtopics: [
+      {
+        id: "target-area-planning",
+        name: "Target Area Planning",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+]
+},
+{
+     id: "economic-geography",
+    type: "GS",
+    paper: "GS1",
+    name: "Economic Geography",
+    topics: [
+  {
+    id: "iron",
+    name: "Iron",
+    subtopics: [
+      { id: "types-of-iron-ore", name: "Types of Iron Ore", estimatedMinutes: 15, difficulty: 2 },
+      { id: "applications-of-iron-ore", name: "Applications of Iron Ore", estimatedMinutes: 10, difficulty: 1 },
+      { id: "iron-ore-distribution-world", name: "Iron Ore Distribution Across the World", estimatedMinutes: 25, difficulty: 3 },
+      { id: "iron-ore-distribution-india", name: "Iron Ore Distribution in India", estimatedMinutes: 25, difficulty: 3 },
+      { id: "iron-ore-production-india", name: "Iron Ore Production in India", estimatedMinutes: 15, difficulty: 2 }
+    ]
+  },
+  {
+    id: "coal",
+    name: "Coal",
+    subtopics: [
+      { id: "formation-of-coal", name: "Formation of Coal", estimatedMinutes: 15, difficulty: 2 },
+      { id: "classification-of-coal", name: "Classification of Coal", estimatedMinutes: 15, difficulty: 2 },
+      { id: "coking-vs-non-coking", name: "Coking Coal vs. Non-Coking Coal (Thermal Coal)", estimatedMinutes: 15, difficulty: 2 },
+      { id: "coal-distribution-world", name: "Distribution of Coal Across the World", estimatedMinutes: 25, difficulty: 3 },
+      { id: "coal-distribution-india", name: "Distribution of Coal in India", estimatedMinutes: 30, difficulty: 3 },
+      { id: "coal-demand-supply", name: "Coal Demand, Production, Supply, and Import in India", estimatedMinutes: 20, difficulty: 2 }
+    ]
+  },
+  {
+    id: "petroleum-and-mineral-oil",
+    name: "Petroleum and Mineral Oil",
+    subtopics: [
+      { id: "formation-petroleum-natural-gas", name: "Formation of Petroleum & Natural Gas", estimatedMinutes: 15, difficulty: 2 },
+      { id: "world-distribution-petroleum", name: "World Distribution of Petroleum", estimatedMinutes: 25, difficulty: 3 },
+      { id: "distribution-petroleum-india", name: "Distribution of Petroleum in India", estimatedMinutes: 25, difficulty: 3 }
+    ]
+  },
+  {
+    id: "natural-gas",
+    name: "Natural Gas",
+    subtopics: [
+      { id: "natural-gas-intro", name: "Introduction", estimatedMinutes: 10, difficulty: 1 },
+      { id: "formation-natural-gas", name: "Formation of Natural Gas", estimatedMinutes: 15, difficulty: 2 },
+      { id: "natural-gas-storage", name: "Natural Gas Storage", estimatedMinutes: 15, difficulty: 2 },
+      { id: "distribution-natural-gas", name: "Distribution of Natural Gas Across India and the World", estimatedMinutes: 25, difficulty: 3 },
+      { id: "petroleum-gas-value-chain", name: "Petroleum and Gas Value Chain", estimatedMinutes: 20, difficulty: 3 }
+    ]
+  },
+  {
+    id: "unconventional-gas-reservoirs",
+    name: "Unconventional Gas Reservoirs",
+    subtopics: [
+      { id: "unconventional-intro", name: "Introduction", estimatedMinutes: 10, difficulty: 1 },
+      { id: "coal-bed-methane", name: "Coal Bed/Seam Methane", estimatedMinutes: 20, difficulty: 3 },
+      { id: "shale-gas-oil", name: "Shale Gas/Oil", estimatedMinutes: 20, difficulty: 3 },
+      { id: "tight-gas", name: "Tight Gas", estimatedMinutes: 15, difficulty: 3 },
+      { id: "gas-hydrates", name: "Gas Hydrates", estimatedMinutes: 15, difficulty: 3 },
+      { id: "underground-coal-gasification", name: "Underground Coal Gasification (UCG)", estimatedMinutes: 20, difficulty: 4 }
+    ]
+  },
+  {
+    id: "metals-and-ores",
+    name: "Metals and Ores",
+    subtopics: [
+      { id: "lead-zinc-pyrites", name: "Lead, Zinc, and Pyrites", estimatedMinutes: 20, difficulty: 2 },
+      { id: "gold-silver", name: "Gold and Silver", estimatedMinutes: 20, difficulty: 2 },
+      { id: "manganese-tungsten-chromite", name: "Manganese, Tungsten, and Chromite", estimatedMinutes: 25, difficulty: 3 },
+      { id: "copper-nickel", name: "Copper and Nickel", estimatedMinutes: 20, difficulty: 2 }
+    ]
+  },
+  {
+    id: "non-metals",
+    name: "Non Metals",
+    subtopics: [
+      { id: "graphite-diamond-mica", name: "Graphite, Diamond, and Mica", estimatedMinutes: 20, difficulty: 2 },
+      { id: "limestone-dolomite-magnesite", name: "Limestone, Dolomite, and Magnesite", estimatedMinutes: 25, difficulty: 2 },
+      { id: "asbestos-kyanite-sillimanite-gypsum", name: "Asbestos, Kyanite, Sillimanite, and Gypsum", estimatedMinutes: 25, difficulty: 3 }
+    ]
+  },
+  {
+    id: "atomic-minerals",
+    name: "Atomic Minerals",
+    subtopics: [
+      { id: "uranium", name: "Uranium", estimatedMinutes: 20, difficulty: 3 },
+      { id: "thorium", name: "Thorium", estimatedMinutes: 20, difficulty: 3 }
+    ]
+  },
+  {
+    id: "strategic-minerals",
+    name: "Strategic Minerals",
+    subtopics: [
+      { id: "critical-minerals", name: "Critical Minerals", estimatedMinutes: 20, difficulty: 3 },
+      { id: "rare-earth-elements", name: "Rare Earth Elements", estimatedMinutes: 25, difficulty: 4 }
+    ]
+  },
+  {
+    id: "resource-from-ocean",
+    name: "Resource from Ocean",
+    subtopics: [
+      { id: "ocean-deposits-marine-sediments", name: "Ocean Deposits & Marine sediments", estimatedMinutes: 20, difficulty: 3 },
+      { id: "mineral-energy-resources", name: "Mineral and Energy resources", estimatedMinutes: 20, difficulty: 3 },
+      { id: "deep-ocean-mission", name: "Deep Ocean Mission", estimatedMinutes: 25, difficulty: 3 },
+      { id: "fresh-water-unclos", name: "Fresh Water & UNCLOS", estimatedMinutes: 25, difficulty: 3 }
+    ]
+  },
+  {
+    id: "economic-sectors",
+    name: "Economic Sectors",
+    subtopics: [
+      { id: "primary-secondary", name: "Primary & Secondary Sector", estimatedMinutes: 15, difficulty: 2 },
+      { id: "tertiary-quaternary", name: "Tertiary & Quaternary Sector", estimatedMinutes: 15, difficulty: 2 },
+      { id: "factors-industry-locations", name: "Factors for industry locations", estimatedMinutes: 25, difficulty: 3 }
+    ]
+  },
+  {
+    id: "iron-steel-industry",
+    name: "Iron & Steel Industry",
+    subtopics: [
+      { id: "iron-steel-factors", name: "Factors for location", estimatedMinutes: 20, difficulty: 3 },
+      { id: "iron-steel-distribution", name: "Distribution", estimatedMinutes: 20, difficulty: 3 },
+      { id: "iron-steel-india", name: "Situation in India", estimatedMinutes: 25, difficulty: 3 }
+    ]
+  },
+  {
+    id: "cotton-jute-industry",
+    name: "Cotton & Jute Industry",
+    subtopics: [
+      { id: "cotton-jute-factors", name: "Factors affecting location", estimatedMinutes: 20, difficulty: 2 },
+      { id: "cotton-jute-distribution", name: "Distribution", estimatedMinutes: 20, difficulty: 2 },
+      { id: "cotton-jute-india", name: "Situation in India", estimatedMinutes: 20, difficulty: 2 }
+    ]
+  },
+  {
+    id: "woollen-silk-industry",
+    name: "Woollen & Silk Industry",
+    subtopics: [
+      { id: "woollen-silk-factors", name: "Factors affecting location", estimatedMinutes: 15, difficulty: 2 },
+      { id: "woollen-silk-distribution", name: "Distribution", estimatedMinutes: 15, difficulty: 2 },
+      { id: "woollen-silk-india", name: "Situation in India", estimatedMinutes: 20, difficulty: 2 }
+    ]
+  },
+  {
+    id: "tea-coffee-industry",
+    name: "Tea & Coffee Industry",
+    subtopics: [
+      { id: "tea-coffee-cultivation", name: "Steps in cultivation & processing", estimatedMinutes: 20, difficulty: 2 },
+      { id: "tea-coffee-distribution", name: "Distributions", estimatedMinutes: 15, difficulty: 2 },
+      { id: "tea-coffee-india", name: "Situation in India", estimatedMinutes: 20, difficulty: 2 }
+    ]
+  },
+  {
+    id: "sugar-industry",
+    name: "Sugar Industry",
+    subtopics: [
+      { id: "sugar-factors", name: "Factors affecting location", estimatedMinutes: 20, difficulty: 3 },
+      { id: "sugar-distribution", name: "Distribution", estimatedMinutes: 15, difficulty: 2 },
+      { id: "sugar-india", name: "Situation in India", estimatedMinutes: 20, difficulty: 3 }
+    ]
+  },
+  {
+    id: "rubber-industry",
+    name: "Rubber Industry",
+    subtopics: [
+      { id: "rubber-factors", name: "Factors affecting location", estimatedMinutes: 15, difficulty: 2 },
+      { id: "rubber-distribution", name: "Distribution", estimatedMinutes: 15, difficulty: 2 },
+      { id: "rubber-india", name: "Situation in India", estimatedMinutes: 15, difficulty: 2 }
+    ]
+  },
+  {
+    id: "lumbering-paper-pulp-industry",
+    name: "Lumbering, Paper and Pulp Industry",
+    subtopics: [
+      { id: "paper-pulp-factors", name: "Factors affecting location", estimatedMinutes: 20, difficulty: 3 },
+      { id: "paper-pulp-distribution", name: "Distribution", estimatedMinutes: 15, difficulty: 2 },
+      { id: "paper-pulp-india", name: "Situation in India", estimatedMinutes: 20, difficulty: 2 }
+    ]
+  },
+  {
+    id: "sunrise-industries",
+    name: "Sunrise Industries",
+    subtopics: [
+      { id: "sunrise-factors", name: "Factors affecting location", estimatedMinutes: 20, difficulty: 3 },
+      { id: "sunrise-distribution", name: "Distribution", estimatedMinutes: 20, difficulty: 2 },
+      { id: "sunrise-india", name: "Situation in India", estimatedMinutes: 20, difficulty: 3 }
+    ]
+  },
+  {
+    id: "indian-pharma-industry",
+    name: "Indian Pharma Industry",
+    subtopics: [
+      { id: "pharma-factors", name: "Factors affecting location", estimatedMinutes: 20, difficulty: 3 },
+      { id: "pharma-distribution", name: "Distribution", estimatedMinutes: 15, difficulty: 2 },
+      { id: "pharma-india", name: "Situation in India", estimatedMinutes: 25, difficulty: 3 }
+    ]
+  },
+  {
+    id: "semiconductor-industry",
+    name: "Semiconductor Industry",
+    subtopics: [
+      { id: "semiconductor-factors", name: "Factors affecting location", estimatedMinutes: 25, difficulty: 4 },
+      { id: "semiconductor-distribution", name: "Distribution", estimatedMinutes: 20, difficulty: 3 },
+      { id: "semiconductor-india", name: "Situation in India", estimatedMinutes: 25, difficulty: 4 }
+    ]
+  }
+]
+},
 
 ];
 
