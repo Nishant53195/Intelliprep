@@ -5,12 +5,12 @@ import {
 import useDashboardStore from "../store/dashboardStore";
 
 const items = [
-  { icon: LayoutDashboard, label: "Preparation Status" },
-  { icon: Brain, label: "Study Hub" },
-  { icon: FileQuestion, label: "PYQ Hub" },
-  { icon: ClipboardCheck, label: "Test Hub" },
-  { icon: Network, label: "Knowledge Graph" },
-  { icon: Newspaper, label: "Current Affairs" },
+  { icon: LayoutDashboard, label: "Preparation Status", disabled: false },
+  { icon: Brain, label: "Study Hub", disabled: false },
+  { icon: FileQuestion, label: "PYQ Hub", disabled: false },
+  { icon: ClipboardCheck, label: "Test Hub", disabled: true }, 
+  { icon: Network, label: "Knowledge Graph", disabled: true },
+  { icon: Newspaper, label: "Current Affairs", disabled: true },
 ];
 
 function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenuOpen }) {
@@ -59,22 +59,42 @@ function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenuOpen })
           return (
             <button
               key={item.label}
+              disabled={item.disabled}
               onClick={() => {
+                if (item.disabled) return;
                 setActiveHub(item.label);
                 setMobileMenuOpen(false);
               }}
               className={`group relative flex items-center gap-3.5 rounded-xl px-4 py-3.5 text-left transition-all duration-200 ${
-                isActive
+                item.disabled
+                  ? "opacity-40 cursor-not-allowed pointer-events-none select-none text-slate-500"
+                  : isActive
                   ? "bg-gradient-to-r from-indigo-500/10 to-cyan-500/5 text-cyan-400"
                   : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
               }`}
             >
-              <Icon size={20} className={`shrink-0 ${isActive ? "text-cyan-400" : "text-slate-500 group-hover:text-slate-400"}`} />
+              <Icon 
+                size={20} 
+                className={`shrink-0 ${
+                  item.disabled 
+                    ? "text-slate-600" 
+                    : isActive 
+                    ? "text-cyan-400" 
+                    : "text-slate-500 group-hover:text-slate-400"
+                }`} 
+              />
               
               {(!collapsed || mobileMenuOpen) && (
-                <span className="text-sm font-medium tracking-wide">
-                  {item.label}
-                </span>
+                <div className="flex flex-1 items-center justify-between">
+                  <span className="text-sm font-medium tracking-wide">
+                    {item.label}
+                  </span>
+                  {item.disabled && (
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-slate-600 bg-white/[0.02] px-1.5 py-0.5 rounded border border-white/5">
+                      Lock
+                    </span>
+                  )}
+                </div>
               )}
             </button>
           );

@@ -1,120 +1,220 @@
 import { db } from "../../database/dexie";
+import dayjs from "dayjs";
 
 /**
- * Advanced V1.2 Single-Day Multi-Task Allocation Engine
- * Manages priority backlogs, strict midnight lockouts, and conditional runtime session extensions.
+ * Utility helper to extract the active operational date string
+ * Enforces the 5:00 AM day boundary rule layout adjustment.
+ */
+export function getActiveShiftDateString() {
+  const currentHour = new Date().getHours();
+  // If clock is between Midnight and 4:59 AM, roll back the processing anchor by 1 full day
+  if (currentHour < 5) {
+    return dayjs().subtract(1, "day").format("YYYY-MM-DD");
+  }
+  return dayjs().format("YYYY-MM-DD");
+}
+
+/**
+ * Advanced Core Single-Day Multi-Task Allocation Engine
+ * Bound strictly to a 5:00 AM Day-Roll Window for late-night safety.
+ * Missed revisions automatically roll into historical backlogs parsed by the UI hub.
  */
 export async function generateDailySchedule(userId, extensionBudget = 0, extensionTargetSlot = null) {
-  const config = await db.onboarding_config.where("userId").equals(userId).first();
-  if (!config) throw new Error("User onboarding configuration metadata map not found.");
+  return await db.transaction("rw", [db.onboarding_config, db.schedule_tasks, db.subjects, db.topics, db.subtopics, db.subtopic_progress, db.revisions], async () => {
+    const config = await db.onboarding_config.where("userId").equals(userId).first();
+    if (!config) throw new Error("User onboarding configuration metadata map not found.");
 
-  const studyHours = parseInt(config.dailyStudyTarget) || 6;
-  const todayDate = new Date().toISOString().split("T")[0];
+    const activeTargetHours = parseInt(config.dailyStudyTarget) || parseInt(config.studyHoursPerDay) || 6;
+    const todayDate = getActiveShiftDateString();
 
-  // --- 1. RUNTIME EXTRA SESSION EXTENSION PASS ---
-  if (extensionBudget > 0 && extensionTargetSlot) {
-    return await appendExtensionTasks(userId, todayDate, extensionBudget, extensionTargetSlot, config);
-  }
+    // --- 1. RUNTIME EXTRA SESSION EXTENSION PASS ---
+    if (extensionBudget > 0 && extensionTargetSlot) {
+      return await appendExtensionTasks(userId, todayDate, extensionBudget, extensionTargetSlot, config);
+    }
 
-  // --- 2. AUTOMATED HISTORICAL RECOVERY PASS ---
-  const historicalStaleTasks = await db.schedule_tasks
-    .where("userId")
-    .equals(userId)
-    .filter(task => task.scheduledDate !== todayDate && task.status?.toUpperCase() === "PENDING")
-    .toArray();
+    // --- 2. AUTOMATED HISTORICAL RECOVERY PASS ---
+    const historicalStaleTasks = await db.schedule_tasks
+      .where("userId")
+      .equals(userId)
+      .toArray();
 
-  if (historicalStaleTasks.length > 0) {
-    for (const staleTask of historicalStaleTasks) {
-      await db.schedule_tasks.update(staleTask.id, { status: "MISSED", closedAt: Date.now() });
-      if (staleTask.subtasks) {
-        for (const sub of staleTask.subtasks) {
-          const prog = await db.subtopic_progress.where("subtopicId").equals(sub.subtopicId).first();
-          if (!prog || prog.status?.toUpperCase() !== "COMPLETED") {
-            await db.subtopic_progress.put({
-              id: prog ? prog.id : `prog_node_${Date.now()}_${sub.subtopicId}`,
-              subtopicId: sub.subtopicId, status: "missed", remainingMinutes: sub.duration, updatedAt: Date.now()
-            });
+    const staleItems = historicalStaleTasks.filter(
+      task => task.scheduledDate !== todayDate && task.status?.toLowerCase() === "pending"
+    );
+
+    if (staleItems.length > 0) {
+      for (const staleTask of staleItems) {
+        await db.schedule_tasks.update(staleTask.id, { status: "missed", closedAt: Date.now() });
+        
+        if (staleTask.subtasks) {
+          for (const sub of staleTask.subtasks) {
+            if (staleTask.type === "revision") continue;
+
+            const prog = await db.subtopic_progress.where("subtopicId").equals(sub.subtopicId).first();
+            if (!prog) {
+              await db.subtopic_progress.put({
+                id: `prog_node_${Date.now()}_${sub.subtopicId}`,
+                subtopicId: sub.subtopicId, 
+                status: "missed", 
+                remainingMinutes: parseInt(sub.duration) || 45, 
+                updatedAt: Date.now()
+              });
+            } else if (prog.status?.toLowerCase() !== "completed" && prog.status?.toLowerCase() !== "chunked") {
+              await db.subtopic_progress.update(prog.id, {
+                status: "missed",
+                remainingMinutes: parseInt(sub.duration) || 45,
+                updatedAt: Date.now()
+              });
+            }
           }
         }
       }
     }
-  }
 
-  // --- 3. STRICT MIDNIGHT LOCK GATE ---
-  const concludedTodayLogs = await db.schedule_tasks
-    .where("[userId+scheduledDate]")
-    .equals([userId, todayDate])
-    .filter(task => task.status?.toUpperCase() === "CLOSED" || task.status?.toUpperCase() === "MISSED")
-    .toArray();
+    // --- 3. STRICT 5:00 AM PROGRESSION BLOCK GATE ---
+    const dailyLogs = await db.schedule_tasks.where("[userId+scheduledDate]").equals([userId, todayDate]).toArray();
+    const isConcludedToday = dailyLogs.some(
+      task => task.status?.toLowerCase() === "closed" || task.status?.toLowerCase() === "missed"
+    );
 
-  if (concludedTodayLogs.length > 0) return [];
+    if (isConcludedToday) return [];
 
-  // --- 4. RETRIEVAL PASS ---
-  const existingActiveTasks = await db.schedule_tasks
-    .where("[userId+scheduledDate]")
-    .equals([userId, todayDate])
-    .filter(task => task.status?.toUpperCase() === "PENDING" || task.status?.toUpperCase() === "COMPLETED")
-    .toArray();
+    // --- 4. RETRIEVAL PASS ---
+    const existingActiveTasks = dailyLogs.filter(
+      task => task.status?.toLowerCase() === "pending" || task.status?.toLowerCase() === "completed"
+    );
 
-  if (existingActiveTasks.length > 0) return existingActiveTasks;
+    if (existingActiveTasks.length > 0) return existingActiveTasks;
 
-  // --- 5. INITIAL BUDGET ALLOCATIONS ---
-  let revisionMinutes = studyHours >= 8 ? 75 : (studyHours === 7 ? 60 : 45);
-  const practiceMinutes = 60;
-  let maxOptionalMinutes = studyHours === 8 ? 120 : 90;
+    // --- 5. FIXED BUDGET ALLOCATIONS & PARSING ---
+    let finalRevisionMinutes = activeTargetHours >= 8 ? 75 : (activeTargetHours === 7 ? 60 : 45);
+    const practiceMinutes = 60;
+    
+    let baseOptionalMinutes = 90; 
+    let weeklyOptionalCap = 360;   
 
-  let allocateOptionalToday = true;
-  const historicOptionalLogs = await db.schedule_tasks
-    .where("userId").equals(userId)
-    .filter(task => task.type === "optional" && task.status?.toUpperCase() === "COMPLETED")
-    .reverse().sortBy("completedAt");
+    if (activeTargetHours === 7) {
+      baseOptionalMinutes = 105;  
+      weeklyOptionalCap = 420;     
+    } else if (activeTargetHours === 8) {
+      baseOptionalMinutes = 120;  
+      weeklyOptionalCap = 480;     
+    }
 
-  const distinctPastOptionalDates = [...new Set(historicOptionalLogs.map(t => t.scheduledDate))];
-  if (distinctPastOptionalDates.length >= 2) {
-    const diffDays = Math.ceil(Math.abs(new Date(distinctPastOptionalDates[0]) - new Date(distinctPastOptionalDates[1])) / (1000 * 60 * 60 * 24));
-    if (diffDays === 1) allocateOptionalToday = false;
-  }
+    const maxConsecutiveDays = 2; 
+    let allocateOptionalToday = true;
 
-  const optionalMinutesBudget = allocateOptionalToday ? maxOptionalMinutes : 0;
-  const gsMinutesBudget = (studyHours * 60) - (revisionMinutes + practiceMinutes + optionalMinutesBudget);
+    const historicOptionalLogs = historicalStaleTasks.filter(task => task.type === "optional");
+    const startOfWeekTimestamp = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    const weeklyMinutesConsumed = historicOptionalLogs
+      .filter(task => new Date(task.scheduledDate).getTime() >= startOfWeekTimestamp && task.status?.toLowerCase() === "completed")
+      .reduce((sum, task) => sum + (task.estimatedMinutes || 0), 0);
 
-  const finalDayTasks = [];
+    if (weeklyMinutesConsumed + baseOptionalMinutes > weeklyOptionalCap) {
+      allocateOptionalToday = false;
+    }
 
-  // --- GS SLOT INITIALIZER ---
-  if (gsMinutesBudget > 0) {
-    const allocatedGs = await harvestSubtopics(userId, "gs", config.gsSequence, gsMinutesBudget);
-    if (allocatedGs.length > 0) {
-      finalDayTasks.push({
-        id: `task_gs_${Date.now()}`, userId, type: "gs", scheduledDate: todayDate, status: "PENDING",
-        estimatedMinutes: gsMinutesBudget, subtasks: allocatedGs, subjectName: allocatedGs[0].subjectName,
-        topicName: allocatedGs[0].topicName, subtopicName: allocatedGs[0].subtopicName, subtopicId: allocatedGs[0].subtopicId, topicId: allocatedGs[0].topicId
+    if (allocateOptionalToday && historicOptionalLogs.length > 0) {
+      const plannedDates = historicOptionalLogs.map(t => t.scheduledDate);
+      let streakCount = 0;
+      let checkDate = new Date(todayDate);
+      
+      for (let i = 0; i < maxConsecutiveDays; i++) {
+        checkDate.setDate(checkDate.getDate() - 1);
+        const isoString = checkDate.toISOString().split("T")[0];
+        if (plannedDates.includes(isoString)) {
+          streakCount++;
+        } else {
+          break;
+        }
+      }
+
+      if (streakCount >= maxConsecutiveDays) {
+        allocateOptionalToday = false;
+      }
+    }
+
+    // --- 6. TARGET DISTRIBUTION CALCULATIONS ---
+    let finalOptionalMinutes = allocateOptionalToday ? baseOptionalMinutes : 0;
+    let finalGsMinutes = (activeTargetHours * 60) - (finalRevisionMinutes + practiceMinutes + finalOptionalMinutes);
+
+    // --- 7. TASK PLACEMENT GENERATION PIPELINES ---
+    const finalDayTasks = [];
+
+    // A. GS HARVESTING
+    if (finalGsMinutes > 0) {
+      const allocatedGs = await harvestSubtopics(userId, "gs", config.gsSequence, finalGsMinutes);
+      if (allocatedGs.length > 0) {
+        finalDayTasks.push({
+          id: `task_gs_${Date.now()}`, userId, type: "gs", scheduledDate: todayDate, status: "pending",
+          estimatedMinutes: finalGsMinutes, subtasks: allocatedGs, subjectName: allocatedGs[0].subjectName,
+          topicName: allocatedGs[0].topicName, subtopicName: allocatedGs[0].subtopicName, subtopicId: allocatedGs[0].subtopicId, topicId: allocatedGs[0].topicId
+        });
+      }
+    }
+
+    // B. OPTIONAL HARVESTING
+    if (finalOptionalMinutes > 0) {
+      const allocatedOpt = await harvestSubtopics(userId, "optional", config.optionalSequence, finalOptionalMinutes);
+      if (allocatedOpt.length > 0) {
+        finalDayTasks.push({
+          id: `task_opt_${Date.now()}`, userId, type: "optional", scheduledDate: todayDate, status: "pending",
+          estimatedMinutes: finalOptionalMinutes, subtasks: allocatedOpt, subjectName: allocatedOpt[0].subjectName,
+          topicName: allocatedOpt[0].topicName, subtopicName: allocatedOpt[0].subtopicName, subtopicId: allocatedOpt[0].subtopicId, topicId: allocatedOpt[0].topicId
+        });
+      }
+    }
+
+    // C. REVISION CORES
+    if (finalRevisionMinutes > 0) {
+      const dueRevisionsToday = await db.revisions
+        .where("dueDate")
+        .equals(todayDate)
+        .filter(r => r.status === "PENDING")
+        .toArray();
+
+      const formattedRevisionSubtasks = [];
+      if (dueRevisionsToday.length > 0) {
+        for (const rev of dueRevisionsToday) {
+          let titleName = "Macro Subject Review";
+          if (rev.subtopicId) {
+            const stMeta = await db.subtopics.get(rev.subtopicId);
+            titleName = stMeta ? stMeta.name : "Subtopic Review";
+          }
+
+          formattedRevisionSubtasks.push({
+            revisionId: rev.id, subtopicId: rev.subtopicId || "", topicId: rev.topicId || "", subjectId: rev.subjectId || "",
+            subtopicName: `[${rev.revisionStage}] ${titleName}`,
+            duration: Math.round(finalRevisionMinutes / dueRevisionsToday.length) || 15,
+            isFinalChunk: true
+          });
+        }
+      }
+
+      finalDayTasks.push({ 
+        id: `task_rev_${Date.now()}`, userId, type: "revision", scheduledDate: todayDate, 
+        status: dueRevisionsToday.length > 0 ? "pending" : "completed", 
+        estimatedMinutes: finalRevisionMinutes, 
+        subjectName: "Revision Block", 
+        topicName: dueRevisionsToday.length > 0 ? "Spaced Repetition Due Today" : "Spaced Repetition Review", 
+        subtopicName: dueRevisionsToday.length > 0 ? `${dueRevisionsToday.length} item(s) require review today.` : "Reviewing active retention items.", 
+        subtasks: formattedRevisionSubtasks 
       });
     }
-  }
+    
+    // D. PRACTICE CORES
+    finalDayTasks.push({ 
+      id: `task_prac_${Date.now()}`, userId, type: "practice", scheduledDate: todayDate, status: "pending", 
+      estimatedMinutes: practiceMinutes, subjectName: "Practice Suite", topicName: "MCQ / PYQ / Mains Logs", 
+      subtopicName: "Splitting evenly across compilation targets", subtasks: [] 
+    });
 
-  // --- OPTIONAL SLOT INITIALIZER ---
-  if (optionalMinutesBudget > 0) {
-    const allocatedOpt = await harvestSubtopics(userId, "optional", config.optionalSequence, optionalMinutesBudget);
-    if (allocatedOpt.length > 0) {
-      finalDayTasks.push({
-        id: `task_opt_${Date.now()}`, userId, type: "optional", scheduledDate: todayDate, status: "PENDING",
-        estimatedMinutes: optionalMinutesBudget, subtasks: allocatedOpt, subjectName: allocatedOpt[0].subjectName,
-        topicName: allocatedOpt[0].topicName, subtopicName: allocatedOpt[0].subtopicName, subtopicId: allocatedOpt[0].subtopicId, topicId: allocatedOpt[0].topicId
-      });
-    }
-  }
-
-  // --- FIXED CORE BLOCKS ---
-  finalDayTasks.push({ id: `task_rev_${Date.now()}`, userId, type: "revision", scheduledDate: todayDate, status: "PENDING", estimatedMinutes: revisionMinutes, subjectName: "Revision Block", topicName: "Spaced Repetition Review", subtopicName: "Reviewing active retention items", subtasks: [] });
-  finalDayTasks.push({ id: `task_prac_${Date.now()}`, userId, type: "practice", scheduledDate: todayDate, status: "PENDING", estimatedMinutes: practiceMinutes, subjectName: "Practice Suite", topicName: "MCQ / PYQ / Mains Logs", subtopicName: "Splitting evenly across compilation targets", subtasks: [] });
-
-  await db.schedule_tasks.bulkPut(finalDayTasks);
-  return finalDayTasks;
+    await db.schedule_tasks.bulkPut(finalDayTasks);
+    return finalDayTasks;
+  });
 }
 
-/**
- * Core Subtopic Harvester with Priority Backlog Matching
- */
+// Keep harvestSubtopics exact...
 async function harvestSubtopics(userId, slotType, sequences, timeBudget, excludedIds = []) {
   if (!sequences || sequences.length === 0) return [];
   let remainingMinutes = timeBudget;
@@ -152,21 +252,37 @@ async function harvestSubtopics(userId, slotType, sequences, timeBudget, exclude
 
         if (progress) {
           if (progress.status === "chunked" && progress.remainingMinutes) {
-            needed = progress.remainingMinutes;
-            currentPart = (progress.completedChunksCount || 1) + 1;
-          } else if (progress.status === "missed") {
+            needed = parseInt(progress.remainingMinutes) || needed;
+            currentPart = (parseInt(progress.completedChunksCount) || 1) + 1;
+          } else if (progress.status?.toLowerCase() === "missed") {
             isRecovery = true;
           }
         }
 
-        const formattedName = isRecovery ? `[Recovery] ${st.name}` : (currentPart > 1 ? `${st.name} - Part ${currentPart}` : st.name);
+        let formattedName = st.name;
+        if (isRecovery) {
+          formattedName = `[Recovery] ${st.name}`;
+        } else if (currentPart > 1) {
+          formattedName = `${st.name} - Part ${currentPart}`;
+        }
 
         if (needed <= remainingMinutes) {
-          output.push({ subtopicId: st.id, topicId: topic.id, subjectId: sub?.id || "", subjectName: sub?.name || "Target Hub", topicName: topic.name, subtopicName: formattedName, duration: needed, isFinalChunk: true });
+          output.push({ 
+            subtopicId: st.id, topicId: topic.id, subjectId: sub?.id || "", subjectName: sub?.name || "Target Hub", 
+            topicName: topic.name, subtopicName: formattedName, duration: needed, isFinalChunk: true, completedChunksCount: currentPart
+          });
           remainingMinutes -= needed;
           if (remainingMinutes <= 0) return output;
         } else if (remainingMinutes >= 1) {
-          output.push({ subtopicId: st.id, topicId: topic.id, subjectId: sub?.id || "", subjectName: sub?.name || "Target Hub", topicName: topic.name, subtopicName: formattedName, duration: remainingMinutes, isFinalChunk: false, nextRemainingMinutes: needed - remainingMinutes, completedChunksCount: currentPart });
+          if (!isRecovery && currentPart === 1) {
+            formattedName = `${st.name} - Part 1`;
+          }
+
+          output.push({ 
+            subtopicId: st.id, topicId: topic.id, subjectId: sub?.id || "", subjectName: sub?.name || "Target Hub", 
+            topicName: topic.name, subtopicName: formattedName, duration: remainingMinutes, isFinalChunk: false, 
+            nextRemainingMinutes: needed - remainingMinutes, completedChunksCount: currentPart 
+          });
           remainingMinutes = 0;
           return output;
         } else {
@@ -178,9 +294,6 @@ async function harvestSubtopics(userId, slotType, sequences, timeBudget, exclude
   return output;
 }
 
-/**
- * Runtime Session Appender Engine
- */
 async function appendExtensionTasks(userId, todayDate, extraMinutes, slotType, config) {
   const activeTasks = await db.schedule_tasks.where("[userId+scheduledDate]").equals([userId, todayDate]).toArray();
 
@@ -191,7 +304,11 @@ async function appendExtensionTasks(userId, todayDate, extraMinutes, slotType, c
       const activeIds = (taskRow.subtasks || []).map(s => s.subtopicId);
       const appends = await harvestSubtopics(userId, "gs", config.gsSequence, minutesBudget, activeIds);
       if (appends.length > 0) {
-        await db.schedule_tasks.update(taskRow.id, { subtasks: [...taskRow.subtasks, ...appends], status: "PENDING" });
+        await db.schedule_tasks.update(taskRow.id, { 
+          subtasks: [...taskRow.subtasks, ...appends], 
+          estimatedMinutes: taskRow.estimatedMinutes + minutesBudget,
+          status: "pending" 
+        });
       }
     }
   }
@@ -203,7 +320,11 @@ async function appendExtensionTasks(userId, todayDate, extraMinutes, slotType, c
       const activeIds = (taskRow.subtasks || []).map(s => s.subtopicId);
       const appends = await harvestSubtopics(userId, "optional", config.optionalSequence, minutesBudget, activeIds);
       if (appends.length > 0) {
-        await db.schedule_tasks.update(taskRow.id, { subtasks: [...taskRow.subtasks, ...appends], status: "PENDING" });
+        await db.schedule_tasks.update(taskRow.id, { 
+          subtasks: [...taskRow.subtasks, ...appends], 
+          estimatedMinutes: taskRow.estimatedMinutes + minutesBudget,
+          status: "pending" 
+        });
       }
     }
   }

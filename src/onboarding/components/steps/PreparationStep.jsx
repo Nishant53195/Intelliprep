@@ -1,6 +1,5 @@
 import useOnboardingStore from "../../store/onboardingStore";
 import OnboardingCard from "../OnboardingCard";
-import optionalSyllabus from "../../../constants/optionalSyllabus";
 import optionalSubjects from "../../../constants/optionalSubjects";
 
 function PreparationStep() {
@@ -12,7 +11,6 @@ function PreparationStep() {
   const setMainsDate = useOnboardingStore((state) => state.setMainsDate);
   const optionalSubject = useOnboardingStore((state) => state.optionalSubject);
   const setOptionalSubject = useOnboardingStore((state) => state.setOptionalSubject);
-  const setOptionalSequence = useOnboardingStore((state) => state.setOptionalSequence);
   const nextStep = useOnboardingStore((state) => state.nextStep);
   const previousStep = useOnboardingStore((state) => state.previousStep);
 
@@ -31,12 +29,8 @@ function PreparationStep() {
   }
 
   function handleOptionalChange(value) {
+    // Let the store handle picking the correct, isolated topics automatically
     setOptionalSubject(value);
-    let topics = [];
-    if (value === "Sociology") {
-      topics = optionalSyllabus.flatMap((paper) => paper.topics || []);
-    }
-    setOptionalSequence(topics);
   }
 
   return (

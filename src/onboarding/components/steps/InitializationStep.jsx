@@ -135,6 +135,7 @@ function InitializationStep() {
               optionalSubject,
               gsSequence,
               optionalSequence,
+              studyHoursPerDay: dailyStudyHours, // <-- ADD THIS LINE
             });
 
             // 2. Initialize syllabus

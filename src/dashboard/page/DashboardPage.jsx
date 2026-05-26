@@ -18,22 +18,15 @@ function DashboardPage() {
   const [isHindi, setIsHindi] = useState(false);
   const user = useLoginStore((state) => state.user);
 
-  // Programmatic language conversion handler
   // Programmatic language conversion handler with localhost retry logic
-  // Dynamic language translation handler with fallback on-demand injector
   const toggleTranslation = () => {
-    // 1. Look for the actual inner selector element that Google creates
     let googleCombo = document.querySelector('.goog-te-combo');
-    
-    // 2. If it's missing, try to force initialize the global script element manually
     if (!googleCombo && window.googleTranslateElementInit) {
       window.googleTranslateElementInit();
     }
 
-    // 3. Set a brief checking window to toggle the configuration select index values
     setTimeout(() => {
       googleCombo = document.querySelector('.goog-te-combo');
-      
       if (googleCombo) {
         if (!isHindi) {
           googleCombo.value = 'hi';
@@ -42,11 +35,9 @@ function DashboardPage() {
           googleCombo.value = 'en';
           setIsHindi(false);
         }
-        // Force the browser layout engine to refresh and translate all copy blocks
         googleCombo.dispatchEvent(new Event('change'));
       } else {
         console.log("Injecting engine scripts into domestic local frame context...");
-        // If the resource still hasn't arrived, force click translation flags
         try {
           const elementContainer = document.getElementById('google_translate_element');
           if (elementContainer && !elementContainer.innerHTML) {
@@ -59,22 +50,23 @@ function DashboardPage() {
     }, 150);
   };
 
+  // Added distinct "disabled" flags to toggle grey-out layout states
   const navigationItems = [
-    { id: "prep_status", label: "Preparation Status", icon: "📊" },
-    { id: "study_hub", label: "Study Hub (Daily Task)", icon: "🎯" },
-    { id: "syllabus_progress", label: "Syllabus Progress", icon: "📚" },
-    { id: "revision_hub", label: "Revision Hub", icon: "🔄" },
-    { id: "prelims_test", label: "Test your Prelims", icon: "📝" },
-    { id: "mains_test", label: "Test your Mains", icon: "🖋️" },
-    { id: "weak_topics", label: "Weak Topics", icon: "⚠️" },
-    { id: "current_affairs", label: "Current Affairs", icon: "📰" },
-    { id: "knowledge_graph", label: "Knowledge Graphs", icon: "🕸️" },
-    { id: "settings_export", label: "Settings & Exports", icon: "⚙️" },
+    { id: "prep_status", label: "Preparation Status", icon: "📊", disabled: false },
+    { id: "study_hub", label: "Study Hub (Daily Task)", icon: "🎯", disabled: false },
+    { id: "syllabus_progress", label: "Syllabus Progress", icon: "📚", disabled: false },
+    { id: "revision_hub", label: "Revision Hub", icon: "🔄", disabled: false },
+    { id: "prelims_test", label: "Test your Prelims", icon: "📝", disabled: true },
+    { id: "mains_test", label: "Test your Mains", icon: "🖋️", disabled: true },
+    { id: "weak_topics", label: "Weak Topics", icon: "⚠️", disabled: true },
+    { id: "current_affairs", label: "Current Affairs", icon: "📰", disabled: true },
+    { id: "knowledge_graph", label: "Knowledge Graphs", icon: "🕸️", disabled: true },
+    { id: "settings_export", label: "Settings & Exports", icon: "⚙️", disabled: false },
   ];
 
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-800 antialiased selection:bg-cyan-100">
-      {/* Sidebar Layout */}
+      {/* Sidebar Layout (Laptop / Desktop View) */}
       <nav className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 p-4 shrink-0 shadow-sm">
         <div className="mb-4 px-2 py-1 border-b border-slate-100 pb-4">
           <h1 className="text-sm font-black tracking-wider bg-gradient-to-r from-cyan-600 to-indigo-600 bg-clip-text text-transparent uppercase">
@@ -83,7 +75,6 @@ function DashboardPage() {
           <p className="text-[11px] font-semibold text-slate-500 truncate mt-0.5">{user?.email}</p>
         </div>
 
-        {/* Dynamic Translation Action Control Button */}
         <div className="px-2 mb-4">
           <button
             onClick={toggleTranslation}
@@ -101,23 +92,26 @@ function DashboardPage() {
           {navigationItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveNav(item.id)}
+              disabled={item.disabled}
+              onClick={() => !item.disabled && setActiveNav(item.id)}
               className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-bold rounded-xl transition-all ${
-                activeNav === item.id
+                item.disabled
+                  ? "border-transparent bg-transparent text-slate-400 opacity-40 cursor-not-allowed pointer-events-none select-none"
+                  : activeNav === item.id
                   ? "bg-slate-100 border border-slate-200 shadow-sm text-cyan-600"
                   : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 border border-transparent"
               }`}
             >
-              <span className="text-sm opacity-90">{item.icon}</span>
-              {item.label}
+              <span className={`text-sm ${item.disabled ? "opacity-30 grayscale" : "opacity-90"}`}>{item.icon}</span>
+              <span className="truncate flex-1 text-left">{item.label}</span>
+              {item.disabled && <span className="text-[9px] font-mono font-normal tracking-wide opacity-60">(Disabled)</span>}
             </button>
           ))}
         </div>
       </nav>
 
-      {/* Mobile Bottom Sticky Menu Sheet Layout */}
+      {/* Mobile Bottom Sticky Menu Sheet Layout (Phone Viewport) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1.5 overflow-x-auto flex flex-col gap-2 shadow-lg">
-        {/* Compact Mobile Top Row Translation Toggle Action Bar */}
         <div className="px-1.5">
           <button
             onClick={toggleTranslation}
@@ -133,15 +127,20 @@ function DashboardPage() {
           {navigationItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveNav(item.id)}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl min-w-[76px] shrink-0 transition-colors ${
-                activeNav === item.id 
+              disabled={item.disabled}
+              onClick={() => !item.disabled && setActiveNav(item.id)}
+              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl min-w-[76px] shrink-0 transition-all ${
+                item.disabled
+                  ? "text-slate-400 opacity-35 cursor-not-allowed pointer-events-none select-none"
+                  : activeNav === item.id 
                   ? "text-cyan-600 bg-slate-100 border border-slate-200" 
                   : "text-slate-500 border border-transparent"
               }`}
             >
-              <span className="text-sm">{item.icon}</span>
-              <span className="text-[9px] font-bold tracking-tight whitespace-nowrap">{item.label.split(" ")[0]}</span>
+              <span className={`text-sm ${item.disabled ? "grayscale opacity-40" : ""}`}>{item.icon}</span>
+              <span className="text-[9px] font-bold tracking-tight whitespace-nowrap">
+                {item.disabled ? "Locked" : item.label.split(" ")[0]}
+              </span>
             </button>
           ))}
         </div>

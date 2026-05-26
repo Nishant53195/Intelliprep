@@ -7,9 +7,7 @@ export function normalizeSyllabus(
   syllabusData
 ) {
   const subjects = [];
-
   const topics = [];
-
   const subtopics = [];
 
   syllabusData.forEach(
@@ -17,9 +15,12 @@ export function normalizeSyllabus(
       subject,
       subjectIndex
     ) => {
+      // Establish a safe fallback ID for the subject if missing
+      const safeSubjectId = subject.id || `subject-${subjectIndex}`;
+
       // SUBJECT
       subjects.push({
-        id: subject.id,
+        id: safeSubjectId,
 
         type:
           subject.type,
@@ -34,23 +35,28 @@ export function normalizeSyllabus(
           subjectIndex,
       });
 
-      // TOPICS
-      subject.topics.forEach(
+      // SAFELY FETCH TOPICS WITH FALLBACK TO PREVENT CRASHING
+      const safeTopics = subject.topics || [];
+
+      safeTopics.forEach(
         (
           topic,
           topicIndex
         ) => {
-          let totalEstimatedMinutes =
-            0;
+          if (!topic) return;
+
+          // GUARANTEE VALID ID: If topic.id is missing, generate a valid key string
+          const safeTopicId = topic.id || `${safeSubjectId}-topic-${topicIndex}`;
+          let totalEstimatedMinutes = 0;
 
           topics.push({
-            id: topic.id,
+            id: safeTopicId,
 
             subjectId:
-              subject.id,
+              safeSubjectId,
 
             name:
-              topic.name,
+              topic.name || "Untitled Topic",
 
             order:
               topicIndex,
@@ -69,40 +75,47 @@ export function normalizeSyllabus(
               TOPIC_STATUS.NOT_STARTED,
           });
 
-          // SUBTOPICS
-          topic.subtopics.forEach(
+          // SAFELY FETCH SUBTOPICS WITH FALLBACK
+          const safeSubtopics = topic.subtopics || [];
+
+          safeSubtopics.forEach(
             (
               subtopic,
               subtopicIndex
             ) => {
+              if (!subtopic) return;
+
+              // GUARANTEE VALID SUBTOPIC ID
+              const safeSubtopicId = subtopic.id || `${safeTopicId}-subtopic-${subtopicIndex}`;
+
               totalEstimatedMinutes +=
-                subtopic.estimatedMinutes;
+                subtopic.estimatedMinutes || 0;
 
               subtopics.push({
                 id:
-                  subtopic.id,
+                  safeSubtopicId,
 
                 subjectId:
-                  subject.id,
+                  safeSubjectId,
 
                 topicId:
-                  topic.id,
+                  safeTopicId,
 
                 name:
-                  subtopic.name,
+                  subtopic.name || "Untitled Subtopic",
 
                 estimatedMinutes:
-                  subtopic.estimatedMinutes,
+                  subtopic.estimatedMinutes || 0,
 
                 difficulty:
-                  subtopic.difficulty,
+                  subtopic.difficulty || 1,
 
                 status:
                   SUBTOPIC_STATUS.NOT_STARTED,
 
                 paper:  subject.paper,
 
-type:  subject.type,
+                type:  subject.type,
 
                 order:
                   subtopicIndex,
@@ -115,7 +128,7 @@ type:  subject.type,
             topics.findIndex(
               (t) =>
                 t.id ===
-                topic.id
+                safeTopicId
             );
 
           if (
