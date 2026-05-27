@@ -26,13 +26,13 @@ const gsSyllabus = [
       {
         id: "neolithic-period",
         name: "Neolithic Period",
-        estimatedMinutes: 40,
+        estimatedMinutes: 60,
         difficulty: 3,
       },
       {
         id: "chalcolithic-period",
         name: "Chalcolithic Period",
-        estimatedMinutes: 40,
+        estimatedMinutes: 60,
         difficulty: 3,
       },
     ],
@@ -601,7 +601,7 @@ const gsSyllabus = [
       {
         id: "africa",
         name: "Africa",
-        estimatedMinutes: 10,
+        estimatedMinutes: 15,
         difficulty: 1,
       },
     ],
@@ -2111,7 +2111,7 @@ difficulty: 1,
 {
 id: "bangbhasha-prakashika-sabha-1836",
 name: "Bangbhasha Prakashika Sabha (1836)",
-estimatedMinutes: 10,
+estimatedMinutes: 15,
 difficulty: 2,
 },
 {
@@ -2141,7 +2141,7 @@ difficulty: 2,
 {
 id: "indian-association-1876",
 name: "Indian Association (1876)",
-estimatedMinutes: 20,
+estimatedMinutes: 15,
 difficulty: 2,
 },
 {
@@ -2153,7 +2153,7 @@ difficulty: 2,
 {
 id: "poona-sabha",
 name: "Poona Sabha",
-estimatedMinutes: 20,
+estimatedMinutes: 15,
 difficulty: 2,
 },
 {
@@ -2165,7 +2165,7 @@ difficulty: 2,
 {
 id: "madras-association",
 name: "Madras Association",
-estimatedMinutes: 10,
+estimatedMinutes: 15,
 difficulty: 2,
 },
 {
@@ -2189,13 +2189,13 @@ subtopics: [
 {
 id: "inc-formation",
 name: "Formation",
-estimatedMinutes: 25,
+estimatedMinutes: 15,
 difficulty: 2,
 },
 {
 id: "theory-of-safety-valve",
 name: "Theory of Safety Valve",
-estimatedMinutes: 30,
+estimatedMinutes: 15,
 difficulty: 3,
 },
 ],
@@ -2555,7 +2555,7 @@ difficulty: 2,
 {
 id: "introduction-separate-electorates-1909",
 name: "Introduction of Separate Electorates (1909)",
-estimatedMinutes: 25,
+estimatedMinutes: 20,
 difficulty: 4,
 },
 {
@@ -5549,25 +5549,25 @@ difficulty: 3,
       {
         id: "archaen-system",
         name: "Archaen system",
-        estimatedMinutes: 15,
+        estimatedMinutes: 20,
         difficulty: 3,
       },
       {
         id: "dharwar-system",
         name: "Dharwar system",
-        estimatedMinutes: 15,
+        estimatedMinutes: 20,
         difficulty: 3,
       },
       {
         id: "purana-system",
         name: "Purana System",
-        estimatedMinutes: 15,
+        estimatedMinutes: 20,
         difficulty: 2,
       },
       {
         id: "dravidian-system",
         name: "Dravidian System",
-        estimatedMinutes: 10,
+        estimatedMinutes: 20,
         difficulty: 2,
       },
       {
@@ -5579,13 +5579,13 @@ difficulty: 3,
       {
         id: "jurrasic-system",
         name: "Jurrasic system",
-        estimatedMinutes: 10,
+        estimatedMinutes: 15,
         difficulty: 2,
       },
       {
         id: "deccan-trap",
         name: "Deccan trap",
-        estimatedMinutes: 25,
+        estimatedMinutes: 20,
         difficulty: 3,
       },
       {
@@ -6437,7 +6437,7 @@ difficulty: 3,
     name: "Strategic Minerals",
     subtopics: [
       { id: "critical-minerals", name: "Critical Minerals", estimatedMinutes: 20, difficulty: 3 },
-      { id: "rare-earth-elements", name: "Rare Earth Elements", estimatedMinutes: 25, difficulty: 4 }
+      { id: "rare-earth-elements", name: "Rare Earth Elements", estimatedMinutes: 35, difficulty: 4 }
     ]
   },
   {
@@ -6605,9 +6605,9 @@ difficulty: 3,
     subtopics: [
       { id: "gender-key-facts-data", name: "Key Facts & data", estimatedMinutes: 15, difficulty: 1 },
       { id: "notion-of-gender", name: "Notion of Gender", estimatedMinutes: 20, difficulty: 2 },
-      { id: "gender-equality-equity-empowerment", name: "Gender equality, equity and Women’s empowerment", estimatedMinutes: 25, difficulty: 2 },
+      { id: "gender-equality-equity-empowerment", name: "Gender equality, equity and Womens empowerment", estimatedMinutes: 25, difficulty: 2 },
       { id: "structural-basis-inequality-patriarchy", name: "Structural basis of inequality : Patriarchy", estimatedMinutes: 25, difficulty: 3 },
-      { id: "intersectionality-gender", name: "Intersectionality", estimatedMinutes: 25, difficulty: 4 }
+      { id: "intersectionality-gender", name: "Intersectionality", estimatedMinutes: 35, difficulty: 4 }
     ]
   },
   {
@@ -6630,17 +6630,17 @@ difficulty: 3,
   },
   {
     id: "womens-movements-agency-participations",
-    name: "Women’s movements, agency and participations",
+    name: "Womens movements, agency and participations",
     subtopics: [
-      { id: "womens-movement-in-india", name: "Women’s movement in India", estimatedMinutes: 25, difficulty: 3 },
+      { id: "womens-movement-in-india", name: "Womens movement in India", estimatedMinutes: 25, difficulty: 3 },
       { id: "historical-overview-womens-movements", name: "Historical overview", estimatedMinutes: 30, difficulty: 2 },
-      { id: "problems-faced-by-womens-organisation", name: "Problems faced by women’s organisation", estimatedMinutes: 20, difficulty: 2 },
+      { id: "problems-faced-by-womens-organisation", name: "Problems faced by womens organisation", estimatedMinutes: 20, difficulty: 2 },
       { id: "critiques-of-movements", name: "Critiques of movements", estimatedMinutes: 25, difficulty: 3 }
     ]
   },
   {
     id: "judgements-related-to-women-issues",
-    name: "Judgements related to women’s issues",
+    name: "Judgements related to womens issues",
     subtopics: [
       { id: "judgements-privacy-dignity", name: "Right to privacy and dignity", estimatedMinutes: 20, difficulty: 3 },
       { id: "judgements-workplace-employment", name: "Right in workplace and employment", estimatedMinutes: 20, difficulty: 3 },
@@ -6653,7 +6653,7 @@ difficulty: 3,
     id: "political-empowerment",
     name: "Political Empowerment",
     subtopics: [
-      { id: "political-womens-organisations", name: "Women’s organisations", estimatedMinutes: 20, difficulty: 2 },
+      { id: "political-womens-organisations", name: "Womens organisations", estimatedMinutes: 20, difficulty: 2 },
       { id: "engaging-men-gender-justice", name: "Engaging men for gender justice", estimatedMinutes: 20, difficulty: 3 }
     ]
   },
@@ -6815,7 +6815,7 @@ difficulty: 3,
       { id: "globalization-4-0", name: "Globalization 4.0", estimatedMinutes: 25, difficulty: 4 },
       { id: "environmental-impact-global", name: "Environmental Impact", estimatedMinutes: 20, difficulty: 2 },
       { id: "geopolitical-impact-global", name: "Geopolitical Impact", estimatedMinutes: 20, difficulty: 3 },
-      { id: "culture-wars-global", name: "Culture Wars", estimatedMinutes: 25, difficulty: 4 }
+      { id: "culture-wars-global", name: "Culture Wars", estimatedMinutes: 35, difficulty: 4 }
     ]
   },
   {
@@ -6826,7 +6826,7 @@ difficulty: 3,
       { id: "secular-legal-framework", name: "Legal framework", estimatedMinutes: 20, difficulty: 2 },
       { id: "secular-judicial-interventions", name: "Judicial Interventions", estimatedMinutes: 25, difficulty: 3 },
       { id: "ucc-debate-secularism", name: "UCC debate", estimatedMinutes: 30, difficulty: 4 },
-      { id: "threats-from-majoritarianism", name: "Threats from Majoritanism", estimatedMinutes: 25, difficulty: 4 }
+      { id: "threats-from-majoritarianism", name: "Threats from Majoritanism", estimatedMinutes: 35, difficulty: 4 }
     ]
   },
   {
@@ -7048,9 +7048,9 @@ difficulty: 3,
     id: "basic-structure",
     name: "Basic Structure",
     subtopics: [
-      { id: "emergence-of-basic-structure", name: "Emergence of basic structure", estimatedMinutes: 25, difficulty: 4 },
-      { id: "elements-of-basic-structure", name: "elements of basic structure", estimatedMinutes: 20, difficulty: 3 },
-      { id: "evolution-of-basic-structure", name: "evolution of basic structure", estimatedMinutes: 25, difficulty: 4 }
+      { id: "emergence-of-basic-structure", name: "Emergence of basic structure", estimatedMinutes: 35, difficulty: 4 },
+      { id: "elements-of-basic-structure", name: "elements of basic structure", estimatedMinutes: 30, difficulty: 3 },
+      { id: "evolution-of-basic-structure", name: "evolution of basic structure", estimatedMinutes: 40, difficulty: 4 }
     ]
   },
   {
@@ -7112,11 +7112,11 @@ difficulty: 3,
   },
   {
     id: "presidents-rule",
-    name: "President’s Rule",
+    name: "Presidents Rule",
     subtopics: [
       { id: "grounds-of-imposition", name: "Grounds of Imposition", estimatedMinutes: 25, difficulty: 3 },
       { id: "approval-and-duration-pr", name: "Approval and duration", estimatedMinutes: 25, difficulty: 3 },
-      { id: "consequence-of-presidents-rule", name: "Consequence of President’s rule", estimatedMinutes: 20, difficulty: 3 },
+      { id: "consequence-of-presidents-rule", name: "Consequence of Presidents rule", estimatedMinutes: 20, difficulty: 3 },
       { id: "use-of-article-356", name: "Use of article 356", estimatedMinutes: 25, difficulty: 3 },
       { id: "scope-of-judicial-review", name: "Scope of Judicial review", estimatedMinutes: 30, difficulty: 4 },
       { id: "cases-of-proper-and-improper-use", name: "Cases of proper and improper use", estimatedMinutes: 30, difficulty: 4 }
@@ -7379,7 +7379,7 @@ difficulty: 3,
       { id: "composition-fc", name: "Composition", estimatedMinutes: 15, difficulty: 2 },
       { id: "removal-fc", name: "Removal", estimatedMinutes: 15, difficulty: 3 },
       { id: "independence-fc", name: "Independence", estimatedMinutes: 15, difficulty: 3 },
-      { id: "functions-fc", name: "Functions", estimatedMinutes: 25, difficulty: 3 },
+      { id: "functions-fc", name: "Functions", estimatedMinutes: 15, difficulty: 3 },
       { id: "limitations-fc", name: "Limitations", estimatedMinutes: 15, difficulty: 2 }
     ]
   },
@@ -7387,10 +7387,10 @@ difficulty: 3,
     id: "gst-council",
     name: "GST Council",
     subtopics: [
-      { id: "composition-gst", name: "Composition", estimatedMinutes: 20, difficulty: 2 },
+      { id: "composition-gst", name: "Composition", estimatedMinutes: 15, difficulty: 2 },
       { id: "removal-gst", name: "Removal", estimatedMinutes: 15, difficulty: 3 },
       { id: "independence-gst", name: "Independence", estimatedMinutes: 15, difficulty: 3 },
-      { id: "functions-gst", name: "Functions", estimatedMinutes: 25, difficulty: 3 },
+      { id: "functions-gst", name: "Functions", estimatedMinutes: 15, difficulty: 3 },
       { id: "limitations-gst", name: "Limitations", estimatedMinutes: 15, difficulty: 2 }
     ]
   },
@@ -8224,10 +8224,10 @@ difficulty: 3,
       { id: "demonetization", name: "Demonitization", estimatedMinutes: 20, difficulty: 2 },
       { id: "bank-money", name: "Bank money", estimatedMinutes: 15, difficulty: 2 },
       { id: "digital-payments", name: "Digital Payments", estimatedMinutes: 15, difficulty: 1 },
-      { id: "npci", name: "NPCI", estimatedMinutes: 20, difficulty: 2 },
-      { id: "upi", name: "UPI", estimatedMinutes: 20, difficulty: 2 },
+      { id: "npci", name: "NPCI", estimatedMinutes: 15, difficulty: 2 },
+      { id: "upi", name: "UPI", estimatedMinutes: 15, difficulty: 2 },
       { id: "pre-sanctioned-credit-line", name: "Pre-sanctioned credit line", estimatedMinutes: 15, difficulty: 2 },
-      { id: "e-rupi", name: "e-RUPI", estimatedMinutes: 20, difficulty: 2 },
+      { id: "e-rupi", name: "e-RUPI", estimatedMinutes: 15, difficulty: 2 },
       { id: "plastic-money", name: "Plastic Money", estimatedMinutes: 15, difficulty: 1 },
       { id: "merchant-discount-rate", name: "Merchant Discount Rate", estimatedMinutes: 25, difficulty: 3 },
       { id: "global-money-transfer", name: "Global money transfer", estimatedMinutes: 20, difficulty: 2 },
@@ -8241,11 +8241,11 @@ difficulty: 3,
     id: "money-demand-and-supply",
     name: "Money Demand and Supply",
     subtopics: [
-      { id: "demand-of-money", name: "Demand of money", estimatedMinutes: 25, difficulty: 3 },
+      { id: "demand-of-money", name: "Demand of money", estimatedMinutes: 15, difficulty: 3 },
       { id: "fixed-timed-deposits", name: "Fixed and Timed deposits", estimatedMinutes: 15, difficulty: 2 },
       { id: "money-supply", name: "Money supply", estimatedMinutes: 30, difficulty: 3 },
-      { id: "money-multiplier", name: "Money multiplier", estimatedMinutes: 35, difficulty: 4 },
-      { id: "m0-creation-of-money", name: "M0 : creation of money", estimatedMinutes: 30, difficulty: 4 },
+      { id: "money-multiplier", name: "Money multiplier", estimatedMinutes: 30, difficulty: 4 },
+      { id: "m0-creation-of-money", name: "M0 : creation of money", estimatedMinutes: 20, difficulty: 4 },
       { id: "frbm-act", name: "FRBM act", estimatedMinutes: 30, difficulty: 3 }
     ]
   },
@@ -9046,7 +9046,7 @@ difficulty: 3,
       { id: "biomes-india", name: "Biomes", estimatedMinutes: 15, difficulty: 2 },
       { id: "ipbes-report", name: "IPBES report", estimatedMinutes: 20, difficulty: 3 },
       { id: "living-planet-report", name: "Living Planet report", estimatedMinutes: 20, difficulty: 3 },
-      { id: "state-world-birds-report", name: "State of World’s Birds report", estimatedMinutes: 15, difficulty: 2 }
+      { id: "state-world-birds-report", name: "State of Worlds Birds report", estimatedMinutes: 15, difficulty: 2 }
     ]
   },
   {
@@ -9459,7 +9459,7 @@ difficulty: 3,
     name: "Water Conservation",
     subtopics: [
       { id: "water-scarcity", name: "Water Scarcity, Stress and Risk", estimatedMinutes: 15, difficulty: 2 },
-      { id: "india-water-situation", name: "India’s water situation", estimatedMinutes: 20, difficulty: 2 },
+      { id: "india-water-situation", name: "Indias water situation", estimatedMinutes: 20, difficulty: 2 },
       { id: "national-water-cons", name: "National water conservation measures", estimatedMinutes: 20, difficulty: 3 },
       { id: "groundwater-cons", name: "National groundwater conservation measures", estimatedMinutes: 20, difficulty: 3 },
       { id: "recommended-cons", name: "Recommended Conservation measures", estimatedMinutes: 15, difficulty: 2 },
@@ -10112,7 +10112,1106 @@ difficulty: 3,
   }
 ]
 },
-
+{
+     id: "ethics",
+    type: "GS",
+    paper: "GS4",
+    name: "Ethics",
+    topics: [
+  {
+    id: "essence-determinant-role-ethics",
+    name: "Essence, Determinant and Role of Ethics",
+    subtopics: [
+      {
+        id: "meaning-of-ethics",
+        name: "Meaning of Ethics",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "intuition-vs-reason",
+        name: "Intuition vs Reason",
+        estimatedMinutes: 5,
+        difficulty: 2,
+      },
+      {
+        id: "absolute-vs-relative-ethics",
+        name: "Absolute vs Relative ethics",
+        estimatedMinutes: 15,
+        difficulty: 4,
+      },
+      {
+        id: "ethics-vs-law",
+        name: "Ethics vs law",
+        estimatedMinutes: 10,
+        difficulty: 3,
+      },
+      {
+        id: "ethics-vs-morality",
+        name: "Ethics vs Morality",
+        estimatedMinutes: 10,
+        difficulty: 3,
+      },
+      {
+        id: "determinants-individual-situational",
+        name: "Determinant of Ethics: Individual, Situational and other factors",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "divine-command-theory",
+        name: "Divine Command Theory",
+        estimatedMinutes: 5,
+        difficulty: 2,
+      },
+      {
+        id: "role-of-ethics",
+        name: "Role of Ethics",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "western-religious-and-indian-ethics",
+    name: "Western Religious and Indian Ethics",
+    subtopics: [
+      {
+        id: "biblical-traditions",
+        name: "Biblical Traditions",
+        estimatedMinutes: 10,
+        difficulty: 3,
+      },
+      {
+        id: "roman-catholic-ethics",
+        name: "Roman Catholic Ethics",
+        estimatedMinutes: 10,
+        difficulty: 3,
+      },
+      {
+        id: "protestant-eastern-orthodox",
+        name: "Protestant and Eastern Orthodox Ethics",
+        estimatedMinutes: 10,
+        difficulty: 3,
+      },
+      {
+        id: "mahabharata-ethics",
+        name: "Indian Ethics: Mahabharata",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "ramayana-ethics",
+        name: "Indian Ethics: Ramayana",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "historic-indian-ethics",
+        name: "Historic Indian Ethics",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "bhakti-sufi-movement",
+        name: "Bhakti and Sufi movement",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "islamic-sikh-ethics",
+        name: "Islamic and Sikh ethics",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "jain-buddhist-ethics",
+        name: "Jain and Buddhist ethics",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "ethical-theories",
+    name: "Ethical Theories",
+    subtopics: [
+      {
+        id: "aristotle-plato-theories",
+        name: "Aristotle & Plato",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "kant-deontology-categorical-imperative",
+        name: "Kant Deontology and Categorical Imperative",
+        estimatedMinutes: 30,
+        difficulty: 4,
+      },
+      {
+        id: "teleology-consequentialism",
+        name: "Teleology and Consequentialism",
+        estimatedMinutes: 40,
+        difficulty: 4,
+      },
+      {
+        id: "knower-doer-split",
+        name: "Knower-Doer Split by Dayanand Saraswati",
+        estimatedMinutes: 5,
+        difficulty: 2,
+      },
+      {
+        id: "double-effect-doctrine",
+        name: "Double Effect doctrine",
+        estimatedMinutes: 5,
+        difficulty: 2,
+      },
+      {
+        id: "other-ethical-theories",
+        name: "Other theories",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "applied-ethics-and-private-public-life",
+    name: "Applied Ethics & Ethics in Private-Public Life",
+    subtopics: [
+      {
+        id: "applied-ethics-basics",
+        name: "Bioethics, Business ethics, Organizational ethics, Political ethics",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "ethics-in-public-life",
+        name: "Ethics in public life",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "nolan-seven-principles",
+        name: "Nolan seven principles of public life",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "ethics-in-private-life",
+        name: "Ethics in private life",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "roles-public-servants",
+        name: "Roles of public servants",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "human-values-and-inculcation",
+    name: "Human Values & Inculcating Values",
+    subtopics: [
+      {
+        id: "human-values-meaning",
+        name: "Meaning of Human Values",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "value-vs-belief-vs-attitude",
+        name: "Value vs Belief vs Attitude",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "importance-of-values",
+        name: "Importance of values",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "lack-of-values",
+        name: "Lack of values",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "classification-of-values",
+        name: "Classification of values",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "value-education",
+        name: "Value education",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "developing-values",
+        name: "Developing Values",
+        estimatedMinutes: 30,
+        difficulty: 4,
+      },
+      {
+        id: "role-of-schools",
+        name: "Role of schools in Inculcating Values",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "role-of-teachers",
+        name: "Role of teachers in Inculcating Values",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "role-of-society",
+        name: "Role of society in Inculcating Values",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "role-of-parents",
+        name: "Role of parents in Inculcating Values",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "administration-today-world",
+        name: "Administration in today world",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "indian-leaders-and-philosophers",
+    name: "Indian Leaders and Philosophers",
+    subtopics: [
+      {
+        id: "leader-buddha",
+        name: "Buddha",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "leader-mahavir",
+        name: "Mahavir",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "leader-kautilya",
+        name: "Kautilya",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "leader-guru-nanak",
+        name: "Guru Nanak",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "leaders-kabir-tulsi-das",
+        name: "Kabir das & Tulsi das",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "leader-rabindranath-tagore",
+        name: "Rabindranath Tagore",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "leaders-roy-dayanand-vivekananda",
+        name: "Raja Ram Mohan Roy, Swami Dayanand, Swami Vivekananda",
+        estimatedMinutes: 20,
+        difficulty: 2,
+      },
+      {
+        id: "leaders-aurobindo-gandhi",
+        name: "Aurobindo & Mahatma Gandhi",
+        estimatedMinutes: 25,
+        difficulty: 2,
+      },
+      {
+        id: "leader-radhakrishnan",
+        name: "Radhakrishnan",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "leader-br-ambedkar",
+        name: "BR Ambedkar",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "leaders-abul-kalam-deen-dayal",
+        name: "Abul Kalam & Deen Dayal",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "leader-ram-manohar-lohia",
+        name: "Ram Manohar Lohia",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "leaders-lama-teresa-sen",
+        name: "Dalai Lama, Mother Teresa, Amartya Sen",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "leader-abdul-kalam",
+        name: "Abdul Kalam",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "attitude-and-public-service",
+    name: "Attitude, Behaviour and Public Service",
+    subtopics: [
+      {
+        id: "attitude-meaning",
+        name: "Meaning of Attitude",
+        estimatedMinutes: 5,
+        difficulty: 1,
+      },
+      {
+        id: "attitude-vs-opinion-vs-beliefs",
+        name: "Attitude vs Opinion vs Beliefs",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "attitude-content",
+        name: "Attitude Content",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "attitude-structure-ambivalence",
+        name: "Attitude Structure & Ambivalence",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "attitude-functions",
+        name: "Attitude Functions",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "attitude-behaviour-situation",
+        name: "Attitude-Behaviour-Situation",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "attitude-formation",
+        name: "Attitude Formation",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "attitude-change",
+        name: "Attitude Change",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "positive-attitude-public-service",
+        name: "Positive Attitude and Public Service",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "attitude-behaviour-therapy",
+        name: "Attitude and Behaviour: Therapy",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "attitude-predict-behaviour",
+        name: "Attitude predict Behaviour",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "cognitive-dissonance-theory",
+        name: "Cognitive Dissonance Theory",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "political-moral-attitudes",
+        name: "Political & Moral Attitudes: Meaning and Dimensions",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "attitudes-ideologies-examples",
+        name: "Ideologies and Examples",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "social-influence-and-persuasion",
+    name: "Social Influence and Persuasion",
+    subtopics: [
+      {
+        id: "social-influence-meaning",
+        name: "Meaning of Social Influence",
+        estimatedMinutes: 5,
+        difficulty: 1,
+      },
+      {
+        id: "social-influence-types",
+        name: "Types of Social Influence",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "social-influence-factors",
+        name: "Factors of Social Influence",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "persuasion-meaning",
+        name: "Meaning of Persuasion",
+        estimatedMinutes: 5,
+        difficulty: 1,
+      },
+      {
+        id: "persuasion-elements",
+        name: "Elements of Persuasion",
+        estimatedMinutes: 5,
+        difficulty: 1,
+      },
+      {
+        id: "persuasion-factors",
+        name: "Factors of Persuasion",
+        estimatedMinutes: 15,
+        difficulty: 1,
+      },
+      {
+        id: "persuasion-methods",
+        name: "Methods of Persuasion",
+        estimatedMinutes: 35,
+        difficulty: 3,
+      },
+      {
+        id: "resisting-persuasion",
+        name: "Resisting Persuasion",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "ethical-persuasion",
+        name: "Ethical Persuasion",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "stereotypes",
+        name: "Stereotypes",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "aptitude-and-foundational-values",
+    name: "Aptitude and Foundational Values for Civil Services",
+    subtopics: [
+      {
+        id: "aptitude-introduction",
+        name: "Introduction to Aptitude",
+        estimatedMinutes: 5,
+        difficulty: 1,
+      },
+      {
+        id: "intelligence-aptitudes-skills",
+        name: "Intelligence, Aptitudes, Skills",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "value-integrity",
+        name: "Integrity",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "value-honesty",
+        name: "Honesty",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "value-objectivity",
+        name: "Objectivity",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "value-impartiality",
+        name: "Impartiality",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "value-non-partisanship",
+        name: "Non-Partisanship",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "professional-values-and-virtues",
+    name: "Professional Values, Cardinal Virtues and Bureaucracy",
+    subtopics: [
+      {
+        id: "dedication-public-service",
+        name: "Dedication to Public Service",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "value-compassion",
+        name: "Compassion",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "value-tolerance",
+        name: "Tolerance",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "value-perseverance",
+        name: "Perseverance",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "value-loyalty",
+        name: "Loyalty",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "value-collegiality",
+        name: "Collegiality",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "value-inter-dependence",
+        name: "Inter-Dependence,Confedentiality and Innovation",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "virtue-prudence",
+        name: "Cardinal Virtues: Prudence",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "virtue-justice",
+        name: "Cardinal Virtues: Justice",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "virtue-fortitude",
+        name: "Cardinal Virtues: Fortitude",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "virtue-temperance",
+        name: "Cardinal Virtues: Temperance",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "bureaucratic-wisdom",
+        name: "Bureaucratic Wisdom",
+        estimatedMinutes: 5,
+        difficulty: 2,
+      },
+      {
+        id: "values-from-arc",
+        name: "Values from ARC",
+        estimatedMinutes: 5,
+        difficulty: 2,
+      },
+      {
+        id: "weber-good-bureaucrat",
+        name: "Weber on good Bureaucrat",
+        estimatedMinutes: 5,
+        difficulty: 2,
+      },
+      {
+        id: "civil-service-day-speech",
+        name: "Civil Service Day Speech",
+        estimatedMinutes: 5,
+        difficulty: 2,
+      },
+      {
+        id: "commandments-conduct-bureaucrat",
+        name: "Excerpts from 19 Commandments for Conduct of Bureaucrat",
+        estimatedMinutes: 5,
+        difficulty: 2,
+      },
+      {
+        id: "commitment-character-conduct",
+        name: "Commitment, Character , Conduct",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "constitutional-values",
+        name: "Constitutional Values",
+        estimatedMinutes: 5,
+        difficulty: 2,
+      },
+      {
+        id: "constitutional-morality",
+        name: "Constitutional Morality",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "code-of-ethics-bureaucracy",
+        name: "Code of Ethics",
+        estimatedMinutes: 5,
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    id: "emotional-intelligence",
+    name: "Emotional Intelligence",
+    subtopics: [
+      {
+        id: "classic-intelligence",
+        name: "Classic Intelligence",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "emotional-intelligence-concept",
+        name: "Emotional Intelligence",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "goleman-model",
+        name: "Goleman Model",
+        estimatedMinutes: 30,
+        difficulty: 4,
+      },
+      {
+        id: "marshmallow-experiment",
+        name: "Marshmallow Experiment",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "model-msceit",
+        name: "Other Models of EI: MSCEIT",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "model-tei",
+        name: "Other Models of EI: TEI",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "six-seconds-eq",
+        name: "Six seconds EQ",
+        estimatedMinutes: 10,
+        difficulty: 3,
+      },
+      {
+        id: "emotions-public-admin-intro",
+        name: "Emotions & Public Administration Introduction",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "emotions-ethics-values",
+        name: "Emotions-Ethics-Values",
+        estimatedMinutes: 30,
+        difficulty: 4,
+      },
+      {
+        id: "ei-quotes",
+        name: "Quotes",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "moral-thinkers",
+    name: "Moral Thinkers",
+    subtopics: [
+      {
+        id: "thinker-socrates",
+        name: "Socrates",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-plato",
+        name: "Plato",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-aristotle",
+        name: "Aristotle",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-martin-luther",
+        name: "Martin Luther",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-confucius",
+        name: "Confucius",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-locke",
+        name: "Locke",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-hobbes",
+        name: "Hobbes",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-adam-smith",
+        name: "Adam Smith",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-durkheim",
+        name: "Durkheim",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-rousseau",
+        name: "Rousseau",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-kant",
+        name: "Kant",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-mill",
+        name: "Mill",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-hegel",
+        name: "Hegel",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-marx",
+        name: "Marx",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-rawls",
+        name: "Rawls",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-machiavelli",
+        name: "Machiavelli",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-epicurus",
+        name: "Epicurus",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-kierkegaard",
+        name: "Kierkegaard",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-lincoln",
+        name: "Lincoln",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-carol-gilligan",
+        name: "Carol Gilligan",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "thinker-nelson-mandela",
+        name: "Nelson Mandela",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "public-service-values-and-dilemmas",
+    name: "Public Service Values, Concerns and Ethical Dilemmas",
+    subtopics: [
+      {
+        id: "public-service-values-history",
+        name: "History of Public Service Values",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "public-service-values-importance",
+        name: "Importance of Public Service Values",
+        estimatedMinutes: 5,
+        difficulty: 2,
+      },
+      {
+        id: "public-service-values-challenges",
+        name: "Problems and Challenges",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "conflict-of-interest",
+        name: "Conflict of Interest",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "nature-of-ethical-dilemma",
+        name: "Nature of ethical dilemma",
+        estimatedMinutes: 15,
+        difficulty: 4,
+      },
+      {
+        id: "discretion-corruption-secrecy",
+        name: "Discretion, Corruption, Secrecy",
+        estimatedMinutes: 10,
+        difficulty: 3,
+      },
+      {
+        id: "nepotism-leaks-accountability",
+        name: "Nepotism, Leaks, Accountability, Policy Dilemma",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "solving-ethical-dilemmas",
+        name: "Solving Ethical Dilemmas",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "source-conscience",
+        name: "Sources of Ethical Guidance: Conscience",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "source-laws-rules-regulations",
+        name: "Sources of Ethical Guidance: Laws, Rules and Regulations",
+        estimatedMinutes: 10,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "accountability-governance-corporate",
+    name: "Accountability, Ethical & Corporate Governance",
+    subtopics: [
+      {
+        id: "governance-accountability",
+        name: "Accountability",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "governance-e-ethical",
+        name: "Governance, e Governance and Ethical governance",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "strengthening-ethical-moral-values",
+        name: "Strengthening Ethical and Moral values",
+        estimatedMinutes: 25,
+        difficulty: 3,
+      },
+      {
+        id: "ethical-issues-international-relations",
+        name: "Ethical Issues in International Relations",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "corporate-governance-meaning",
+        name: "Corporate Governance: Meaning and Objectives",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "corporate-social-responsibility",
+        name: "Corporate Social Responsibility (CSR)",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "ethical-issues-corporate-governance",
+        name: "Ethical Issues in Corporate governance",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "probity-governance-and-fund-utilization",
+    name: "Probity in Governance & Public Service Administration",
+    subtopics: [
+      {
+        id: "probity-governance-meaning",
+        name: "Probity in Governance: Meaning and Elements",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "probity-philosophy-objective",
+        name: "Philosophy and Objective of Probity",
+        estimatedMinutes: 15,
+        difficulty: 2,
+      },
+      {
+        id: "probity-challenges-solutions",
+        name: "Challenges and Solutions",
+        estimatedMinutes: 10,
+        difficulty: 2,
+      },
+      {
+        id: "concept-public-service-social-contract",
+        name: "Concept of Public Service: Theory of Social Contract",
+        estimatedMinutes: 30,
+        difficulty: 2,
+      },
+      {
+        id: "transparency-rti-act",
+        name: "Information sharing and transparency in government: RTI act",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "code-of-conduct-ethics",
+        name: "Code of Conduct & Ethics",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+      {
+        id: "work-culture",
+        name: "Work Culture",
+        estimatedMinutes: 30,
+        difficulty: 3,
+      },
+      {
+        id: "citizen-charter-concept",
+        name: "Citizen Charter",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "quality-service-delivery",
+        name: "Quality of Service Delivery",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "service-delivery-india",
+        name: "Service delivery in India",
+        estimatedMinutes: 20,
+        difficulty: 3,
+      },
+      {
+        id: "utilization-public-funds",
+        name: "Utilization of Public funds",
+        estimatedMinutes: 15,
+        difficulty: 3,
+      },
+      {
+        id: "corruption-governance",
+        name: "Corruption",
+        estimatedMinutes: 40,
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    id: "case-studies-and-exercises",
+    name: "Case Studies and Exercises",
+    subtopics: [
+      {
+        id: "case-study-practice",
+        name: "Practice Case Studies and Exercises",
+        estimatedMinutes: 360,
+        difficulty: 4,
+      },
+    ],
+  },
+]
+}
 ];
 
       

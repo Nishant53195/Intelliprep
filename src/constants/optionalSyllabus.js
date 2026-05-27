@@ -19,19 +19,19 @@ const optionalSyllabus = [
       {
         id: "scope",
         name: "Scope of Sociology",
-        estimatedMinutes: 120,
+        estimatedMinutes: 60,
         difficulty: 1,
       },
       {
         id: "sociology-relation",
         name: "Sociology and its relation with other subjects",
-        estimatedMinutes: 120,
+        estimatedMinutes: 60,
         difficulty: 1,
       },
       {
         id: "sociology-common-sense",
         name: "Sociology And Common Sense",
-        estimatedMinutes: 90,
+        estimatedMinutes: 60,
         difficulty: 1,
       },
     ],
@@ -175,7 +175,7 @@ const optionalSyllabus = [
       {
         id: "formal-informal-organization",
         name: "Formal and informal organization of work",
-        estimatedMinutes: 90,
+        estimatedMinutes: 60,
         difficulty: 1,
       },
       {
@@ -295,7 +295,7 @@ const optionalSyllabus = [
       {
         id: "agents-social-change",
         name: "Agents of social change",
-        estimatedMinutes: 90,
+        estimatedMinutes: 60,
         difficulty: 1,
       },
       {
@@ -334,25 +334,25 @@ const optionalSyllabus = [
       {
         id: "indological-perspective",
         name: "Indological Perspective on Study of Indian Society",
-        estimatedMinutes: 120,
+        estimatedMinutes: 90,
         difficulty: 2,
       },
       {
         id: "gs-ghurye-indology",
         name: "Govind Sadashiv Ghurye (1893-1984) and Indology",
-        estimatedMinutes: 150,
+        estimatedMinutes: 120,
         difficulty: 2,
       },
       {
         id: "ghurye-study-indian-society",
         name: "Ghurye's Study of Indian Society",
-        estimatedMinutes: 150,
+        estimatedMinutes: 120,
         difficulty: 2,
       },
       {
         id: "structural-functionalism-india",
         name: "Structural Functionalism Tradition in India",
-        estimatedMinutes: 150,
+        estimatedMinutes: 120,
         difficulty: 3,
       },
       {
@@ -364,7 +364,7 @@ const optionalSyllabus = [
       {
         id: "sanskritisation",
         name: "Sanskritisation",
-        estimatedMinutes: 120,
+        estimatedMinutes: 90,
         difficulty: 2,
       },
       {
@@ -376,7 +376,7 @@ const optionalSyllabus = [
       {
         id: "mn-srinivas-contribution",
         name: "MN Srinivas contribution",
-        estimatedMinutes: 180,
+        estimatedMinutes: 150,
         difficulty: 3,
       },
       {
@@ -406,7 +406,7 @@ const optionalSyllabus = [
       {
         id: "yogendra-singh-modernisation",
         name: "Yogendra Singh on modernisation",
-        estimatedMinutes: 150,
+        estimatedMinutes: 120,
         difficulty: 3,
       },
       {
@@ -880,7 +880,7 @@ const optionalSyllabus = [
       {
         id: "education-and-social-change-india",
         name: "Education and social change",
-        estimatedMinutes: 120,
+        estimatedMinutes: 90,
         difficulty: 1,
       },
     ],
@@ -1124,7 +1124,7 @@ const optionalSyllabus = [
       {
         id: "linear-dependence-and-independence",
         name: "Linear dependence and independence",
-        estimatedMinutes: 60,
+        estimatedMinutes: 30,
         difficulty: 2,
       },
       {
@@ -1136,7 +1136,7 @@ const optionalSyllabus = [
       {
         id: "bases-and-dimensions",
         name: "Bases, dimensions",
-        estimatedMinutes: 120,
+        estimatedMinutes: 90,
         difficulty: 4,
       },
       {
@@ -1148,13 +1148,13 @@ const optionalSyllabus = [
       {
         id: "rank-and-nullity",
         name: "Rank and nullity",
-        estimatedMinutes: 120,
+        estimatedMinutes: 90,
         difficulty: 4,
       },
       {
         id: "matrix-of-a-linear-transformation",
         name: "Matrix of a linear transformation",
-        estimatedMinutes: 150,
+        estimatedMinutes: 120,
         difficulty: 5,
       },
       {
@@ -1172,7 +1172,7 @@ const optionalSyllabus = [
       {
         id: "congruences-and-similarity",
         name: "Congruences and similarity",
-        estimatedMinutes: 120,
+        estimatedMinutes: 60,
         difficulty: 4,
       },
       {
@@ -1202,7 +1202,7 @@ const optionalSyllabus = [
       {
         id: "characteristic-polynomial-cayley-hamilton-theorem",
         name: "Characteristic polynomial, Cayley-Hamilton theorem",
-        estimatedMinutes: 90,
+        estimatedMinutes: 75,
         difficulty: 3,
       },
       {
@@ -1239,7 +1239,7 @@ const optionalSyllabus = [
       {
         id: "mvt-taylors-theorem-remainders",
         name: "Mean-value theorem, Taylors theorem with remainders",
-        estimatedMinutes: 120,
+        estimatedMinutes: 90,
         difficulty: 4,
       },
       {
@@ -1269,13 +1269,13 @@ const optionalSyllabus = [
       {
         id: "maxima-minima-lagrange",
         name: "Maxima and minima, Lagranges method of multipliers",
-        estimatedMinutes: 150,
+        estimatedMinutes: 120,
         difficulty: 4,
       },
       {
         id: "jacobian",
         name: "Jacobian",
-        estimatedMinutes: 90,
+        estimatedMinutes: 75,
         difficulty: 3,
       },
       {
@@ -1287,7 +1287,7 @@ const optionalSyllabus = [
       {
         id: "infinite-and-improper-integrals",
         name: "Infinite and improper integral",
-        estimatedMinutes: 120,
+        estimatedMinutes: 180,
         difficulty: 4,
       },
       {
@@ -1323,31 +1323,31 @@ const optionalSyllabus = [
       {
         id: "sphere",
         name: "Sphere (Tangent planes, orthogonal spheres, radical plane)",
-        estimatedMinutes: 120,
+        estimatedMinutes: 150,
         difficulty: 3,
       },
       {
         id: "cone",
         name: "Cone (Enveloping cone, mutually perpendicular generators)",
-        estimatedMinutes: 120,
+        estimatedMinutes: 150,
         difficulty: 3,
       },
       {
         id: "cylinder",
         name: "Cylinder (Right circular and enveloping cylinder)",
-        estimatedMinutes: 90,
+        estimatedMinutes: 150,
         difficulty: 2,
       },
       {
         id: "paraboloid",
         name: "Paraboloid (Elliptic and hyperbolic, normals)",
-        estimatedMinutes: 120,
+        estimatedMinutes: 150,
         difficulty: 3,
       },
       {
         id: "ellipsoid",
         name: "Ellipsoid (Director sphere, normals, conjugate diameters)",
-        estimatedMinutes: 120,
+        estimatedMinutes: 150,
         difficulty: 4,
       },
       {
@@ -1439,13 +1439,13 @@ const optionalSyllabus = [
       {
         id: "gradient-divergence-curl-coordinates",
         name: "Gradient, divergence and curl in cartesian and cylindrical coordinates",
-        estimatedMinutes: 120,
+        estimatedMinutes: 90,
         difficulty: 3,
       },
       {
         id: "higher-order-vector-identities-equations",
         name: "Higher order derivatives; Vector identities and vector equation",
-        estimatedMinutes: 150,
+        estimatedMinutes: 90,
         difficulty: 4,
       },
       {
@@ -1463,13 +1463,13 @@ const optionalSyllabus = [
       {
         id: "gauss-divergence-theorem",
         name: "Gauss Divergence Theorem",
-        estimatedMinutes: 120,
+        estimatedMinutes: 90,
         difficulty: 4,
       },
       {
         id: "stokes-theorem",
         name: "Stokes Theorem",
-        estimatedMinutes: 120,
+        estimatedMinutes: 90,
         difficulty: 4,
       },
     ],
@@ -1500,7 +1500,7 @@ const optionalSyllabus = [
       {
         id: "projectiles",
         name: "Projectiles",
-        estimatedMinutes: 90,
+        estimatedMinutes: 150,
         difficulty: 2,
       },
       {
@@ -1530,7 +1530,7 @@ const optionalSyllabus = [
       {
         id: "work-and-potential-energy-statics",
         name: "Work and potential energy",
-        estimatedMinutes: 60,
+        estimatedMinutes: 90,
         difficulty: 2,
       },
       {
@@ -1851,19 +1851,19 @@ const optionalSyllabus = [
       {
         id: "newton-raphson-method",
         name: "Solution of equations: Newton-Raphson Method (and convergence)",
-        estimatedMinutes: 90,
+        estimatedMinutes: 60,
         difficulty: 3,
       },
       {
         id: "gaussian-elimination-jordan",
         name: "System of linear equations: Gaussian elimination and Gauss-Jordan (direct)",
-        estimatedMinutes: 90,
+        estimatedMinutes: 60,
         difficulty: 3,
       },
       {
         id: "gauss-seidel",
         name: "System of linear equations: Gauss-Seidel (iterative) method",
-        estimatedMinutes: 90,
+        estimatedMinutes: 60,
         difficulty: 3,
       },
       {
@@ -1881,13 +1881,13 @@ const optionalSyllabus = [
       {
         id: "trapezoidal-simpsons-rules",
         name: "Numerical integration: Trapezoidal rule, Simpsons (1/3 & 3/8) rules",
-        estimatedMinutes: 90,
+        estimatedMinutes: 60,
         difficulty: 2,
       },
       {
         id: "gaussian-quadrature",
         name: "Numerical integration: Gaussian quadrature formula",
-        estimatedMinutes: 120,
+        estimatedMinutes: 90,
         difficulty: 4,
       },
       {
@@ -1899,13 +1899,13 @@ const optionalSyllabus = [
       {
         id: "runge-kutta-methods",
         name: "Numerical solution of ODEs: Runge Kutta-methods (4th order)",
-        estimatedMinutes: 120,
+        estimatedMinutes: 90,
         difficulty: 3,
       },
       {
         id: "number-systems",
         name: "Binary, Octal, Hexadecimal systems, Conversions & Algebra",
-        estimatedMinutes: 90,
+        estimatedMinutes: 60,
         difficulty: 2,
       },
       {
@@ -1917,19 +1917,19 @@ const optionalSyllabus = [
       {
         id: "logic-gates-boolean-algebra",
         name: "Basic logic gates and truth tables, Boolean algebra, normal forms",
-        estimatedMinutes: 120,
+        estimatedMinutes: 90,
         difficulty: 3,
       },
       {
         id: "data-representation",
         name: "Representation of unsigned/signed integers, reals, double precision & long integers",
-        estimatedMinutes: 120,
+        estimatedMinutes: 90,
         difficulty: 4,
       },
       {
         id: "algorithms-and-flowcharts",
         name: "Algorithms and flow charts for solving numerical analysis problems",
-        estimatedMinutes: 150,
+        estimatedMinutes: 90,
         difficulty: 4,
       },
     ],
