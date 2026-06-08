@@ -1,77 +1,121 @@
+// src/dashboard/sections/CurrentAffairsHub.jsx
 import { useState } from "react";
-import useLoginStore from "../../login/store/loginStore";
+import useLoginStore from "../../login/store/loginStore"; // Access core credential layer
+import useCAStore from "../../currentaffairs/store/useCAStore";
+import AdminCAForm from "../../currentaffairs/components/AdminCAForm";
+import CAReadDeck from "../../currentaffairs/components/CAReadDeck";
+import CAFilterConsole from "../../currentaffairs/components/CAFilterConsole";
 
 function CurrentAffairsHub() {
-  const user = useLoginStore((state) => state.user);
-  const isAdmin = user?.email === "nishant53195@gmail.com";
-  
-  const [activeTab, setActiveTab] = useState("read_ca");
+  const user = useLoginStore((state) => state.user); // Checks authenticated user object context
+  const isAdmin = user?.email === "nishant53195@gmail.com"; // Enforces secure email guard boundary
+
+  const { activeTab, setActiveTab, timeChip, setTimeChip } = useCAStore();
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900 tracking-tight">Current Affairs Terminal</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Track evolving context, core linkages, and static syllabus references.</p>
+    <div className="space-y-5 text-left font-sans antialiased bg-[#FAFBFD] min-h-screen">
+      
+      {/* HEADER SECTION PANEL BRANDING */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-indigo-50 border border-indigo-150 flex items-center justify-center text-indigo-600 shadow-3xs shrink-0">
+            📝
+          </div>
+          <div>
+            <h2 className="text-xl font-black text-[#111625] tracking-tight">Current Affairs Knowledge Publisher</h2>
+            <p className="text-xs font-semibold text-slate-400 mt-0.5">
+              Dynamically contextualize evolving current updates against structural static syllabus nodes.
+            </p>
+          </div>
         </div>
 
-        <div className="flex bg-slate-100 border border-slate-200 p-1 rounded-xl shrink-0">
+        {/* Dynamic Multi-Mode Navigation Tab Trigger Blocks */}
+        <div className="flex items-center gap-1 bg-slate-50 border border-slate-200/80 p-1 rounded-xl self-start sm:self-center shadow-3xs">
           <button 
+            type="button"
             onClick={() => setActiveTab("read_ca")} 
-            className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${activeTab === "read_ca" ? "bg-white border border-slate-200 text-cyan-600 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+            className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              activeTab === "read_ca" 
+                ? "bg-white text-indigo-600 shadow-3xs border border-slate-200/60 font-black" 
+                : "text-slate-500 hover:text-slate-800"
+            }`}
           >
-            📚 Read CA
+            Read Articles
           </button>
           
           {isAdmin && (
             <button 
+              type="button"
               onClick={() => setActiveTab("create_ca")} 
-              className={`ml-1 px-3 py-1 text-xs font-bold rounded-lg transition-all ${activeTab === "create_ca" ? "bg-white border border-amber-300 text-amber-700 shadow-sm" : "text-amber-600 hover:text-amber-700"}`}
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                activeTab === "create_ca" 
+                  ? "bg-white border border-amber-200 text-amber-700 shadow-3xs font-black" 
+                  : "text-amber-600 hover:text-amber-700"
+              }`}
             >
-              ⚡ Create CA (Admin)
+              Add Entry (Admin)
             </button>
           )}
         </div>
       </div>
 
-      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 min-h-[16rem]">
-        {activeTab === "create_ca" && isAdmin ? (
-          <form className="space-y-3 max-w-xl mx-auto" onSubmit={(e) => e.preventDefault()}>
-            <h3 className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">Publish Intelligence Context</h3>
-            
-            <input type="text" placeholder="Title" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 outline-none focus:border-cyan-500" />
-            <textarea placeholder="Summary" rows={3} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 outline-none focus:border-cyan-500 resize-none" />
-            
-            <div className="grid grid-cols-2 gap-2">
-              <input type="text" placeholder="Source" className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 outline-none focus:border-cyan-500" />
-              <input type="date" className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 outline-none focus:border-cyan-500" />
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <input type="text" placeholder="Paper Tag" className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-800 outline-none" />
-              <input type="text" placeholder="Subject Tag" className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-800 outline-none" />
-              <input type="text" placeholder="Topic Tag" className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-800 outline-none" />
-              <input type="text" placeholder="Subtopic Tag" className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-800 outline-none" />
-            </div>
-
-            <button type="submit" className="w-full py-2.5 bg-white border border-amber-200 font-bold text-xs text-amber-700 rounded-xl shadow-sm hover:bg-slate-50 transition-colors">
-              Commit Entry Node
-            </button>
-          </form>
-        ) : (
-          <div className="space-y-2">
-            <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1 scrollbar-none">
-              <span className="text-[10px] px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-800 font-bold whitespace-nowrap">Filter: All Papers</span>
-              <span className="text-[10px] px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-500 font-medium whitespace-nowrap">GS I</span>
-              <span className="text-[10px] px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-500 font-medium whitespace-nowrap">GS II</span>
-              <span className="text-[10px] px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-500 font-medium whitespace-nowrap">GS III</span>
-            </div>
-            <p className="text-center text-xs text-slate-500 pt-8">
-              No current affairs items found in database query context. Today's entries surface automatically.
-            </p>
+      {/* RENDER PORTS VIEW CHANNELS */}
+      {activeTab === "create_ca" && isAdmin ? (
+        <div className="space-y-5 animate-in fade-in duration-200">
+          {/* ADMINISTRATIVE SESSION NOTICE BAR */}
+          <div className="bg-[#FFF8F2] border border-[#FFEADA] rounded-xl p-3 flex items-center gap-2.5 text-[#D96B27]">
+            <span className="text-xs shrink-0">🛡️</span>
+            <span className="text-[11px] font-black uppercase tracking-wider">
+              Authorized Administrator Session: Publishing Context Data Layer.
+            </span>
           </div>
-        )}
-      </div>
+
+          {/* Form Content Anchor Shell */}
+          <div className="bg-white border border-[#EBEFF8] rounded-[2rem] p-5 shadow-[0_8px_24px_rgba(235,240,248,0.35)]">
+            <AdminCAForm />
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          {/* USER CHIP VIEW SELECTORS FILTER DECK STRIP */}
+          <div className="flex items-center gap-2 border-b border-slate-200/60 pb-2.5">
+            <button 
+              type="button"
+              onClick={() => setTimeChip("today")} 
+              className={`px-4 py-1.5 text-xs font-black rounded-xl border transition-all cursor-pointer ${
+                timeChip === "today" 
+                  ? "bg-[#E8EEFF] border-transparent text-indigo-600 shadow-3xs" 
+                  : "bg-white border-slate-200 text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              Today's CA
+            </button>
+            <button 
+              type="button"
+              onClick={() => setTimeChip("all")} 
+              className={`px-4 py-1.5 text-xs font-black rounded-xl border transition-all cursor-pointer ${
+                timeChip === "all" 
+                  ? "bg-[#E8EEFF] border-transparent text-indigo-600 shadow-3xs" 
+                  : "bg-white border-slate-200 text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              All CA Deck Matrix
+            </button>
+          </div>
+
+          {/* Conditional Query Filters Row Deck Module */}
+          {timeChip === "all" && (
+            <div className="bg-white border border-[#EBEFF8] rounded-2xl p-4 shadow-3xs animate-in slide-in-from-top-2 duration-200">
+              <CAFilterConsole />
+            </div>
+          )}
+
+          {/* Main List Read Viewport Canvas Wrapper */}
+          <div className="rounded-2xl">
+            <CAReadDeck />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

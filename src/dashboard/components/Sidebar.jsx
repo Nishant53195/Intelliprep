@@ -1,137 +1,161 @@
-import {
-  LayoutDashboard, Brain, FileQuestion, ClipboardCheck, Network, Newspaper, ChevronLeft, ChevronRight, X
-} from "lucide-react";
+// src/dashboard/components/Sidebar.jsx
+import React from "react";
+import useLoginStore from "../../login/store/loginStore";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
-import useDashboardStore from "../store/dashboardStore";
+function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenuOpen, activeNav, setActiveNav, isHindi, toggleTranslation }) {
+  const user = useLoginStore((state) => state.user);
 
-const items = [
-  { icon: LayoutDashboard, label: "Preparation Status", disabled: false },
-  { icon: Brain, label: "Study Hub", disabled: false },
-  { icon: FileQuestion, label: "PYQ Hub", disabled: false },
-  { icon: ClipboardCheck, label: "Test Hub", disabled: true }, 
-  { icon: Network, label: "Knowledge Graph", disabled: true },
-  { icon: Newspaper, label: "Current Affairs", disabled: true },
-];
-
-function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenuOpen }) {
-  const activeHub = useDashboardStore((state) => state.activeHub);
-  const setActiveHub = useDashboardStore((state) => state.setActiveHub);
+  // Full 10-item menu list containing all routes
+  const navigationItems = [
+    { id: "prep_status", label: "Preparation Status", icon: "📊", disabled: false },
+    { id: "study_hub", label: "Study Hub (Daily Task)", icon: "🎯", disabled: false },
+    { id: "syllabus_progress", label: "Syllabus Progress", icon: "📖", disabled: false },
+    { id: "revision_hub", label: "Revision Hub", icon: "🔄", disabled: false },
+    { id: "prelims_test", label: "Test your Prelims", icon: "📝", disabled: true },
+    { id: "mains_test", label: "Test your Mains", icon: "✍️", disabled: true },
+    { id: "weak_topics", label: "Weak Topics", icon: "⚠️", disabled: true },
+    { id: "current_affairs", label: "Current Affairs", icon: "📰", disabled: false },
+    { id: "knowledge_graph", label: "Knowledge Graph", icon: "🌐", disabled: false },
+    { id: "settings_export", label: "Settings & Exports", icon: "⚙️", disabled: false },
+  ];
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-50 flex h-full flex-col bg-[#05070F] border-r border-white/[0.02] shadow-[25px_0_50px_-15px_rgba(0,0,0,0.5)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:relative md:z-0 md:shadow-none
-        ${mobileMenuOpen ? "translate-x-0 w-[280px]" : "-translate-x-full w-[280px]"}
-        ${collapsed ? "md:w-[92px]" : "md:w-[280px]"}
+      className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-[#E9EFFD] p-2.5 shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:sticky md:top-0 md:z-0 select-none justify-between h-screen overflow-hidden
+        ${mobileMenuOpen ? "translate-x-0 w-[250px]" : "-translate-x-full w-[0px]"}
+        ${collapsed ? "md:w-[68px]" : "md:w-[235px]"}
         md:translate-x-0
       `}
     >
-      {/* Sidebar Top Header Branding Context */}
-      <div className="flex items-center justify-between px-6 py-6 md:py-8 min-h-[88px]">
-        {!collapsed && (
-          <div className="flex flex-col opacity-0 animate-[fadeIn_0.3s_ease-out_forwards]">
-            <span className="text-xl font-black tracking-tight text-white drop-shadow-md">
-              <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">UPSC</span> IntelliPrep<span className="text-indigo-400 font-extrabold">.</span>
-            </span>
-          </div>
-        )}
-
-        {collapsed && (
-          <div className="hidden md:flex mx-auto items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/10 to-cyan-500/5 border border-indigo-500/20 text-cyan-400 font-black text-sm shadow-inner">
-            UP
-          </div>
-        )}
+      {/* Tight vertical stack wrapper */}
+      <div className="space-y-1.5">
         
-        {/* Desktop Collapse Toggle Button Frame */}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="hidden rounded-xl bg-white/[0.02] border border-white/[0.05] p-2 text-slate-400 transition-all duration-200 hover:bg-white/[0.07] hover:text-white hover:scale-105 active:scale-95 md:flex"
-        >
-          {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
-        </button>
+        {/* BRAND LOGO CONSOLE HEADER */}
+        <div className="px-1 py-0.5 flex items-center justify-between min-h-[28px]">
+          {(!collapsed || mobileMenuOpen) && (
+            <div className="flex items-center gap-2 opacity-0 animate-[fadeIn_0.3s_ease-out_forwards]">
+              <div className="h-5 w-5 rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[9px] font-black shadow-md shrink-0">
+                Ω
+              </div>
+              <div className="text-left">
+                <h1 className="text-[10.5px] font-black tracking-wider text-slate-900 uppercase leading-none font-sans">
+                  INTELLIPREP OS
+                </h1>
+                <p className="text-[7.5px] font-bold text-indigo-500 tracking-tight uppercase mt-0.5">
+                  Your UPSC Command Center
+                </p>
+              </div>
+            </div>
+          )}
 
-        {/* Mobile Close Toggle Overlay Button */}
-        <button
-          onClick={() => setMobileMenuOpen(false)}
-          className="rounded-xl bg-white/[0.04] border border-white/[0.05] p-2 text-slate-400 transition-all duration-200 hover:bg-white/[0.08] hover:text-white active:scale-95 md:hidden"
-        >
-          <X size={16} />
-        </button>
-      </div>
+          {collapsed && !mobileMenuOpen && (
+            <div className="flex mx-auto items-center justify-center w-5 h-5 rounded-md bg-gradient-to-br from-indigo-500/10 to-cyan-500/5 border border-indigo-500/10 text-indigo-600 font-black text-[9px]">
+              Ω
+            </div>
+          )}
 
-      {/* Fluid Nav Item Menu Matrix */}
-      <div className="flex flex-1 flex-col gap-1.5 overflow-y-auto px-3.5 pb-4 [&::-webkit-scrollbar]:hidden">
-        {items.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeHub === item.label;
-
-          return (
+          {/* Controls Toggle */}
+          <div className="flex items-center gap-0.5">
             <button
-              key={item.label}
-              disabled={item.disabled}
-              onClick={() => {
-                if (item.disabled) return;
-                setActiveHub(item.label);
-                setMobileMenuOpen(false);
-              }}
-              className={`group relative flex items-center gap-3.5 rounded-xl px-4 py-3.5 text-left transition-all duration-200 border ${
-                item.disabled
-                  ? "opacity-25 cursor-not-allowed pointer-events-none select-none text-slate-600 border-transparent"
-                  : isActive
-                  ? "bg-gradient-to-r from-indigo-600/15 via-cyan-500/5 to-transparent border-indigo-500/25 text-cyan-400 font-semibold shadow-inner shadow-indigo-500/5"
-                  : "text-slate-400 border-transparent hover:bg-white/[0.03] hover:text-slate-200 hover:translate-x-0.5"
-              }`}
+              onClick={() => setCollapsed(!collapsed)}
+              className="hidden rounded-md bg-slate-50 border border-slate-200/60 p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-800 md:flex"
             >
-              <Icon 
-                size={19} 
-                className={`shrink-0 transition-all duration-200 group-hover:scale-105 ${
-                  item.disabled 
-                    ? "text-slate-700" 
-                    : isActive 
-                    ? "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]" 
-                    : "text-slate-500 group-hover:text-slate-300"
-                }`} 
-              />
-              
-              {(!collapsed || mobileMenuOpen) && (
-                <div className="flex flex-1 items-center justify-between overflow-hidden opacity-0 animate-[fadeIn_0.25s_ease-out_forwards]">
-                  <span className="text-sm tracking-wide truncate">
-                    {item.label}
+              {collapsed ? <ChevronRight size={11} /> : <ChevronLeft size={11} />}
+            </button>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="rounded-md bg-slate-50 border border-slate-200/60 p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-800 md:hidden"
+            >
+              <X size={11} />
+            </button>
+          </div>
+        </div>
+
+        {/* IDENTITY SUITE PROFILE COMPACT BAR */}
+        {(!collapsed || mobileMenuOpen) && (
+          <div className="flex items-center justify-between bg-[#F8FAFD] border border-[#EFF2F9] rounded-md p-1 mx-0.5 opacity-0 animate-[fadeIn_0.3s_ease-out_forwards]">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div className="h-4.5 w-4.5 rounded-full bg-indigo-600 text-white font-extrabold text-[8px] flex items-center justify-center shadow-inner shrink-0 uppercase">
+                {user?.email?.charAt(0) || "N"}
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="text-[9.5px] font-mono font-bold text-slate-600 truncate leading-tight">
+                  {user?.email || "nishant53195@gmail.com"}
+                </p>
+              </div>
+            </div>
+            <span className="text-slate-400 text-[6px] pr-0.5">▼</span>
+          </div>
+        )}
+
+        {/* TRANSLATION ASSISTANT PILL BUTTON */}
+        {(!collapsed || mobileMenuOpen) && (
+          <div className="px-0.5 opacity-0 animate-[fadeIn_0.35s_ease-out_forwards]">
+            <button
+              onClick={toggleTranslation}
+              className="w-full flex items-center justify-start gap-1 px-2 py-0.5 text-[9.5px] font-bold rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-all group"
+            >
+              <span className="text-slate-400 group-hover:text-slate-600 text-[10px]">🌐</span>
+              <span className="tracking-wide truncate">
+                {isHindi ? "Show English" : "Translate to Hindi / हिंदी"}
+              </span>
+            </button>
+          </div>
+        )}
+
+        {/* HIGH-DENSITY VERTICAL NAVIGATION MENU LIST */}
+        <div className="space-y-0.5 overflow-hidden">
+          {navigationItems.map((item) => {
+            const isActive = activeNav === item.id;
+            return (
+              <button
+                key={item.id}
+                disabled={item.disabled}
+                onClick={() => {
+                  if (item.disabled) return;
+                  setActiveNav(item.id);
+                  if (mobileMenuOpen) setMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-2 py-1 text-[10px] font-bold rounded-md transition-all border text-left group ${
+                  item.disabled
+                    ? "border-transparent bg-transparent text-slate-400 opacity-30 cursor-not-allowed select-none"
+                    : isActive
+                    ? "bg-[#E8EEFF] border-transparent text-indigo-600 font-extrabold shadow-3xs"
+                    : "text-slate-500 hover:bg-slate-50 border-transparent"
+                }`}
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <span className={`text-xs shrink-0 ${item.disabled ? "grayscale opacity-30" : "opacity-90"}`}>
+                    {item.icon}
                   </span>
-                  {item.disabled && (
-                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-500 bg-white/[0.02] px-1.5 py-0.5 rounded border border-white/5 shadow-sm">
-                      Lock
+                  {(!collapsed || mobileMenuOpen) && (
+                    <span className="truncate tracking-wide font-sans opacity-0 animate-[fadeIn_0.15s_ease-out_forwards]">
+                      {item.label}
                     </span>
                   )}
                 </div>
-              )}
 
-              {/* Native Highlight Indicator bar */}
-              {isActive && !collapsed && (
-                <div className="absolute left-0 w-[3px] h-5 bg-gradient-to-b from-cyan-400 to-indigo-500 rounded-r-full shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Footer Branding Platform OS Status Card */}
-      <div className="p-4">
-        <div className="rounded-2xl border border-white/[0.04] bg-gradient-to-b from-white/[0.02] to-transparent p-4 shadow-xl">
-          {(!collapsed || mobileMenuOpen) ? (
-            <div className="opacity-0 animate-[fadeIn_0.3s_ease-out_forwards]">
-              <p className="text-xs font-semibold tracking-wide text-slate-200 flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.6)] animate-pulse" />
-                IntelliPrep OS
-              </p>
-              <p className="mt-1 text-[9px] font-mono uppercase tracking-widest text-slate-500">Version 1.0</p>
-            </div>
-          ) : (
-            <div className="flex justify-center py-1">
-              <div className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.6)] animate-pulse" />
-            </div>
-          )}
+                {item.disabled && (!collapsed || mobileMenuOpen) && (
+                  <span className="text-[8px] opacity-30 shrink-0 select-none pl-1 opacity-0 animate-[fadeIn_0.15s_ease-out_forwards]">
+                    🔒
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {/* MINI DECORATIVE GRAPHIC FOOTER BLOCK */}
+      {(!collapsed || mobileMenuOpen) && (
+        <div className="rounded-md border border-[#E9EFFD] bg-gradient-to-br from-[#F4F7FF] via-white to-transparent p-1.5 text-left relative overflow-hidden mt-auto shadow-3xs mx-0.5 opacity-0 animate-[fadeIn_0.4s_ease-out_forwards]">
+          <h4 className="text-[8.5px] font-black text-slate-700 tracking-wide uppercase">Small steps daily</h4>
+          <p className="text-[7.5px] text-slate-400 font-medium leading-tight mt-0.5">
+            lead to big results. <span className="text-indigo-500 font-bold">Keep going! 🚀</span>
+          </p>
+        </div>
+      )}
     </aside>
   );
 }
