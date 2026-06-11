@@ -1,10 +1,12 @@
 // src/dashboard/sections/CurrentAffairsHub.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Integrated useEffect hook loop
 import useLoginStore from "../../login/store/loginStore"; // Access core credential layer
 import useCAStore from "../../currentaffairs/store/useCAStore";
 import AdminCAForm from "../../currentaffairs/components/AdminCAForm";
 import CAReadDeck from "../../currentaffairs/components/CAReadDeck";
 import CAFilterConsole from "../../currentaffairs/components/CAFilterConsole";
+// IMPORT TARGETED BACKGROUND SYNC ENGINE CONTROL NODE
+import { syncCentralCA } from "../../currentaffairs/services/syncCentralCA";
 
 function CurrentAffairsHub() {
   const user = useLoginStore((state) => state.user); // Checks authenticated user object context
@@ -12,8 +14,16 @@ function CurrentAffairsHub() {
 
   const { activeTab, setActiveTab, timeChip, setTimeChip } = useCAStore();
 
+  // AUTOMATED TARGETED BACKGROUND SYNCHRONIZATION HANDSHAKE
+  useEffect(() => {
+    // Executes an isolated, background download chunk exclusively for current affairs master nodes
+    syncCentralCA().catch((err) =>
+      console.error("[CA Background Sync] Pull execution delayed:", err)
+    );
+  }, [activeTab, timeChip]); // Safely re-runs when switching tabs or time filters
+
   return (
-    <div className="space-y-5 text-left font-sans antialiased bg-[#FAFBFD] min-h-screen">
+    <div className="space-y-5 text-left font-sans antialiased bg-[#FAFBFD] min-h-screen p-2">
       
       {/* HEADER SECTION PANEL BRANDING */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">

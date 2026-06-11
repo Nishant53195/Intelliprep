@@ -16,7 +16,6 @@ function CAReadDeck() {
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
-
     fetchFilteredCA()
       .then((data) => {
         if (isMounted) {
@@ -32,7 +31,6 @@ function CAReadDeck() {
           setLoading(false);
         }
       });
-
     return () => { isMounted = false; };
   }, [fetchFilteredCA, timeChip, userFilters]);
 
@@ -41,11 +39,10 @@ function CAReadDeck() {
     const matchedSubjects = [];
     const matchedTopics = [];
     const matchedSubtopics = [];
-
     const subjectTags = Array.isArray(item.subjectTag) ? item.subjectTag : (item.subjectTag ? [item.subjectTag] : []);
     const topicTags = Array.isArray(item.topicTag) ? item.topicTag : (item.topicTag ? [item.topicTag] : []);
     const subtopicTags = Array.isArray(item.subtopicTag) ? item.subtopicTag : (item.subtopicTag ? [item.subtopicTag] : []);
-
+    
     gsSyllabus.forEach((subjectObj) => {
       if (subjectTags.includes(subjectObj.id)) matchedSubjects.push(subjectObj.name);
       subjectObj.topics?.forEach((topicObj) => {
@@ -55,7 +52,6 @@ function CAReadDeck() {
         });
       });
     });
-
     return { subjects: matchedSubjects, topics: matchedTopics, subtopics: matchedSubtopics };
   };
 
@@ -74,7 +70,7 @@ function CAReadDeck() {
   if (articles.length === 0) {
     return (
       <div className="border border-dashed border-slate-200 rounded-2xl p-12 text-center bg-slate-50/50 my-2">
-        <span className="text-3xl">📭</span>
+        <span className="text-3xl">🏜️</span>
         <h4 className="text-sm font-black text-slate-700 mt-2 uppercase tracking-wide">No Records Match This Selection</h4>
         <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
           No published content satisfies your active dimensional filter configurations right now.
@@ -85,20 +81,20 @@ function CAReadDeck() {
 
   const currentItem = articles[currentIndex];
   const names = resolveAllSyllabusNames(currentItem);
-  const hasSyllabusLinks = names.subjects.length > 0 || names.topics.length > 0 || names.subtopics.length > 0;
+  const primarySubjectName = names.subjects[0] || "";
 
   return (
     <div className="space-y-5 relative w-full">
       {/* HEADER META STRIP */}
       <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">
         <span className="text-[12px] font-black text-slate-700 uppercase tracking-wide">
-          📚 Card {currentIndex + 1} of {articles.length} Matches Found
+          Card {currentIndex + 1} of {articles.length} Matches Found
         </span>
         <button
           onClick={() => pdfExportService.exportArticles(articles)}
-          className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 text-white text-[11px] font-bold rounded-lg shadow-sm"
+          className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 text-white text-[11px] font-bold rounded-lg shadow-sm cursor-pointer"
         >
-          📥 Export PDF Bundle
+          Export PDF Bundle
         </button>
       </div>
 
@@ -108,12 +104,12 @@ function CAReadDeck() {
           type="button"
           onClick={handlePrevCard}
           disabled={currentIndex === 0}
-          className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white border border-slate-200 text-slate-700 rounded-full flex items-center justify-center shadow-md ${currentIndex === 0 ? "opacity-20 cursor-not-allowed" : "opacity-90 hover:bg-slate-50"}`}
+          className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white border border-slate-200 text-slate-700 rounded-full flex items-center justify-center shadow-md disabled:opacity-20 transition-all ${currentIndex === 0 ? "cursor-not-allowed" : "hover:bg-slate-50 cursor-pointer"}`}
         >
-          🡨
+          ◀
         </button>
-
-        <div className="w-full bg-white border border-slate-200 rounded-3xl p-6 md:p-8 lg:p-10 shadow-sm text-left flex flex-col justify-between space-y-5 min-h-[420px]">
+        
+        <div className="w-full bg-white border border-slate-200 rounded-3xl p-6 md:p-8 lg:p-10 shadow-sm text-left flex flex-col justify-between space-y-6 min-h-[420px]">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div className="flex flex-wrap items-center gap-1.5">
@@ -127,13 +123,7 @@ function CAReadDeck() {
               </span>
             </div>
 
-            {hasSyllabusLinks && (
-              <div className="bg-slate-50/80 border border-slate-100/80 rounded-xl p-3.5 space-y-2 text-[11px]">
-                {names.subjects.map((sub, i) => <div key={i} className="truncate"><span className="font-bold text-indigo-700 mr-2">Subject:</span>{sub}</div>)}
-                {names.topics.map((top, i) => <div key={i} className="truncate"><span className="font-bold text-amber-700 mr-2">Topic:</span>{top}</div>)}
-                {names.subtopics.map((st, i) => <div key={i} className="truncate"><span className="font-bold text-emerald-700 mr-2">Subtopic:</span>{st}</div>)}
-              </div>
-            )}
+            {/* SUBJECT/TOPIC/SUBTOPIC BOX REMOVED FROM HERE */}
 
             <div className="space-y-4 pt-1">
               <h3 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-snug">{currentItem.title}</h3>
@@ -147,34 +137,47 @@ function CAReadDeck() {
             </div>
           </div>
 
-          {/* TIMELINE ACCORDION EXPANSIONS */}
-          <div className="pt-4 border-t border-slate-100 mt-auto w-full">
-            {currentItem.issueEvolutionIds?.length > 0 ? (
-              <div className="w-full space-y-4">
+          {/* BOTTOM INTERACTIVE META PANEL WITH SUBJECT ANCHOR */}
+          <div className="pt-4 border-t border-slate-100 mt-auto w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-2">
+              {currentItem.issueEvolutionIds?.length > 0 ? (
                 <button
                   type="button"
                   onClick={() => setSelectedEvolutionId(selectedEvolutionId === currentItem.id ? null : currentItem.id)}
-                  className="w-full sm:w-auto text-[13px] font-black text-cyan-700 bg-cyan-50 border border-cyan-200/60 px-5 py-2.5 rounded-xl flex items-center gap-2"
+                  className="text-[12px] font-black text-cyan-700 bg-cyan-50 border border-cyan-200/60 px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer transition-colors hover:bg-cyan-100/60"
                 >
-                  ⏱️ {selectedEvolutionId === currentItem.id ? "Minimize Evolution Timeline View" : "Expand Full Issue Evolution Roadmap"}
+                  {selectedEvolutionId === currentItem.id ? "Minimize Evolution" : "Expand Evolution Roadmap"}
                 </button>
-                {selectedEvolutionId === currentItem.id && (
-                  <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 w-full max-h-[350px] overflow-y-auto">
-                    <CAEvolutionTimeline rootEntry={currentItem} />
-                  </div>
-                )}
+              ) : (
+                <span className="text-[10px] text-slate-400 font-semibold italic bg-slate-50 px-3 py-1.5 rounded-lg border">
+                  Standalone Root Entry
+                </span>
+              )}
+            </div>
+
+            {/* NEW CLEAN PLACEMENT: Subject label badge displayed neatly on the bottom right side */}
+            {primarySubjectName && (
+              <div className="text-[11px] font-mono font-black text-indigo-700 bg-[#F0F4FF] border border-[#DEE6FF] px-3 py-1.5 rounded-xl shadow-3xs truncate max-w-xs self-start sm:self-center">
+                Subject: {primarySubjectName}
               </div>
-            ) : <span className="text-[11px] text-slate-400 font-semibold italic bg-slate-50 px-3 py-1.5 rounded-lg border">🌱 Standalone Historical Root Entry Node</span>}
+            )}
           </div>
+
+          {/* Inline Evolution Area Expansion Content view */}
+          {selectedEvolutionId === currentItem.id && currentItem.issueEvolutionIds?.length > 0 && (
+            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 w-full max-h-[350px] overflow-y-auto animate-in slide-in-from-top-2 duration-200">
+              <CAEvolutionTimeline rootEntry={currentItem} />
+            </div>
+          )}
         </div>
 
         <button
           type="button"
           onClick={handleNextCard}
           disabled={currentIndex === articles.length - 1}
-          className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white border border-slate-200 text-slate-700 rounded-full flex items-center justify-center shadow-md ${currentIndex === articles.length - 1 ? "opacity-20 cursor-not-allowed" : "opacity-90 hover:bg-slate-50"}`}
+          className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white border border-slate-200 text-slate-700 rounded-full flex items-center justify-center shadow-md disabled:opacity-20 transition-all ${currentIndex === articles.length - 1 ? "cursor-not-allowed" : "hover:bg-slate-50 cursor-pointer"}`}
         >
-          🡪
+          ▶
         </button>
       </div>
 
@@ -184,7 +187,7 @@ function CAReadDeck() {
           <button
             key={idx}
             onClick={() => setCurrentIndex(idx)}
-            className={`h-1.5 rounded-full transition-all duration-200 outline-none ${idx === currentIndex ? "w-6 bg-indigo-600" : "w-1.5 bg-slate-300"}`}
+            className={`h-1.5 rounded-full transition-all duration-200 outline-none cursor-pointer ${idx === currentIndex ? "w-6 bg-indigo-600" : "w-1.5 bg-slate-300 hover:bg-slate-400"}`}
           />
         ))}
       </div>

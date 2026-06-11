@@ -25,11 +25,16 @@ export function injectRecoveryTasks({
   const eligibleRecoveryTasks =
     missedTasks.filter(
       (task) =>
+        // Ensure the task isn't already completed or closed out
         !task.completed &&
+        task.status !== "COMPLETED" &&
+        task.status !== "CLOSED" &&
+        task.status !== "closed" &&
         (
-          task.status ===
-            "MISSED" ||
+          // Match tasks that were explicitly marked as missed by ending the day
+          task.status?.toUpperCase() === "MISSED" ||
 
+          // Match tasks whose scheduled date is prior to today
           dayjs(
             task.scheduledDate
           ).isBefore(
@@ -37,6 +42,7 @@ export function injectRecoveryTasks({
             "day"
           )
         ) &&
+        // Ensure it hasn't already been injected during a previous cycle today
         !task.recoveryInjectedAt
     );
 
@@ -60,8 +66,9 @@ export function injectRecoveryTasks({
   const prioritizedRecoveryTasks =
     scoredRecoveryTasks.sort(
       (a, b) =>
-        b.recoveryScore -
-        a.recoveryScore
+        // Fallback to 0 to prevent NaN calculation errors if scoring is missing properties
+        (b.recoveryScore || 0) -
+        (a.recoveryScore || 0)
     );
 
   /*

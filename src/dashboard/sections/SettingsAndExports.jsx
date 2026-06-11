@@ -1,30 +1,97 @@
-function SettingsAndExports() {
-  return (
-    <div className="space-y-4">
-      <div className="border-b border-slate-200 pb-4">
-        <h2 className="text-lg font-bold text-slate-900 tracking-tight">Settings & Data Systems</h2>
-        <p className="text-xs text-slate-500 mt-0.5">Execute backups, raw state modifications, or restoration sequences.</p>
-      </div>
+// src/dashboard/sections/SettingsAndExports.jsx
+import React, { useState } from 'react';
+import { db } from '../../database/dexie';
+import { syncEngine } from '../../database/services/syncEngine';
+import { auth } from '../../firebase/firestore/config';
 
-      <div className="p-1 bg-slate-50 border border-slate-200 rounded-2xl shadow-inner grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="p-3.5 bg-white rounded-xl border border-slate-200 space-y-2 shadow-sm">
-          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Export Framework Snapshot</h3>
-          <p className="text-[11px] text-slate-600 leading-relaxed">Download your personal database logs as an encrypted JSON archive for safekeeping.</p>
-          <button className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition-colors shadow-sm">
-            Generate Backup
+export default function SettingsAndExports() {
+  const [syncing, setSyncing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [statusText, setStatusText] = useState("");
+
+  const handleSyncToCloud = async () => {
+    const user = auth.currentUser;
+    if (!user) {
+      setStatusText("Authentication Missing: Please sign in to back up data.");
+      return;
+    }
+
+    setSyncing(true);
+    setStatusText("Uploading local changes to Cloud Firestore...");
+    try {
+      const res = await syncEngine.pushLocalChangesToCloud(user.uid);
+      if (res.success) {
+        setStatusText(`Success! Cleaned queue and synced ${res.count} items to the cloud.`);
+      }
+    } catch (err) {
+      setStatusText("Synchronization failed. Check your internet connection.");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleLoadFromCloud = async () => {
+    const user = auth.currentUser;
+    if (!user) {
+      setStatusText("Authentication Missing: Please sign in to recover data.");
+      return;
+    }
+
+    if (!window.confirm("Warning: Loading data will overwrite your local data with your last saved cloud snapshot. Proceed?")) {
+      return;
+    }
+
+    setLoading(true);
+    setStatusText("Downloading backup snapshot from Firestore...");
+    try {
+      const res = await syncEngine.pullCloudChangesToLocal(user.uid);
+      if (res.success) {
+        setStatusText("Success! Local IndexedDB has been completely reloaded from the cloud.");
+        setTimeout(() => window.location.reload(), 1000);
+      }
+    } catch (err) {
+      setStatusText("Failed to pull data from cloud server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6 p-6 max-w-4xl mx-auto text-slate-200">
+      <div className="border border-slate-800 bg-slate-900 rounded-xl p-6 space-y-4 shadow-xl">
+        <div>
+          <h3 className="text-lg font-semibold text-white">Manual Cloud Workspace Synchronization</h3>
+          <p className="text-xs text-slate-400 mt-1">
+            Back up your local daily tasks, completed metrics, and structural changes, or recover your workspace history onto a brand new machine.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-4">
+          <button
+            onClick={handleSyncToCloud}
+            disabled={syncing || loading}
+            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg disabled:opacity-40 transition-colors cursor-pointer"
+          >
+            {syncing ? "Syncing..." : "Sync to Firestore"}
+          </button>
+
+          <button
+            onClick={handleLoadFromCloud}
+            disabled={syncing || loading}
+            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg disabled:opacity-40 transition-colors cursor-pointer"
+          >
+            {loading ? "Loading..." : "Load from Firestore"}
           </button>
         </div>
-        
-        <div className="p-3.5 bg-white rounded-xl border border-slate-200 space-y-2 shadow-sm">
-          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Restore Storage State</h3>
-          <p className="text-[11px] text-slate-600 leading-relaxed">Import a previously saved JSON file directly back into your browser storage cache.</p>
-          <button className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors shadow-sm">
-            Upload Snapshot
-          </button>
-        </div>
+
+        {statusText && (
+          <div className="p-3 bg-slate-950 border border-slate-800 rounded-lg">
+            <p className="text-xs font-mono text-slate-300 leading-relaxed">{statusText}</p>
+          </div>
+        )}
       </div>
+      
+      {/* Rest of your existing exports / resets components here... */}
     </div>
   );
 }
-
-export default SettingsAndExports;

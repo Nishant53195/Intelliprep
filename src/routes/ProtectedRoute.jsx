@@ -1,9 +1,7 @@
+import React from "react";
 import { Navigate } from "react-router-dom";
-
 import useLoginStore from "../login/store/loginStore";
-
 import useOnboardingStore from "../onboarding/store/onboardingStore";
-
 import AuthLoader from "../login/components/AuthLoader";
 
 function ProtectedRoute({
@@ -32,6 +30,9 @@ function ProtectedRoute({
         state.hydrated
     );
 
+  // Fallback persistent verification tracker check matching the Step 1 cloud sync persistence token
+  const localOnboardingCheck = localStorage.getItem("intelliprep_onboarding_completed") === "true";
+
   // Wait for Firebase auth restore
   if (!authInitialized) {
     return <AuthLoader />;
@@ -52,9 +53,9 @@ function ProtectedRoute({
     return <AuthLoader />;
   }
 
-  // User logged in but onboarding incomplete
+  // FIXED STEP 2 GUARD CONDITION: Allow pass-through if either the state engine OR the persistent fallback token is active
   if (
-    !onboardingCompleted
+    !onboardingCompleted && !localOnboardingCheck
   ) {
     return (
       <Navigate

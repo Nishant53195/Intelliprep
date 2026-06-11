@@ -210,9 +210,7 @@ function TopicExplorer({ subject, onBackSubject }) {
             {subtopics.map((subtopic) => {
               const completed = subtopic.status === "COMPLETED";
               
-              const adjustedMinutes = subtopic.estimatedMinutes && subtopic.estimatedMinutes > 30 
-                ? subtopic.estimatedMinutes 
-                : 60;
+              const adjustedMinutes = subtopic.estimatedMinutes || 45;
 
               return (
                 <div

@@ -2,9 +2,12 @@
 import { useState, useEffect, useRef } from "react";
 import { db } from "../../database/dexie";
 import gsSyllabus from "../../constants/gsSyllabus"; // References core static structural syllabus arrays
+import useLoginStore from "../../login/store/loginStore"; // Import global login store context
 import { Save, Send, Bold, Italic, List, ListOrdered, Link2, Quote, Undo2, Redo2, CloudCheck } from "lucide-react";
 
 function AdminCAForm() {
+  const user = useLoginStore((state) => state.user); // Retrieve active authenticated user profile details
+  
   const [formData, setFormData] = useState({
     title: "", 
     summary: "", 
@@ -143,6 +146,8 @@ function AdminCAForm() {
         topicTag: formData.topicTags[0] || "",
         subtopicTag: formData.subtopicTags[0] || "",
         issueEvolutionIds: formData.parentIssueId ? [formData.parentIssueId] : [],
+        // STEP 2 BOUNDARY: Force current user email context with structural master fallback mapping
+        createdBy: user?.email || "nishant53195@gmail.com",
         createdAt: new Date()
       };
 
@@ -180,7 +185,7 @@ function AdminCAForm() {
   };
 
   return (
-    // FIX: Wrapped everything cleanly within an active HTML form component 
+    // Wrapped everything cleanly within an active HTML form component 
     <form onSubmit={handleSubmit} className="space-y-5 text-left font-sans antialiased">
       
       {/* ==========================================

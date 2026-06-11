@@ -1,6 +1,6 @@
 // src/dashboard/sections/StudyHub.jsx
 import { useState, useEffect } from "react";
-import useLoginStore from "../../login/store/loginStore"; // Access core credential layer[cite: 1]
+import useLoginStore from "../../login/store/loginStore"; // Access core credential layer
 import useDashboardStore from "../store/dashboardStore";
 import useScheduleStore from "../../scheduler/store/scheduleStore";
 import { generateDailySchedule, getActiveShiftDateString } from "../../scheduler/engine/generateDailySchedule";
@@ -9,7 +9,7 @@ import { db } from "../../database/dexie";
 import { ChevronLeft, ChevronRight, Sliders, Activity, Zap, Award } from "lucide-react";
 
 function StudyHub() {
-  const user = useLoginStore((state) => state.user); // Checks authenticated user object context[cite: 1]
+  const user = useLoginStore((state) => state.user); // Checks authenticated user object context
   const { setTodayTasks } = useScheduleStore();
   const [tasks, setTasks] = useState([]);
   const [completedSubtopicIds, setCompletedSubtopicIds] = useState(new Set());
@@ -108,7 +108,6 @@ function StudyHub() {
     }
   };
 
-  // CRITICAL FIXED WORKFLOW INTERCEPT: Restored parameter parsing structure mapping to generation transactions
   const handleReassembleCapacity = async () => {
     if (!user?.uid) return;
     
@@ -116,7 +115,6 @@ function StudyHub() {
       setLoading(true);
       const minutesToAppend = sessionHours * 60;
       
-      // Enforces execution context parameters using the original configuration rule values
       await generateDailySchedule(user.uid, minutesToAppend, extensionSlotChoice);
       alert(`Successfully appended your session extension to your ${extensionSlotChoice} workflow slots!`);
       
@@ -124,7 +122,6 @@ function StudyHub() {
     } catch (err) {
       console.error("Extension assembly execution error:", err);
     } finally {
-      // Direct store sync update fallback pass safely updating global state registry fields
       setTimeout(async () => {
         const { refreshTodayTasks } = await import("../../scheduler/services/refreshTodayTasks");
         await refreshTodayTasks(user.uid);
@@ -169,6 +166,7 @@ function StudyHub() {
 
   const gsTask = tasks.find(t => t.type === "gs");
   const optionalTask = tasks.find(t => t.type === "optional");
+  const revisionTask = tasks.find(t => t.type === "revision");
 
   const currentGsSubtask = gsTask?.subtasks?.[Math.min(gsIndex, gsTask.subtasks.length - 1)] || null;
   const currentOptionalSubtask = optionalTask?.subtasks?.[Math.min(optionalIndex, optionalTask.subtasks.length - 1)] || null;
@@ -379,8 +377,23 @@ function StudyHub() {
             <div className="h-10 w-10 rounded-2xl bg-[#FFF6F0] text-[#E26200] flex items-center justify-center mx-auto text-lg border border-[#FFE7DB] shadow-3xs mb-2">
               📙
             </div>
-            <h4 className="text-base font-black text-[#1E2538] tracking-tight">Block Stream Finished</h4>
-            <p className="text-xs font-medium text-slate-400 mt-0.5">Great job! Keep the momentum going.</p>
+            
+            {/* DYNAMIC METRIC VERIFICATION: Replaced hardcoded text layout safely evaluating active lengths */}
+            {revisionTask && revisionTask.subtasks?.length > 0 && revisionTask.status?.toUpperCase() !== "COMPLETED" ? (
+              <>
+                <h4 className="text-base font-black text-[#1E2538] tracking-tight">
+                  {revisionTask.subtasks.length} revision tasks for today
+                </h4>
+                <p className="text-xs font-medium text-slate-400 mt-0.5">
+                  Review active structural spaced repetition items.
+                </p>
+              </>
+            ) : (
+              <>
+                <h4 className="text-base font-black text-[#1E2538] tracking-tight">Block Stream Finished</h4>
+                <p className="text-xs font-medium text-slate-400 mt-0.5">Great job! Keep the momentum going.</p>
+              </>
+            )}
           </div>
           <div className="border-t border-slate-50 pt-2 text-[10px] text-slate-400 font-mono">
             Active Spaced Repetition Retentions Clear

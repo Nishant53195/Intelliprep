@@ -44,7 +44,7 @@ export async function generateDailySchedule(userId, extensionBudget = 0, extensi
 
     if (staleItems.length > 0) {
       for (const staleTask of staleItems) {
-        await db.schedule_tasks.update(staleTask.id, { status: "missed", closedAt: Date.now() });
+        await db.schedule_tasks.update(staleTask.id, { status: "MISSED", closedAt: Date.now() });
         
         if (staleTask.subtasks) {
           for (const sub of staleTask.subtasks) {
@@ -55,13 +55,13 @@ export async function generateDailySchedule(userId, extensionBudget = 0, extensi
               await db.subtopic_progress.put({
                 id: `prog_node_${Date.now()}_${sub.subtopicId}`,
                 subtopicId: sub.subtopicId, 
-                status: "missed", 
+                status: "MISSED", 
                 remainingMinutes: parseInt(sub.duration) || 45, 
                 updatedAt: Date.now()
               });
             } else if (prog.status?.toLowerCase() !== "completed" && prog.status?.toLowerCase() !== "chunked") {
               await db.subtopic_progress.update(prog.id, {
-                status: "missed",
+                status: "MISSED",
                 remainingMinutes: parseInt(sub.duration) || 45,
                 updatedAt: Date.now()
               });

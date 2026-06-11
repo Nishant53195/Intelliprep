@@ -4061,7 +4061,7 @@ difficulty: 3,
       {
         id: "indus-civilization-arch",
         name: "Indus Civilization Architecture",
-        estimatedMinutes: 35,
+        estimatedMinutes: 40,
         difficulty: 3,
       },
       {
@@ -4079,7 +4079,7 @@ difficulty: 3,
       {
         id: "buddhist-arch",
         name: "Buddhist Architecture",
-        estimatedMinutes: 25,
+        estimatedMinutes: 35,
         difficulty: 3,
       },
       {
@@ -4441,6 +4441,18 @@ difficulty: 3,
         name: "Classical Dance",
         estimatedMinutes: 120,
         difficulty: 4,
+      },
+    ],
+  },
+  {
+    id: "others-art",
+    name: "Others",
+    subtopics: [
+      {
+        id: "other-subtopic",
+        name: "Others",
+        estimatedMinutes: 2,
+        difficulty: 1,
       },
     ],
   },
@@ -8217,11 +8229,11 @@ difficulty: 3,
     id: "money",
     name: "Money",
     subtopics: [
-      { id: "barter-system", name: "Barter System", estimatedMinutes: 15, difficulty: 1 },
-      { id: "functions-of-money", name: "Functions of Money", estimatedMinutes: 15, difficulty: 2 },
+      { id: "barter-system", name: "Barter System", estimatedMinutes: 10, difficulty: 1 },
+      { id: "functions-of-money", name: "Functions of Money", estimatedMinutes: 10, difficulty: 2 },
       { id: "evolution-types-money", name: "Evolution and types of Money", estimatedMinutes: 20, difficulty: 2 },
-      { id: "fiat-legal-tender", name: "Fiat Money and Legal Tender", estimatedMinutes: 20, difficulty: 2 },
-      { id: "demonetization", name: "Demonitization", estimatedMinutes: 20, difficulty: 2 },
+      { id: "fiat-legal-tender", name: "Fiat Money and Legal Tender", estimatedMinutes: 15, difficulty: 2 },
+      { id: "demonetization", name: "Demonitization", estimatedMinutes: 10, difficulty: 2 },
       { id: "bank-money", name: "Bank money", estimatedMinutes: 15, difficulty: 2 },
       { id: "digital-payments", name: "Digital Payments", estimatedMinutes: 15, difficulty: 1 },
       { id: "npci", name: "NPCI", estimatedMinutes: 15, difficulty: 2 },
@@ -8229,11 +8241,11 @@ difficulty: 3,
       { id: "pre-sanctioned-credit-line", name: "Pre-sanctioned credit line", estimatedMinutes: 15, difficulty: 2 },
       { id: "e-rupi", name: "e-RUPI", estimatedMinutes: 15, difficulty: 2 },
       { id: "plastic-money", name: "Plastic Money", estimatedMinutes: 15, difficulty: 1 },
-      { id: "merchant-discount-rate", name: "Merchant Discount Rate", estimatedMinutes: 25, difficulty: 3 },
-      { id: "global-money-transfer", name: "Global money transfer", estimatedMinutes: 20, difficulty: 2 },
+      { id: "merchant-discount-rate", name: "Merchant Discount Rate", estimatedMinutes: 15, difficulty: 3 },
+      { id: "global-money-transfer", name: "Global money transfer", estimatedMinutes: 15, difficulty: 2 },
       { id: "digital-payment-regulation", name: "Digital payment regulation", estimatedMinutes: 20, difficulty: 3 },
       { id: "cryptocurrency", name: "Cryptocurrency", estimatedMinutes: 25, difficulty: 3 },
-      { id: "cbdc", name: "CBDC", estimatedMinutes: 25, difficulty: 3 },
+      { id: "cbdc", name: "CBDC", estimatedMinutes: 15, difficulty: 3 },
       { id: "nft", name: "NFT", estimatedMinutes: 15, difficulty: 2 }
     ]
   },
@@ -8246,21 +8258,21 @@ difficulty: 3,
       { id: "money-supply", name: "Money supply", estimatedMinutes: 30, difficulty: 3 },
       { id: "money-multiplier", name: "Money multiplier", estimatedMinutes: 30, difficulty: 4 },
       { id: "m0-creation-of-money", name: "M0 : creation of money", estimatedMinutes: 20, difficulty: 4 },
-      { id: "frbm-act", name: "FRBM act", estimatedMinutes: 30, difficulty: 3 }
+      { id: "frbm-act", name: "FRBM act", estimatedMinutes: 20, difficulty: 3 }
     ]
   },
   {
     id: "monetary-policy",
     name: "Monetary Policy",
     subtopics: [
-      { id: "crr-and-slr", name: "CRR and SLR", estimatedMinutes: 25, difficulty: 3 },
+      { id: "crr-and-slr", name: "CRR and SLR", estimatedMinutes: 20, difficulty: 3 },
       { id: "net-interest-margin", name: "Net Interest Margin", estimatedMinutes: 20, difficulty: 3 },
       { id: "liquidity-overhang", name: "Liquidity overhang", estimatedMinutes: 20, difficulty: 3 },
       { id: "incremental-crr", name: "Incremental CRR", estimatedMinutes: 20, difficulty: 3 },
-      { id: "laf", name: "LAF", estimatedMinutes: 25, difficulty: 3 },
-      { id: "repo", name: "REPO", estimatedMinutes: 30, difficulty: 3 },
-      { id: "omo", name: "OMO", estimatedMinutes: 25, difficulty: 3 },
-      { id: "bond-yield-operation-twist", name: "Bond Yield and Operation twist", estimatedMinutes: 40, difficulty: 4 },
+      { id: "laf", name: "LAF", estimatedMinutes: 20, difficulty: 3 },
+      { id: "repo", name: "REPO", estimatedMinutes: 20, difficulty: 3 },
+      { id: "omo", name: "OMO", estimatedMinutes: 20, difficulty: 3 },
+      { id: "bond-yield-operation-twist", name: "Bond Yield and Operation twist", estimatedMinutes: 25, difficulty: 4 },
       { id: "qualitative-tools", name: "Qualitative tools", estimatedMinutes: 20, difficulty: 2 },
       { id: "priority-sector-lending", name: "Priority Sector Lending", estimatedMinutes: 25, difficulty: 3 },
       { id: "rbi-stance", name: "RBI stance", estimatedMinutes: 20, difficulty: 3 },
@@ -8913,7 +8925,7 @@ difficulty: 3,
       { id: "habitat", name: "Habitat", estimatedMinutes: 10, difficulty: 1 },
       { id: "ecosystem-def", name: "Ecosystem", estimatedMinutes: 15, difficulty: 2 },
       { id: "eco-vs-env-vs-ecology", name: "Ecosystem vs Environment vs Ecology", estimatedMinutes: 15, difficulty: 2 },
-      { id: "abiotic-biotic-components", name: "Abiotic Components and Biotic Components", estimatedMinutes: 20, difficulty: 2 }
+      { id: "abiotic-biotic-components", name: "Abiotic Components and Biotic Components", estimatedMinutes: 15, difficulty: 2 }
     ]
   },
   {
@@ -8922,12 +8934,12 @@ difficulty: 3,
     subtopics: [
       { id: "level-of-organisations", name: "Level of organisations", estimatedMinutes: 15, difficulty: 2 },
       { id: "ecotone", name: "Ecotone", estimatedMinutes: 15, difficulty: 2 },
-      { id: "adaptation", name: "Adaptation", estimatedMinutes: 15, difficulty: 2 },
-      { id: "variation", name: "Variation", estimatedMinutes: 15, difficulty: 2 },
-      { id: "speciation", name: "Speciation", estimatedMinutes: 20, difficulty: 3 },
-      { id: "mutation", name: "Mutation", estimatedMinutes: 15, difficulty: 2 },
+      { id: "adaptation", name: "Adaptation", estimatedMinutes: 10, difficulty: 2 },
+      { id: "variation", name: "Variation", estimatedMinutes: 10, difficulty: 2 },
+      { id: "speciation", name: "Speciation", estimatedMinutes: 15, difficulty: 3 },
+      { id: "mutation", name: "Mutation", estimatedMinutes: 10, difficulty: 2 },
       { id: "natural-selection", name: "Natural Selection", estimatedMinutes: 20, difficulty: 2 },
-      { id: "evolution", name: "Evolution", estimatedMinutes: 20, difficulty: 3 },
+      { id: "evolution", name: "Evolution", estimatedMinutes: 15, difficulty: 3 },
       { id: "extinction", name: "Extinction", estimatedMinutes: 15, difficulty: 2 }
     ]
   },
@@ -8936,11 +8948,11 @@ difficulty: 3,
     name: "Ecosystem",
     subtopics: [
       { id: "homeostasis", name: "Homeostasis", estimatedMinutes: 15, difficulty: 2 },
-      { id: "ecological-sucession", name: "Ecological Sucession", estimatedMinutes: 25, difficulty: 3 },
+      { id: "ecological-sucession", name: "Ecological Sucession", estimatedMinutes: 20, difficulty: 3 },
       { id: "food-chain", name: "Food Chain", estimatedMinutes: 15, difficulty: 1 },
       { id: "food-web", name: "Food web", estimatedMinutes: 15, difficulty: 2 },
       { id: "ecological-pyramid", name: "Ecological Pyramid", estimatedMinutes: 20, difficulty: 2 },
-      { id: "bioaccumulation", name: "Bioaccumulation", estimatedMinutes: 25, difficulty: 3 }
+      { id: "bioaccumulation", name: "Bioaccumulation", estimatedMinutes: 15, difficulty: 3 }
     ]
   },
   {
@@ -9118,8 +9130,8 @@ difficulty: 3,
     subtopics: [
       { id: "tiger-challenges", name: "Challenges", estimatedMinutes: 15, difficulty: 2 },
       { id: "tiger-measures", name: "Measures", estimatedMinutes: 15, difficulty: 2 },
-      { id: "project-tiger", name: "Project Tiger", estimatedMinutes: 25, difficulty: 3 },
-      { id: "ntca", name: "NTCA", estimatedMinutes: 25, difficulty: 3 },
+      { id: "project-tiger", name: "Project Tiger", estimatedMinutes: 15, difficulty: 3 },
+      { id: "ntca", name: "NTCA", estimatedMinutes: 15, difficulty: 3 },
       { id: "tiger-corridors", name: "Tiger Corridors", estimatedMinutes: 15, difficulty: 2 },
       { id: "tiger-reserves", name: "Tiger Reserves", estimatedMinutes: 30, difficulty: 4 },
       { id: "tiger-census", name: "Tiger Census", estimatedMinutes: 20, difficulty: 3 },
@@ -9163,12 +9175,12 @@ difficulty: 3,
     id: "air-pollution-effects",
     name: "Air Pollution Effects",
     subtopics: [
-      { id: "smog", name: "Smog", estimatedMinutes: 20, difficulty: 3 },
-      { id: "acid-rain", name: "Acid rain", estimatedMinutes: 20, difficulty: 3 },
-      { id: "ocean-acidification", name: "Ocean acidification", estimatedMinutes: 25, difficulty: 3 },
-      { id: "aerosols", name: "Aerosols", estimatedMinutes: 20, difficulty: 3 },
-      { id: "stratospheric-ozone-depletion", name: "Stratospheric ozone depletion", estimatedMinutes: 25, difficulty: 3 },
-      { id: "ozone-depletion-substances", name: "Ozone depletion substances", estimatedMinutes: 25, difficulty: 3 }
+      { id: "smog", name: "Smog", estimatedMinutes: 15, difficulty: 3 },
+      { id: "acid-rain", name: "Acid rain", estimatedMinutes: 15, difficulty: 3 },
+      { id: "ocean-acidification", name: "Ocean acidification", estimatedMinutes: 15, difficulty: 3 },
+      { id: "aerosols", name: "Aerosols", estimatedMinutes: 15, difficulty: 3 },
+      { id: "stratospheric-ozone-depletion", name: "Stratospheric ozone depletion", estimatedMinutes: 15, difficulty: 3 },
+      { id: "ozone-depletion-substances", name: "Ozone depletion substances", estimatedMinutes: 15, difficulty: 3 }
     ]
   },
   {
