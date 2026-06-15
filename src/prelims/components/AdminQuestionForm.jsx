@@ -3,27 +3,24 @@ import React, { useState, useEffect, useRef } from "react";
 import { db } from "../../database/dexie";
 import gsSyllabus from "../../constants/gsSyllabus";
 import useLoginStore from "../../login/store/loginStore";
-import { Send, Bold, Italic, List, CheckCircle } from "lucide-react";
+import { Send, Bold, Italic, List, CheckCircle, FileJson, ChevronLeft, ChevronRight, PlusCircle, Trash2 } from "lucide-react";
 
 function AdminQuestionForm({ onComplete }) {
   const user = useLoginStore((state) => state.user);
   
   const [questionType, setQuestionType] = useState("MCQ_PRELIMS"); // MCQ_PRELIMS, PYQ_PRELIMS, PYQ_MAINS
-  const [formData, setFormData] = useState({
-    paperTag: "",
-    subjectTag: "",
-    topicTag: "",
-    subtopicTag: "",
-    questionText: "", // Holds Rich HTML String
-    options: ["", "", "", ""], // Holds Rich HTML Strings Array
-    correctAnswerIndex: 0,
-    explanation: "", // Holds Rich HTML String
-    year: new Date().getFullYear(),
-    difficulty: "MEDIUM",
-    keywords: "",
-    maxMarks: 15,
-    wordCountAllowed: 250
-  });
+  const [importJsonText, setImportJsonText] = useState("");
+  const [showImportArea, setShowImportArea] = useState(false);
+
+  // CAROUSEL QUEUE MANAGEMENT STATES
+  const [questionQueue, setQuestionQueue] = useState([
+    {
+      paperTag: "", subjectTag: "", topicTag: "", subtopicTag: "",
+      questionText: "", options: ["", "", "", ""], correctAnswerIndex: 0, explanation: "",
+      year: new Date().getFullYear(), difficulty: "MEDIUM", keywords: "", maxMarks: 15, wordCountAllowed: 250
+    }
+  ]);
+  const [currentIdx, setCurrentIdx] = useState(0);
 
   const [availableSubjects, setAvailableSubjects] = useState([]);
   const [availableTopics, setAvailableTopics] = useState([]);
@@ -34,390 +31,557 @@ function AdminQuestionForm({ onComplete }) {
   const explanationEditorRef = useRef(null);
   const optionRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
+  const activeQuestion = questionQueue[currentIdx] || {};
+
+  // Hydrate DOM Rich Text Node Views whenever index cursor pointers shift positions
+  useEffect(() => {
+    if (questionEditorRef.current) {
+      questionEditorRef.current.innerHTML = activeQuestion.questionText || "";
+    }
+    if (explanationEditorRef.current) {
+      explanationEditorRef.current.innerHTML = activeQuestion.explanation || "";
+    }
+    optionRefs.forEach((ref, idx) => {
+      if (ref.current) {
+        ref.current.innerHTML = activeQuestion.options?.[idx] || "";
+      }
+    });
+  }, [currentIdx, questionType, questionQueue]);
+
   // Cascade 1: Papers -> Subjects
   useEffect(() => {
-    if (!formData.paperTag) {
+    if (!activeQuestion.paperTag) {
       setAvailableSubjects([]);
       return;
     }
-    const filtered = gsSyllabus.filter(s => s.paper === formData.paperTag);
+    const filtered = gsSyllabus.filter(s => s.paper === activeQuestion.paperTag);
     setAvailableSubjects(filtered);
-  }, [formData.paperTag]);
+  }, [activeQuestion.paperTag]);
 
   // Cascade 2: Subjects -> Topics
   useEffect(() => {
-    if (!formData.subjectTag) {
+    if (!activeQuestion.subjectTag) {
       setAvailableTopics([]);
       return;
     }
-    const selectedSubj = availableSubjects.find(s => s.id === formData.subjectTag);
+    const selectedSubj = availableSubjects.find(s => s.id === activeQuestion.subjectTag);
     setAvailableTopics(selectedSubj?.topics || []);
-  }, [formData.subjectTag, availableSubjects]);
+  }, [activeQuestion.subjectTag, availableSubjects]);
 
   // Cascade 3: Topics -> Subtopics
   useEffect(() => {
-    if (!formData.topicTag) {
+    if (!activeQuestion.topicTag) {
       setAvailableSubtopics([]);
       return;
     }
-    const selectedTopic = availableTopics.find(t => t.id === formData.topicTag);
+    const selectedTopic = availableTopics.find(t => t.id === activeQuestion.topicTag);
     setAvailableSubtopics(selectedTopic?.subtopics || []);
-  }, [formData.topicTag, availableTopics]);
+  }, [activeQuestion.topicTag, availableTopics]);
 
-  // Inline Native Rich Text Formatting Executor
+  // Unified nested state array mutation updater channel
+  const updateActiveQueueItem = (fields) => {
+    setQuestionQueue(prev => {
+      const updated = [...prev];
+      updated[currentIdx] = { ...updated[currentIdx], ...fields };
+      return updated;
+    });
+  };
+
+  // Inline Native HTML Executive Document styling rules controller
   const applyStyleInline = (e, command) => {
     e.preventDefault();
     document.execCommand(command, false, null);
   };
 
-  // Sync Rich Text mutations cleanly into the unified state object
-  const handleRichChange = (field, ref, index = null) => {
+  const handleRichChange = (field, ref, optionIdx = null) => {
     if (!ref.current) return;
-    const value = ref.current.innerHTML;
+    const innerHtmlValue = ref.current.innerHTML;
     
-    if (index !== null) {
-      setFormData(prev => {
-        const updatedOptions = [...prev.options];
-        updatedOptions[index] = value;
-        return { ...prev, options: updatedOptions };
-      });
+    if (optionIdx !== null) {
+      const updatedOptions = [...(activeQuestion.options || ["", "", "", ""])];
+      updatedOptions[optionIdx] = innerHtmlValue;
+      updateActiveQueueItem({ options: updatedOptions });
     } else {
-      setFormData(prev => ({ ...prev, [field]: value }));
+      updateActiveQueueItem({ [field]: innerHtmlValue });
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Sanitize check for empty HTML containers
-    const cleanQuestionText = (formData.questionText || "").replace(/<[^>]*>/g, '').trim();
-    if (!cleanQuestionText || formData.questionText === "<br>") {
-      alert("Please supply the core question statement text.");
+  // BULK IMPORT PARSING HANDSHAKE ENGINE
+  const handleBulkImportJson = () => {
+    if (!importJsonText.trim()) {
+      alert("Please paste a valid JSON structure array string first.");
       return;
     }
 
     try {
-      const uniqueId = `q_${Date.now()}_${crypto.randomUUID()}`;
-      let targetTable = "pyqs";
-      
-      let questionPayload = {
-        id: uniqueId,
-        type: questionType,
-        paper: formData.paperTag,
-        subjectId: formData.subjectTag,
-        topicId: formData.topicTag,
-        subtopicId: formData.subtopicTag,
-        questionText: formData.questionText, // Raw Rich HTML with spacing / line-breaks
-        createdBy: user?.email || "nishant53195@gmail.com",
-        createdAt: new Date()
-      };
+      const parsedData = JSON.parse(importJsonText.trim());
+      const standardArrayData = Array.isArray(parsedData) ? parsedData : [parsedData];
 
-      if (questionType === "MCQ_PRELIMS" || questionType === "PYQ_PRELIMS") {
-        // Validate choices text entry for prelims modes
-        const rawOptionsText = formData.options.map(opt => opt.replace(/<[^>]*>/g, '').trim());
-        if (rawOptionsText.some(t => t === "" || t === "br")) {
-          alert("Please fill out all option parameters with rich formatting.");
-          return;
+      // Format array payloads into type-conforming structural schema objects natively
+      const structuralQueueElements = standardArrayData.map(item => {
+        return {
+          paperTag: item.paperTag || item.paper || "",
+          subjectTag: item.subjectTag || item.subjectId || "",
+          topicTag: item.topicTag || item.topicId || "",
+          subtopicTag: item.subtopicTag || item.subtopicId || "",
+          questionText: item.questionText || item.question || "",
+          options: Array.isArray(item.options) ? [...item.options, "", "", ""].slice(0, 4) : ["", "", "", ""],
+          correctAnswerIndex: item.correctAnswerIndex !== undefined ? Number(item.correctAnswerIndex) : 0,
+          explanation: item.explanation || "",
+          year: item.year ? Number(item.year) : new Date().getFullYear(),
+          difficulty: item.difficulty || "MEDIUM",
+          keywords: Array.isArray(item.keywords) ? item.keywords.join(", ") : (item.keywords || ""),
+          maxMarks: item.maxMarks ? Number(item.maxMarks) : 15,
+          wordCountAllowed: item.wordCountAllowed || item.wordCount || 250
+        };
+      });
+
+      setQuestionQueue(structuralQueueElements);
+      setCurrentIdx(0);
+      setShowImportArea(false);
+      setImportJsonText("");
+      alert(`Successfully populated queue grid! Imported ${structuralQueueElements.length} rows inside ${questionType} context template.`);
+    } catch (parseErr) {
+      console.error("JSON Validation Parsing failed entirely:", parseErr);
+      alert(`Invalid JSON format array error: ${parseErr.message}. Make sure your strings escape spacing tags.`);
+    }
+  };
+
+  const handleAddNewEmptyCard = () => {
+    setQuestionQueue(prev => [
+      ...prev,
+      {
+        paperTag: "", subjectTag: "", topicTag: "", subtopicTag: "",
+        questionText: "", options: ["", "", "", ""], correctAnswerIndex: 0, explanation: "",
+        year: new Date().getFullYear(), difficulty: "MEDIUM", keywords: "", maxMarks: 15, wordCountAllowed: 250
+      }
+    ]);
+    setCurrentIdx(questionQueue.length);
+  };
+
+  const handleDeleteActiveCard = () => {
+    if (questionQueue.length === 1) {
+      setQuestionQueue([
+        {
+          paperTag: "", subjectTag: "", topicTag: "", subtopicTag: "",
+          questionText: "", options: ["", "", "", ""], correctAnswerIndex: 0, explanation: "",
+          year: new Date().getFullYear(), difficulty: "MEDIUM", keywords: "", maxMarks: 15, wordCountAllowed: 250
         }
+      ]);
+      return;
+    }
+    setQuestionQueue(prev => prev.filter((_, i) => i !== currentIdx));
+    setCurrentIdx(p => (p > 0 ? p - 1 : 0));
+  };
 
-        questionPayload = {
-          ...questionPayload,
-          options: formData.options, // Array of structured rich text choices
-          correctAnswerIndex: Number(formData.correctAnswerIndex),
-          explanation: formData.explanation, // Rich HTML explanations
-          difficulty: formData.difficulty,
-          year: questionType === "PYQ_PRELIMS" ? Number(formData.year) : null
+  const handleSubmitAllQueueItems = async (e) => {
+    e.preventDefault();
+
+    // Structural loop scan confirming text completeness bounds
+    for (let i = 0; i < questionQueue.length; i++) {
+      const cleanText = (questionQueue[i].questionText || "").replace(/<[^>]*>/g, '').trim();
+      if (!cleanText || questionQueue[i].questionText === "<br>") {
+        alert(`Validation Failure: Card #${i + 1} Question frame text statement is empty.`);
+        setCurrentIdx(i);
+        return;
+      }
+    }
+
+    try {
+      let targetTable = "pyqs";
+      const processedBatchPayloads = questionQueue.map((q, idx) => {
+        let payload = {
+          id: `q_${Date.now()}_${idx}_${crypto.randomUUID()}`,
+          type: questionType,
+          paper: q.paperTag,
+          subjectId: q.subjectTag,
+          topicId: q.topicTag,
+          subtopicId: q.subtopicTag,
+          questionText: q.questionText,
+          createdBy: user?.email || "nishant53195@gmail.com",
+          createdAt: new Date()
         };
-      } else if (questionType === "PYQ_MAINS") {
-        questionPayload = {
-          ...questionPayload,
-          year: Number(formData.year),
-          maxMarks: Number(formData.maxMarks),
-          wordCountAllowed: Number(formData.wordCountAllowed),
-          keywords: formData.keywords.split(",").map(k => k.trim()).filter(Boolean)
-        };
+
+        if (questionType === "MCQ_PRELIMS" || questionType === "PYQ_PRELIMS") {
+          payload = {
+            ...payload,
+            options: q.options,
+            correctAnswerIndex: Number(q.correctAnswerIndex),
+            explanation: q.explanation,
+            difficulty: q.difficulty,
+            year: questionType === "PYQ_PRELIMS" ? Number(q.year) : null
+          };
+        } else if (questionType === "PYQ_MAINS") {
+          payload = {
+            ...payload,
+            year: Number(q.year),
+            maxMarks: Number(q.maxMarks),
+            wordCountAllowed: Number(q.wordCountAllowed),
+            keywords: q.keywords.split(",").map(k => k.trim()).filter(Boolean)
+          };
+        }
+        return payload;
+      });
+
+      // 1. Commit full structured array chunk natively down to Dexie IndexedDB
+      for (const questionObject of processedBatchPayloads) {
+        await db[targetTable].put(questionObject);
       }
 
-      // 1. Write down locally to Dexie Repository Store
-      await db[targetTable].put(questionPayload);
-
-      // 2. Synchronize target item out-of-band directly up to Master Cloud Inventory
+      // 2. Immediate Force Push upload call to global master database pool
       try {
         const { syncEngine } = await import("../../database/services/syncEngine");
         await syncEngine.pushLocalChangesToCloud(user.uid);
       } catch (syncErr) {
-        console.warn("[Question Auto-Push] Background sync upload deferred:", syncErr);
+        console.warn("[Question Auto-Push] Batch push upload bottlenecked:", syncErr);
       }
 
-      alert("Rich text question committed securely and pushed to master knowledge base!");
+      alert(`Success! Successfully uploaded ${processedBatchPayloads.length} question logs into Cloud Inventory Registry.`);
       
-      // Clean up layout models, variables and rich elements
-      setFormData({
-        paperTag: "", subjectTag: "", topicTag: "", subtopicTag: "", questionText: "",
-        options: ["", "", "", ""], correctAnswerIndex: 0, explanation: "",
-        year: new Date().getFullYear(), difficulty: "MEDIUM", keywords: "", maxMarks: 15, wordCountAllowed: 250
-      });
-
-      if (questionEditorRef.current) questionEditorRef.current.innerHTML = "";
-      if (explanationEditorRef.current) explanationEditorRef.current.innerHTML = "";
-      optionRefs.forEach(ref => { if (ref.current) ref.current.innerHTML = ""; });
-      
+      setQuestionQueue([
+        {
+          paperTag: "", subjectTag: "", topicTag: "", subtopicTag: "",
+          questionText: "", options: ["", "", "", ""], correctAnswerIndex: 0, explanation: "",
+          year: new Date().getFullYear(), difficulty: "MEDIUM", keywords: "", maxMarks: 15, wordCountAllowed: 250
+        }
+      ]);
+      setCurrentIdx(0);
       if (onComplete) onComplete();
     } catch (err) {
-      console.error("Database schema extraction error:", err);
-      alert(`Could not compile question configuration: ${err.message}`);
+      console.error("Batch submission database failure:", err);
+      alert(`Could not compile target queue parameters: ${err.message}`);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 text-left font-sans antialiased text-slate-700">
+    <div className="space-y-5 text-left font-sans antialiased text-slate-700 w-full relative">
       
-      {/* SELECTION SEGMENT CONTROL BUTTONS */}
-      <div className="space-y-1.5">
-        <label className="text-[11px] font-black text-slate-500 uppercase tracking-wide block">Question Blueprint Type</label>
-        <div className="grid grid-cols-3 gap-1 bg-slate-100 border border-slate-200 p-1 rounded-xl">
-          {[
-            { id: "MCQ_PRELIMS", label: "MCQ Prelims" },
-            { id: "PYQ_PRELIMS", label: "PYQ Prelims" },
-            { id: "PYQ_MAINS", label: "PYQ Mains" }
-          ].map(type => (
-            <button
-              key={type.id}
-              type="button"
-              onClick={() => setQuestionType(type.id)}
-              className={`py-2 text-xs font-black rounded-lg text-center transition-all cursor-pointer ${
-                questionType === type.id
-                  ? "bg-white text-indigo-600 shadow-3xs border border-slate-200/60 font-black"
-                  : "text-slate-500 hover:bg-white/40"
-              }`}
-            >
-              {type.label}
-            </button>
-          ))}
+      {/* BULK ENTRY CONTROLS BAR CONTROL LAYER */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 border border-slate-200 p-3 rounded-2xl shadow-3xs">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowImportArea(!showImportArea)}
+            className="px-4 py-2 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer transition-colors"
+          >
+            <FileJson size={13} className="text-cyan-400" /> Bulk JSON Import
+          </button>
+          <button
+            type="button"
+            onClick={handleAddNewEmptyCard}
+            className="px-3.5 py-2 border bg-white text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-3xs cursor-pointer transition-colors"
+          >
+            <PlusCircle size={13} className="text-indigo-500" /> Insert Card
+          </button>
+        </div>
+
+        {/* CONTROLS PAGINATION CAROUSEL TRACKER STRIP */}
+        <div className="flex items-center gap-3 bg-white px-3 py-1 rounded-xl border">
+          <button
+            type="button"
+            disabled={currentIdx === 0}
+            onClick={() => setCurrentIdx(p => p - 1)}
+            className="p-1 hover:text-slate-900 disabled:opacity-20 transition-all cursor-pointer"
+          >
+            <ChevronLeft size={16} strokeWidth={3} />
+          </button>
+          <span className="text-xs font-mono font-black text-slate-800">
+            Card {currentIdx + 1} of {questionQueue.length}
+          </span>
+          <button
+            type="button"
+            disabled={currentIdx === questionQueue.length - 1}
+            onClick={() => setCurrentIdx(p => p + 1)}
+            className="p-1 hover:text-slate-900 disabled:opacity-20 transition-all cursor-pointer"
+          >
+            <ChevronRight size={16} strokeWidth={3} />
+          </button>
+          <button
+            type="button"
+            onClick={handleDeleteActiveCard}
+            className="p-1 text-rose-500 hover:text-rose-600 transition-colors cursor-pointer border-l pl-2 ml-1"
+            title="Delete this item card allocation"
+          >
+            <Trash2 size={13} />
+          </button>
         </div>
       </div>
 
-      {/* FIELD BLOCKS LAYER 1: STRUCTURAL CLASSIFICATION */}
-      <div className="bg-white border border-[#EBEFF8] rounded-2xl p-5 shadow-3xs space-y-4">
-        <h4 className="text-xs font-black text-slate-800 tracking-wider uppercase border-b border-slate-50 pb-2">
-          Syllabus Index Linkage Alignment
-        </h4>
+      {/* EXPANDABLE PASTE AREA INPUT CONSOLE PANEL */}
+      {showImportArea && (
+        <div className="bg-white border border-dashed border-indigo-200 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase text-indigo-700 tracking-wide block">Paste Raw Array payload code</span>
+            <span className="text-[9px] font-mono font-black text-slate-400 bg-slate-50 px-2 py-0.5 rounded border">Conforms to {questionType} parameters</span>
+          </div>
+          <textarea
+            rows={5}
+            value={importJsonText}
+            onChange={e => setImportJsonText(e.target.value)}
+            className="w-full font-mono bg-slate-950 border border-slate-800 rounded-xl p-3 text-[11px] text-emerald-400 placeholder-slate-600 outline-none shadow-inner"
+            placeholder={`[\n  {\n    "questionText": "Sample question context statement string",\n    "paperTag": "GS3",\n    "options": ["A", "B", "C", "D"],\n    "correctAnswerIndex": 0\n  }\n]`}
+          />
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={() => setShowImportArea(false)} className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 rounded-lg text-[11px] font-bold cursor-pointer">Cancel</button>
+            <button type="button" onClick={handleBulkImportJson} className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[11px] font-black shadow-sm cursor-pointer transition-colors">Process Matrix Ingestion</button>
+          </div>
+        </div>
+      )}
+
+      {/* CORE FORM IMPLEMENTATION VIEW OVERLAY GRID */}
+      <form onSubmit={handleSubmitAllQueueItems} className="space-y-5">
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase">1. General Studies Paper</span>
-            <select
-              value={formData.paperTag}
-              onChange={e => setFormData(p => ({ ...p, paperTag: e.target.value, subjectTag: "", topicTag: "", subtopicTag: "" }))}
-              className="w-full border border-slate-200 bg-slate-50 rounded-xl p-2.5 text-xs font-bold focus:border-indigo-500 outline-none cursor-pointer shadow-3xs"
-            >
-              <option value="">-- Choose Paper --</option>
-              {["GS1", "GS2", "GS3", "GS4"].map(p => <option key={p} value={p}>{p.slice(0,2) + " " + p.slice(2)}</option>)}
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase">2. Mapped Subject</span>
-            <select
-              value={formData.subjectTag}
-              disabled={availableSubjects.length === 0}
-              onChange={e => setFormData(p => ({ ...p, subjectTag: e.target.value, topicTag: "", subtopicTag: "" }))}
-              className="w-full border border-slate-200 bg-slate-50 rounded-xl p-2.5 text-xs font-bold focus:border-indigo-500 outline-none disabled:opacity-40 cursor-pointer shadow-3xs"
-            >
-              <option value="">-- Choose Subject --</option>
-              {availableSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase">3. Relational Topic Node</span>
-            <select
-              value={formData.topicTag}
-              disabled={availableTopics.length === 0}
-              onChange={e => setFormData(p => ({ ...p, topicTag: e.target.value, subtopicTag: "" }))}
-              className="w-full border border-slate-200 bg-slate-50 rounded-xl p-2.5 text-xs font-bold focus:border-indigo-500 outline-none disabled:opacity-40 cursor-pointer shadow-3xs"
-            >
-              <option value="">-- Choose Topic --</option>
-              {availableTopics.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase">4. Subtopic Target</span>
-            <select
-              value={formData.subtopicTag}
-              disabled={availableSubtopics.length === 0}
-              onChange={e => setFormData(p => ({ ...p, subtopicTag: e.target.value }))}
-              className="w-full border border-slate-200 bg-slate-50 rounded-xl p-2.5 text-xs font-bold focus:border-indigo-500 outline-none disabled:opacity-40 cursor-pointer shadow-3xs"
-            >
-              <option value="">-- Choose Subtopic --</option>
-              {availableSubtopics.map(st => <option key={st.id} value={st.id}>{st.name}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* METADATA HORIZONS */}
-        {(questionType === "PYQ_PRELIMS" || questionType === "PYQ_MAINS") && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-50">
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-black text-slate-700 uppercase">UPSC Official Exam Year</label>
-              <input
-                type="number"
-                value={formData.year}
-                onChange={e => setFormData(p => ({ ...p, year: e.target.value }))}
-                className="w-full border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold bg-slate-50 animate-fade-in"
-              />
-            </div>
-            {questionType === "PYQ_MAINS" ? (
-              <>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-black text-slate-700 uppercase">Max Awardable Marks</label>
-                  <input
-                    type="number"
-                    value={formData.maxMarks}
-                    onChange={e => setFormData(p => ({ ...p, maxMarks: e.target.value }))}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold bg-slate-50"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-black text-slate-700 uppercase">Word Constraint Limit</label>
-                  <input
-                    type="number"
-                    value={formData.wordCountAllowed}
-                    onChange={e => setFormData(p => ({ ...p, wordCountAllowed: e.target.value }))}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold bg-slate-50"
-                  />
-                </div>
-              </>
-            ) : (
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-black text-slate-700 uppercase">Relative Weight Difficulty</label>
-                <select
-                  value={formData.difficulty}
-                  onChange={e => setFormData(p => ({ ...p, difficulty: e.target.value }))}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold bg-slate-50 outline-none"
-                >
-                  <option value="EASY">Easy Level</option>
-                  <option value="MEDIUM">Medium Level</option>
-                  <option value="HARD">Hard Core Strategy</option>
-                </select>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* RICH TEXT CONFIGURATION EDITOR 1: QUESTION statement INPUT BOX */}
-      <div className="bg-white border border-[#EBEFF8] rounded-2xl p-5 shadow-3xs space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-50 pb-1.5">
-          <label className="text-[11px] font-black text-slate-700 uppercase tracking-wide">Question Body Content (Rich Text Workspace)</label>
-          <div className="flex items-center gap-2 bg-slate-50 border px-2 py-0.5 rounded-lg text-slate-400">
-            <button type="button" onClick={(e) => applyStyleInline(e, "bold")} className="p-0.5 hover:text-slate-800 font-bold text-xs"><Bold size={12} /></button>
-            <button type="button" onClick={(e) => applyStyleInline(e, "italic")} className="p-0.5 hover:text-slate-800"><Italic size={12} /></button>
-            <button type="button" onClick={(e) => applyStyleInline(e, "insertUnorderedList")} className="p-0.5 hover:text-slate-800"><List size={12} /></button>
-          </div>
-        </div>
-        <div
-          ref={questionEditorRef}
-          contentEditable
-          onInput={() => handleRichChange("questionText", questionEditorRef)}
-          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium text-slate-800 outline-none min-h-[120px] overflow-y-auto leading-relaxed text-left whitespace-pre-wrap shadow-3xs focus:border-indigo-400 transition-colors"
-          style={{ whiteSpace: "pre-wrap" }}
-        />
-      </div>
-
-      {/* DYNAMIC SUITE PORT 1: RICH TEXT MCQ OPTIONS INPUTS */}
-      {(questionType === "MCQ_PRELIMS" || questionType === "PYQ_PRELIMS") && (
-        <div className="bg-white border border-[#EBEFF8] rounded-2xl p-5 shadow-3xs space-y-4 animate-in fade-in duration-150">
-          <h4 className="text-xs font-black text-slate-800 tracking-wider uppercase border-b border-slate-50 pb-1">
-            Objective Choice Configurations (Line breaks and Spacing Enabled)
-          </h4>
-          
-          <div className="space-y-4">
-            {formData.options.map((_, idx) => (
-              <div key={idx} className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
-                    Option Item Statement Node {String.fromCharCode(65 + idx)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setFormData(p => ({ ...p, correctAnswerIndex: idx }))}
-                    className={`px-2.5 py-0.5 rounded-lg border text-[10px] font-black tracking-wider transition-all flex items-center gap-1 cursor-pointer ${
-                      formData.correctAnswerIndex === idx
-                        ? "bg-emerald-500 border-emerald-500 text-white shadow-3xs animate-scale-up"
-                        : "bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100"
-                    }`}
-                  >
-                    {formData.correctAnswerIndex === idx ? "✓ Correct Option Key" : "Mark as Correct"}
-                  </button>
-                </div>
-                
-                {/* Embedded option sub-editor canvas */}
-                <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-3xs focus-within:border-indigo-400 transition-all">
-                  <div className="bg-slate-50/60 border-b border-slate-150 px-3 py-1 flex items-center gap-2 text-slate-400">
-                    <button type="button" onClick={(e) => applyStyleInline(e, "bold")} className="p-0.5 hover:text-slate-800 text-[10px] font-bold"><Bold size={11} /></button>
-                    <button type="button" onClick={(e) => applyStyleInline(e, "italic")} className="p-0.5 hover:text-slate-800"><Italic size={11} /></button>
-                  </div>
-                  <div
-                    ref={optionRefs[idx]}
-                    contentEditable
-                    onInput={() => handleRichChange("options", optionRefs[idx], idx)}
-                    className="w-full bg-white px-4 py-3 text-xs font-semibold text-slate-800 outline-none min-h-[54px] whitespace-pre-wrap text-left leading-relaxed"
-                    style={{ whiteSpace: "pre-wrap" }}
-                  />
-                </div>
-              </div>
+        {/* SELECTION TYPES TYPE MODE CHIPS */}
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-black text-slate-500 uppercase tracking-wide block">Question Blueprint Type Mode</label>
+          <div className="grid grid-cols-3 gap-1 bg-slate-100 border border-slate-200 p-1 rounded-xl">
+            {[
+              { id: "MCQ_PRELIMS", label: "MCQ Prelims" },
+              { id: "PYQ_PRELIMS", label: "PYQ Prelims" },
+              { id: "PYQ_MAINS", label: "PYQ Mains" }
+            ].map(type => (
+              <button
+                key={type.id}
+                type="button"
+                onClick={() => setQuestionType(type.id)}
+                className={`py-2 text-xs font-black rounded-lg text-center transition-all cursor-pointer ${
+                  questionType === type.id
+                    ? "bg-white text-indigo-600 shadow-3xs border border-slate-200/60 font-black"
+                    : "text-slate-500 hover:bg-white/40"
+                }`}
+              >
+                {type.label}
+              </button>
             ))}
           </div>
+        </div>
 
-          {/* RICH EDITOR 3: DETAILED CONCEPTUAL EXPLANATION WINDOW */}
-          <div className="space-y-2 pt-2 border-t border-slate-100">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-black text-slate-700 uppercase">Detailed Core Explanation (Rich HTML Format Support)</label>
-              <div className="flex items-center gap-2 bg-slate-50 border px-2 py-0.5 rounded-lg text-slate-400">
-                <button type="button" onClick={(e) => applyStyleInline(e, "bold")} className="p-0.5 hover:text-slate-800"><Bold size={11} /></button>
-                <button type="button" onClick={(e) => applyStyleInline(e, "italic")} className="p-0.5 hover:text-slate-800"><Italic size={11} /></button>
-              </div>
+        {/* FIELD BLOCKS LAYER 1: CLASSIFICATIONS */}
+        <div className="bg-white border border-[#EBEFF8] rounded-2xl p-5 shadow-3xs space-y-4">
+          <h4 className="text-xs font-black text-slate-800 tracking-wider uppercase border-b border-slate-50 pb-2">
+            Syllabus Index Linkage Alignment (Card #{currentIdx + 1})
+          </h4>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase">1. General Studies Paper</span>
+              <select
+                value={activeQuestion.paperTag || ""}
+                onChange={e => updateActiveQueueItem({ paperTag: e.target.value, subjectTag: "", topicTag: "", subtopicTag: "" })}
+                className="w-full border border-slate-200 bg-slate-50 rounded-xl p-2.5 text-xs font-bold focus:border-indigo-500 outline-none cursor-pointer shadow-3xs"
+              >
+                <option value="">-- Choose Paper --</option>
+                {["GS1", "GS2", "GS3", "GS4"].map(p => <option key={p} value={p}>{p.slice(0,2) + " " + p.slice(2)}</option>)}
+              </select>
             </div>
-            <div
-              ref={explanationEditorRef}
-              contentEditable
-              onInput={() => handleRichChange("explanation", explanationEditorRef)}
-              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 outline-none min-h-[90px] whitespace-pre-wrap leading-relaxed text-left shadow-3xs focus:border-indigo-400 transition-colors"
-              style={{ whiteSpace: "pre-wrap" }}
-              placeholder="Elaborate details on contextual resolution indexes..."
-            />
+
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase">2. Mapped Subject</span>
+              <select
+                value={activeQuestion.subjectTag || ""}
+                disabled={availableSubjects.length === 0}
+                onChange={e => updateActiveQueueItem({ subjectTag: e.target.value, topicTag: "", subtopicTag: "" })}
+                className="w-full border border-slate-200 bg-slate-50 rounded-xl p-2.5 text-xs font-bold focus:border-indigo-500 outline-none disabled:opacity-40 cursor-pointer shadow-3xs"
+              >
+                <option value="">-- Choose Subject --</option>
+                {availableSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase">3. Relational Topic Node</span>
+              <select
+                value={activeQuestion.topicTag || ""}
+                disabled={availableTopics.length === 0}
+                onChange={e => updateActiveQueueItem({ topicTag: e.target.value, subtopicTag: "" })}
+                className="w-full border border-slate-200 bg-slate-50 rounded-xl p-2.5 text-xs font-bold focus:border-indigo-500 outline-none disabled:opacity-40 cursor-pointer shadow-3xs"
+              >
+                <option value="">-- Choose Topic --</option>
+                {availableTopics.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase">4. Subtopic Target</span>
+              <select
+                value={activeQuestion.subtopicTag || ""}
+                disabled={availableSubtopics.length === 0}
+                onChange={e => updateActiveQueueItem({ subtopicTag: e.target.value })}
+                className="w-full border border-slate-200 bg-slate-50 rounded-xl p-2.5 text-xs font-bold focus:border-indigo-500 outline-none disabled:opacity-40 cursor-pointer shadow-3xs"
+              >
+                <option value="">-- Choose Subtopic --</option>
+                {availableSubtopics.map(st => <option key={st.id} value={st.id}>{st.name}</option>)}
+              </select>
+            </div>
           </div>
-        </div>
-      )}
 
-      {/* DYNAMIC SUITE PORT 2: MAINS KEYWORD DESCRIPTORS */}
-      {questionType === "PYQ_MAINS" && (
-        <div className="bg-white border border-[#EBEFF8] rounded-2xl p-5 shadow-3xs space-y-3 animate-in fade-in duration-150">
-          <label className="text-[11px] font-black text-slate-700 uppercase tracking-wide block">Evaluation Model Keywords (Comma Separated)</label>
-          <input
-            type="text"
-            value={formData.keywords}
-            onChange={e => setFormData(p => ({ ...p, keywords: e.target.value }))}
-            className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 shadow-3xs outline-none focus:border-indigo-500"
-            placeholder="E.g., Fiscal Deficit, FRBM Act, Macroeconomic Stability, Crowding Out"
+          {/* METADATA EXTENSION CRITERIAS */}
+          {(questionType === "PYQ_PRELIMS" || questionType === "PYQ_MAINS") && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-50">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-black text-slate-700 uppercase">UPSC Official Exam Year</label>
+                <input
+                  type="number"
+                  value={activeQuestion.year || 2026}
+                  onChange={e => updateActiveQueueItem({ year: e.target.value })}
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold bg-slate-50"
+                />
+              </div>
+              {questionType === "PYQ_MAINS" ? (
+                <>
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black text-slate-700 uppercase">Max Awardable Marks</label>
+                    <input
+                      type="number"
+                      value={activeQuestion.maxMarks || 15}
+                      onChange={e => updateActiveQueueItem({ maxMarks: e.target.value })}
+                      className="w-full border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold bg-slate-50"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black text-slate-700 uppercase">Word Constraint Limit</label>
+                    <input
+                      type="number"
+                      value={activeQuestion.wordCountAllowed || 250}
+                      onChange={e => updateActiveQueueItem({ wordCountAllowed: e.target.value })}
+                      className="w-full border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold bg-slate-50"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-black text-slate-700 uppercase">Relative Weight Difficulty</label>
+                  <select
+                    value={activeQuestion.difficulty || "MEDIUM"}
+                    onChange={e => updateActiveQueueItem({ difficulty: e.target.value })}
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold bg-slate-50 outline-none"
+                  >
+                    <option value="EASY">Easy Level</option>
+                    <option value="MEDIUM">Medium Level</option>
+                    <option value="HARD">Hard Core Strategy</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* RICH WORKSPACE AREA 1: QUESTION SPECIFICATION TEXT */}
+        <div className="bg-white border border-[#EBEFF8] rounded-2xl p-5 shadow-3xs space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-50 pb-1.5">
+            <label className="text-[11px] font-black text-slate-700 uppercase tracking-wide">Question Body Content (Rich Canvas Panel)</label>
+            <div className="flex items-center gap-2 bg-slate-50 border px-2 py-0.5 rounded-lg text-slate-400">
+              <button type="button" onClick={(e) => applyStyleInline(e, "bold")} className="p-0.5 hover:text-slate-800 font-bold text-xs"><Bold size={12} /></button>
+              <button type="button" onClick={(e) => applyStyleInline(e, "italic")} className="p-0.5 hover:text-slate-800"><Italic size={12} /></button>
+              <button type="button" onClick={(e) => applyStyleInline(e, "insertUnorderedList")} className="p-0.5 hover:text-slate-800"><List size={12} /></button>
+            </div>
+          </div>
+          <div
+            ref={questionEditorRef}
+            contentEditable
+            onInput={() => handleRichChange("questionText", questionEditorRef)}
+            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium text-slate-800 outline-none min-h-[120px] overflow-y-auto leading-relaxed text-left whitespace-pre-wrap shadow-3xs focus:border-indigo-400 transition-colors"
+            style={{ whiteSpace: "pre-wrap" }}
           />
-          <p className="text-[10px] text-slate-400 font-medium italic">These valuation indices will verify answer framing profiles inside evaluation engines.</p>
         </div>
-      )}
 
-      {/* FOOTER ACTIONS SUBMIT DOCK */}
-      <div className="flex justify-end pt-2">
-        <button
-          type="submit"
-          className="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl shadow-md transition-all active:scale-98 flex items-center justify-center gap-1.5 tracking-wide cursor-pointer"
-        >
-          <Send size={13} strokeWidth={2.5} /> Deploy Question Context to Master Cloud
-        </button>
-      </div>
+        {/* DYNAMIC VIEW PORTS 1: RESPONSE CHOICES MATRIX (PRELIMS) */}
+        {(questionType === "MCQ_PRELIMS" || questionType === "PYQ_PRELIMS") && (
+          <div className="bg-white border border-[#EBEFF8] rounded-2xl p-5 shadow-3xs space-y-4 animate-in fade-in duration-150">
+            <h4 className="text-xs font-black text-slate-800 tracking-wider uppercase border-b border-slate-50 pb-1">
+              Objective Choice Configurations (Line breaks and Spacing Enabled)
+            </h4>
+            
+            <div className="space-y-4">
+              {["", "", "", ""].map((_, idx) => (
+                <div key={idx} className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                      Option Item Statement Node {String.fromCharCode(65 + idx)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => updateActiveQueueItem({ correctAnswerIndex: idx })}
+                      className={`px-2.5 py-0.5 rounded-lg border text-[10px] font-black tracking-wider transition-all flex items-center gap-1 cursor-pointer ${
+                        activeQuestion.correctAnswerIndex === idx
+                          ? "bg-emerald-500 border-emerald-500 text-white shadow-3xs"
+                          : "bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
+                      {activeQuestion.correctAnswerIndex === idx ? "✓ Correct Option Key" : "Mark as Correct"}
+                    </button>
+                  </div>
+                  
+                  <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-3xs focus-within:border-indigo-400 transition-all">
+                    <div className="bg-slate-50/60 border-b border-slate-150 px-3 py-1 flex items-center gap-2 text-slate-400">
+                      <button type="button" onClick={(e) => applyStyleInline(e, "bold")} className="p-0.5 hover:text-slate-800 text-[10px] font-bold"><Bold size={11} /></button>
+                      <button type="button" onClick={(e) => applyStyleInline(e, "italic")} className="p-0.5 hover:text-slate-800"><Italic size={11} /></button>
+                    </div>
+                    <div
+                      ref={optionRefs[idx]}
+                      contentEditable
+                      onInput={() => handleRichChange("options", optionRefs[idx], idx)}
+                      className="w-full bg-white px-4 py-3 text-xs font-semibold text-slate-800 outline-none min-h-[54px] whitespace-pre-wrap text-left leading-relaxed"
+                      style={{ whiteSpace: "pre-wrap" }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
 
-    </form>
+            {/* RICH WORKSPACE AREA 2: EXPLANATION WINDOW METRICS */}
+            <div className="space-y-2 pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-black text-slate-700 uppercase">Detailed Core Explanation (Rich HTML Format Support)</label>
+                <div className="flex items-center gap-2 bg-slate-50 border px-2 py-0.5 rounded-lg text-slate-400">
+                  <button type="button" onClick={(e) => applyStyleInline(e, "bold")} className="p-0.5 hover:text-slate-800"><Bold size={11} /></button>
+                  <button type="button" onClick={(e) => applyStyleInline(e, "italic")} className="p-0.5 hover:text-slate-800"><Italic size={11} /></button>
+                </div>
+              </div>
+              <div
+                ref={explanationEditorRef}
+                contentEditable
+                onInput={() => handleRichChange("explanation", explanationEditorRef)}
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 outline-none min-h-[90px] whitespace-pre-wrap leading-relaxed text-left shadow-3xs focus:border-indigo-400 transition-colors"
+                style={{ whiteSpace: "pre-wrap" }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* DYNAMIC VIEW PORTS 2: VALUE MODEL KEYWORDS (MAINS) */}
+        {questionType === "PYQ_MAINS" && (
+          <div className="bg-white border border-[#EBEFF8] rounded-2xl p-5 shadow-3xs space-y-3 animate-in fade-in duration-150">
+            <label className="text-[11px] font-black text-slate-700 uppercase tracking-wide block">Evaluation Model Keywords (Comma Separated)</label>
+            <input
+              type="text"
+              value={activeQuestion.keywords || ""}
+              onChange={e => updateActiveQueueItem({ keywords: e.target.value })}
+              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 shadow-3xs outline-none focus:border-indigo-500"
+              placeholder="E.g., Fiscal Deficit, FRBM Act, Macroeconomic Stability, Crowding Out"
+            />
+            <p className="text-[10px] text-slate-400 font-medium italic">These valuation indices will verify answer framing profiles inside evaluation engines.</p>
+          </div>
+        )}
+
+        {/* GLOBAL REGISTRY CONTROL TRIGGER ACTIONS PANEL */}
+        <div className="flex flex-col sm:flex-row justify-between items-center bg-slate-900 rounded-2xl p-4 shadow-md gap-4">
+          <div className="text-left">
+            <h5 className="text-white text-xs font-black uppercase tracking-wide">Unified Batch Submission Commit</h5>
+            <p className="text-slate-400 text-[10px] font-semibold mt-0.5">
+              Deploys all {questionQueue.length} compiled question vectors simultaneously directly to the global master cloud vault.
+            </p>
+          </div>
+          <button
+            type="submit"
+            className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-indigo-600 text-white hover:scale-102 font-black text-xs rounded-xl tracking-wider uppercase transition-all shadow-md active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <Send size={13} strokeWidth={2.5} /> Deploy {questionQueue.length} Questions to Master Cloud
+          </button>
+        </div>
+
+      </form>
+    </div>
   );
 }
 

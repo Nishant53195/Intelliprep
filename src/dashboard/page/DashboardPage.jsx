@@ -46,7 +46,7 @@ function DashboardPage() {
     { id: "syllabus_progress", label: "Syllabus Progress", icon: "📖", disabled: false },
     { id: "revision_hub", label: "Revision Hub", icon: "🔄", disabled: false },
     { id: "prelims_test", label: "Test your Prelims", icon: "📝", disabled: false },
-    { id: "mains_test", label: "Test your Mains", icon: "✍️", disabled: true },
+    { id: "mains_test", label: "Test your Mains", icon: "✍️", disabled: false },
     { id: "weak_topics", label: "Weak Topics", icon: "⚠️", disabled: true },
     { id: "current_affairs", label: "Current Affairs", icon: "📰", disabled: false },
     { id: "knowledge_graph", label: "Knowledge Graph", icon: "🌐", disabled: false },
