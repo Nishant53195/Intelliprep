@@ -39,12 +39,20 @@ export const syncEngine = {
         
         let cloudDocRef;
         
-        // CRITICAL ARCHITECTURE SHIFT: Route Current Affairs out of user folders into central workspace
+        // =========================================================================
+        // FIXED STEP 2 ARCHITECTURAL ROUTING LOGIC
+        // =========================================================================
         if (item.tableName === "current_affairs") {
+          // Route Current Affairs out of user folders into central master collection
           cloudDocRef = doc(firestoreDb, "current_affairs_master", String(item.recordId));
+        } else if (item.tableName === "pyqs") {
+          // Route Master Questions (MCQs/PYQs) out of user folders into central master question pool
+          cloudDocRef = doc(firestoreDb, "master_questions_bank", String(item.recordId));
         } else {
+          // Keep individual user task telemetry, custom schedulers, and metrics isolated
           cloudDocRef = doc(firestoreDb, "users", userId, item.tableName, String(item.recordId));
         }
+        // =========================================================================
 
         if (item.operation === "DELETE" || !actualLocalData) {
           currentBatch.delete(cloudDocRef);
