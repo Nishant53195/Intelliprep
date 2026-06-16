@@ -3,9 +3,10 @@ import { db } from "../dexie";
 export async function saveOnboarding(
   data
 ) {
-  return db.onboarding_config.put(
-    data
-  );
+  if (!data.userId) {
+    console.warn("[onboardingRepository] Saving configuration without a userId primary key!");
+  }
+  return db.onboarding_config.put(data);
 }
 
 export async function getOnboarding(

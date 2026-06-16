@@ -23,10 +23,15 @@ export default async function initializePreparationSystem({
     - Recovery engine
   */
 
+
+    const finalPayload = {
+    ...payload,
+    userId: userId
+  };
+
   await saveOnboarding(
-    userId,
-    payload
+    finalPayload
   );
 
-  return payload;
+  return finalPayload;
 }

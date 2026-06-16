@@ -90,18 +90,32 @@ function StudyHub() {
 
   useEffect(() => {
     loadTodaySchedule();
-    const triggerLiveLayoutReload = () => { loadTodaySchedule(); };
+    const triggerLiveLayoutReload = () => {
+      loadTodaySchedule();
+    };
     window.addEventListener("syllabus-update", triggerLiveLayoutReload);
     return () => window.removeEventListener("syllabus-update", triggerLiveLayoutReload);
   }, [user]);
 
   const handleSubtaskComplete = async (task, subtask) => {
+    const targetSubtopicId = subtask.subtopicId || subtask.id || null;
+    
     try {
+      // Optimistic instant UI update
+      if (targetSubtopicId) {
+        setCompletedSubtopicIds(prev => {
+          const next = new Set(prev);
+          next.add(targetSubtopicId);
+          return next;
+        });
+      }
+
       await completeTaskService(
         task.id, 
-        subtask.subtopicId || subtask.id || null, 
+        targetSubtopicId, 
         subtask.topicId || null
       );
+      
       await loadTodaySchedule();
     } catch (err) {
       console.error("Could not complete task node:", err);
@@ -118,6 +132,12 @@ function StudyHub() {
       await generateDailySchedule(user.uid, minutesToAppend, extensionSlotChoice);
       alert(`Successfully appended your session extension to your ${extensionSlotChoice} workflow slots!`);
       
+      // CRITICAL FIX: Explicitly refresh the completion tracking index map alongside the schedule re-generation
+      const progresses = await db.subtopic_progress
+        .filter(p => p.status?.toUpperCase() === "COMPLETED")
+        .toArray();
+      setCompletedSubtopicIds(new Set(progresses.map(p => p.subtopicId)));
+
       await loadTodaySchedule();
     } catch (err) {
       console.error("Extension assembly execution error:", err);
@@ -170,6 +190,17 @@ function StudyHub() {
 
   const currentGsSubtask = gsTask?.subtasks?.[Math.min(gsIndex, gsTask.subtasks.length - 1)] || null;
   const currentOptionalSubtask = optionalTask?.subtasks?.[Math.min(optionalIndex, optionalTask.subtasks.length - 1)] || null;
+
+  // Derived check rules out data race conditions
+  const isGsSubtaskDone = currentGsSubtask && (
+    completedSubtopicIds.has(currentGsSubtask.subtopicId || currentGsSubtask.id) ||
+    gsTask?.status?.toUpperCase() === "COMPLETED"
+  );
+
+  const isOptionalSubtaskDone = currentOptionalSubtask && (
+    completedSubtopicIds.has(currentOptionalSubtask.subtopicId || currentOptionalSubtask.id) ||
+    optionalTask?.status?.toUpperCase() === "COMPLETED"
+  );
 
   const isGsSlotDone = !gsTask || gsTask.status?.toUpperCase() === "COMPLETED";
   const isOptionalSlotDone = !optionalTask || optionalTask.status?.toUpperCase() === "COMPLETED";
@@ -241,7 +272,7 @@ function StudyHub() {
             </div>
 
             {currentGsSubtask ? (
-              <div className={`mt-5 space-y-1.5 relative pr-16 transition-opacity ${isGsSlotDone || completedSubtopicIds.has(currentGsSubtask.subtopicId || currentGsSubtask.id) ? "opacity-40" : ""}`}>
+              <div className={`mt-5 space-y-1.5 relative pr-16 transition-opacity ${isGsSubtaskDone ? "opacity-40" : ""}`}>
                 <p className="text-[11px] font-extrabold text-[#1E75FF] tracking-wider uppercase">
                   {currentGsSubtask.subjectName}
                 </p>
@@ -277,17 +308,15 @@ function StudyHub() {
             </span>
             
             <button
-              disabled={isGsSlotDone || !currentGsSubtask || completedSubtopicIds.has(currentGsSubtask.subtopicId || currentGsSubtask.id)}
+              disabled={isGsSlotDone || !currentGsSubtask || isGsSubtaskDone}
               onClick={() => handleSubtaskComplete(gsTask, currentGsSubtask)}
               className={`px-4 py-2 text-xs font-bold rounded-xl transition-all shadow-3xs flex items-center gap-1 ${
-                completedSubtopicIds.has(currentGsSubtask?.subtopicId || currentGsSubtask?.id) || isGsSlotDone
+                isGsSubtaskDone
                   ? "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed shadow-none"
                   : "bg-[#EFF4FF] hover:bg-[#E2ECFF] text-[#1E75FF]"
               }`}
             >
-              {completedSubtopicIds.has(currentGsSubtask?.subtopicId || currentGsSubtask?.id) || isGsSlotDone 
-                ? "✓ Completed" 
-                : "📋 Mark Complete"}
+              {isGsSubtaskDone ? "✓ Completed" : "📋 Mark Complete"}
             </button>
           </div>
         </div>
@@ -317,7 +346,7 @@ function StudyHub() {
             </div>
 
             {currentOptionalSubtask ? (
-              <div className={`mt-5 space-y-1.5 relative pr-16 transition-opacity ${isOptionalSlotDone || completedSubtopicIds.has(currentOptionalSubtask.subtopicId || currentOptionalSubtask.id) ? "opacity-40" : ""}`}>
+              <div className={`mt-5 space-y-1.5 relative pr-16 transition-opacity ${isOptionalSubtaskDone ? "opacity-40" : ""}`}>
                 <p className="text-[11px] font-extrabold text-[#5851ED] tracking-wider uppercase">
                   {currentOptionalSubtask.subjectName}
                 </p>
@@ -351,17 +380,15 @@ function StudyHub() {
             </span>
             
             <button
-              disabled={isOptionalSlotDone || !currentOptionalSubtask || completedSubtopicIds.has(currentOptionalSubtask.subtopicId || currentOptionalSubtask.id)}
+              disabled={isOptionalSlotDone || !currentOptionalSubtask || isOptionalSubtaskDone}
               onClick={() => handleSubtaskComplete(optionalTask, currentOptionalSubtask)}
               className={`px-4 py-2 text-xs font-bold rounded-xl transition-all shadow-3xs flex items-center gap-1 ${
-                completedSubtopicIds.has(currentOptionalSubtask?.subtopicId || currentOptionalSubtask?.id) || isOptionalSlotDone
+                isOptionalSubtaskDone
                   ? "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed shadow-none"
                   : "bg-[#F4F3FF] hover:bg-[#EBE9FF] text-[#5851ED]"
               }`}
             >
-              {completedSubtopicIds.has(currentOptionalSubtask?.subtopicId || currentOptionalSubtask?.id) || isOptionalSlotDone 
-                ? "✓ Completed" 
-                : "📋 Mark Complete"}
+              {isOptionalSubtaskDone ? "✓ Completed" : "📋 Mark Complete"}
             </button>
           </div>
         </div>
@@ -378,7 +405,6 @@ function StudyHub() {
               📙
             </div>
             
-            {/* DYNAMIC METRIC VERIFICATION: Replaced hardcoded text layout safely evaluating active lengths */}
             {revisionTask && revisionTask.subtasks?.length > 0 && revisionTask.status?.toUpperCase() !== "COMPLETED" ? (
               <>
                 <h4 className="text-base font-black text-[#1E2538] tracking-tight">
@@ -412,7 +438,6 @@ function StudyHub() {
             <h4 className="text-base font-black text-slate-600 tracking-tight mt-0.5">MCQ / PYQ / Mains Logs</h4>
             <p className="text-xs font-medium text-slate-400 mt-0.5">Splitting evenly across compilation targets</p>
             
-            {/* Document silhouette vector element */}
             <svg className="absolute right-0 top-[-5px] h-14 w-14 text-slate-400/20 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
               <polyline points="14 2 14 8 20 8" />
