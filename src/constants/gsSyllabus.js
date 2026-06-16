@@ -5784,6 +5784,13 @@ source :"Sonali Bansal: INA and RIN"
     paper: "GS1",
     name: "Economic Geography",
     topics: [
+      {
+    id: "crops",
+    name: "Crops",
+    subtopics: [
+      { id: "types-of-crops", name: "Types of crops", estimatedMinutes: 240, difficulty: 2 },
+    ]
+  },
   {
     id: "iron",
     name: "Iron",
