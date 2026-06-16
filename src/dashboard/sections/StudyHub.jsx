@@ -62,6 +62,37 @@ function StudyHub() {
     }
   }
 
+  // FIXED SYNC SCANNER: Gated precision mapping to isolate active parts from finished chunks
+  async function scanAndSyncCompletedKeys() {
+    const progressRecords = await db.subtopic_progress.toArray();
+    const resolvedSet = new Set();
+
+    for (const record of progressRecords) {
+      if (record.subtopicId?.startsWith("SUBJECT_MASTER_ROLLUP_")) continue;
+
+      if (record.status?.toUpperCase() === "COMPLETED") {
+        // If 100% complete, safe-keep all chunk variation configurations grayed out
+        resolvedSet.add(record.subtopicId);
+        for (let i = 1; i <= 10; i++) {
+          resolvedSet.add(`${record.subtopicId}_chunk_${i}`);
+        }
+      } else if (record.status?.toLowerCase() === "chunked" && record.completedChunksCount) {
+        // If only chunked, ONLY gray out up to the parts you have actually completed!
+        const maxFinishedChunkCount = parseInt(record.completedChunksCount) || 1;
+        
+        // Part 1 uses the raw core base ID
+        resolvedSet.add(record.subtopicId); 
+        
+        // Parts 2, 3, etc. use explicit chunk suffixes
+        for (let i = 2; i <= maxFinishedChunkCount; i++) {
+          resolvedSet.add(`${record.subtopicId}_chunk_${i}`);
+        }
+      }
+    }
+    setCompletedSubtopicIds(resolvedSet);
+    return resolvedSet;
+  }
+
   async function loadTodaySchedule() {
     if (!user?.uid) return;
     try {
@@ -69,10 +100,7 @@ function StudyHub() {
       await verifyLocalSyllabusSeeding();
       const activeTasks = await generateDailySchedule(user.uid);
       
-      const progresses = await db.subtopic_progress
-        .filter(p => p.status?.toUpperCase() === "COMPLETED")
-        .toArray();
-      setCompletedSubtopicIds(new Set(progresses.map(p => p.subtopicId)));
+      await scanAndSyncCompletedKeys();
       
       setTasks(activeTasks);
       setTodayTasks({
@@ -101,7 +129,6 @@ function StudyHub() {
     const targetSubtopicId = subtask.subtopicId || subtask.id || null;
     
     try {
-      // Optimistic instant UI update
       if (targetSubtopicId) {
         setCompletedSubtopicIds(prev => {
           const next = new Set(prev);
@@ -129,16 +156,39 @@ function StudyHub() {
       setLoading(true);
       const minutesToAppend = sessionHours * 60;
       
-      await generateDailySchedule(user.uid, minutesToAppend, extensionSlotChoice);
+      const updatedTasks = await generateDailySchedule(user.uid, minutesToAppend, extensionSlotChoice);
       alert(`Successfully appended your session extension to your ${extensionSlotChoice} workflow slots!`);
       
-      // CRITICAL FIX: Explicitly refresh the completion tracking index map alongside the schedule re-generation
-      const progresses = await db.subtopic_progress
-        .filter(p => p.status?.toUpperCase() === "COMPLETED")
-        .toArray();
-      setCompletedSubtopicIds(new Set(progresses.map(p => p.subtopicId)));
+      const completedSets = await scanAndSyncCompletedKeys();
 
-      await loadTodaySchedule();
+      setTasks(updatedTasks);
+      setTodayTasks({
+        gsTasks: updatedTasks.filter((t) => t.type === "gs"),
+        optionalTasks: updatedTasks.filter((t) => t.type === "optional"),
+        revisionTasks: updatedTasks.filter((t) => t.type === "revision"),
+        practiceTasks: updatedTasks.filter((t) => t.type === "practice"),
+      });
+
+      const newGsTask = updatedTasks.find(t => t.type === "gs");
+      if (newGsTask && newGsTask.subtasks) {
+        const firstPendingGsIndex = newGsTask.subtasks.findIndex(
+          st => !completedSets.has(st.subtopicId)
+        );
+        if (firstPendingGsIndex !== -1) {
+          setGsIndex(firstPendingGsIndex); 
+        }
+      }
+
+      const newOptionalTask = updatedTasks.find(t => t.type === "optional");
+      if (newOptionalTask && newOptionalTask.subtasks) {
+        const firstPendingOptIndex = newOptionalTask.subtasks.findIndex(
+          st => !completedSets.has(st.subtopicId)
+        );
+        if (firstPendingOptIndex !== -1) {
+          setOptionalIndex(firstPendingOptIndex); 
+        }
+      }
+
     } catch (err) {
       console.error("Extension assembly execution error:", err);
     } finally {
@@ -191,14 +241,14 @@ function StudyHub() {
   const currentGsSubtask = gsTask?.subtasks?.[Math.min(gsIndex, gsTask.subtasks.length - 1)] || null;
   const currentOptionalSubtask = optionalTask?.subtasks?.[Math.min(optionalIndex, optionalTask.subtasks.length - 1)] || null;
 
-  // Derived check rules out data race conditions
+  // Real-time calculated status checks inside matching sets
   const isGsSubtaskDone = currentGsSubtask && (
-    completedSubtopicIds.has(currentGsSubtask.subtopicId || currentGsSubtask.id) ||
+    completedSubtopicIds.has(currentGsSubtask.subtopicId) ||
     gsTask?.status?.toUpperCase() === "COMPLETED"
   );
 
   const isOptionalSubtaskDone = currentOptionalSubtask && (
-    completedSubtopicIds.has(currentOptionalSubtask.subtopicId || currentOptionalSubtask.id) ||
+    completedSubtopicIds.has(currentOptionalSubtask.subtopicId) ||
     optionalTask?.status?.toUpperCase() === "COMPLETED"
   );
 
@@ -406,14 +456,44 @@ function StudyHub() {
             </div>
             
             {revisionTask && revisionTask.subtasks?.length > 0 && revisionTask.status?.toUpperCase() !== "COMPLETED" ? (
-              <>
-                <h4 className="text-base font-black text-[#1E2538] tracking-tight">
-                  {revisionTask.subtasks.length} revision tasks for today
-                </h4>
-                <p className="text-xs font-medium text-slate-400 mt-0.5">
-                  Review active structural spaced repetition items.
-                </p>
-              </>
+              <div className="space-y-3 max-h-[180px] overflow-y-auto px-2">
+                {revisionTask.subtasks.map((sub, idx) => {
+                  const isMacroCycle = sub.subtopicId?.startsWith("SUBJECT_MASTER_ROLLUP_");
+                  
+                  return (
+                    <div key={sub.revisionId || idx} className="text-left p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
+                      <div className="flex-1 min-w-0 pr-2">
+                        {isMacroCycle ? (
+                          <>
+                            <h5 className="text-sm font-black text-[#1E2538] tracking-tight truncate">
+                              {sub.topicName}
+                            </h5>
+                            <p className="text-[11px] font-mono font-bold text-[#E26200] mt-0.5 uppercase tracking-wide">
+                              {sub.subtopicName}
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <h5 className="text-sm font-black text-[#1E2538] tracking-tight truncate">
+                              {sub.subtopicName}
+                            </h5>
+                            <p className="text-[10px] font-medium text-slate-400 mt-0.5">
+                              Spaced Repetition Review
+                            </p>
+                          </>
+                        )}
+                      </div>
+                      
+                      <button
+                        onClick={() => handleSubtaskComplete(revisionTask, sub)}
+                        className="px-3 py-1.5 text-[10px] font-extrabold bg-white border border-[#FFE1CC] text-[#E26200] hover:bg-[#FFF6F0] rounded-lg transition-colors shrink-0"
+                      >
+                        ✓ Complete
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
               <>
                 <h4 className="text-base font-black text-[#1E2538] tracking-tight">Block Stream Finished</h4>

@@ -1,3 +1,4 @@
+// src/scheduler/engine/generateDailySchedule.js
 import { db } from "../../database/dexie";
 import dayjs from "dayjs";
 
@@ -7,7 +8,6 @@ import dayjs from "dayjs";
  */
 export function getActiveShiftDateString() {
   const currentHour = new Date().getHours();
-  // If clock is between Midnight and 4:59 AM, roll back the processing anchor by 1 full day
   if (currentHour < 5) {
     return dayjs().subtract(1, "day").format("YYYY-MM-DD");
   }
@@ -16,8 +16,6 @@ export function getActiveShiftDateString() {
 
 /**
  * Advanced Core Single-Day Multi-Task Allocation Engine
- * Bound strictly to a 5:00 AM Day-Roll Window for late-night safety.
- * Missed revisions automatically roll into historical backlogs parsed by the UI hub.
  */
 export async function generateDailySchedule(userId, extensionBudget = 0, extensionTargetSlot = null) {
   return await db.transaction("rw", [db.onboarding_config, db.schedule_tasks, db.subjects, db.topics, db.subtopics, db.subtopic_progress, db.revisions], async () => {
@@ -178,7 +176,7 @@ export async function generateDailySchedule(userId, extensionBudget = 0, extensi
         for (const rev of dueRevisionsToday) {
           let titleName = "Macro Subject Review";
           if (rev.subtopicId) {
-            const stMeta = await db.subtopics.get(rev.subtopicId);
+            const stMeta = await db.subtopics.get(rev.subtopicId.replace(/_chunk_\d+$/, ""));
             titleName = stMeta ? stMeta.name : "Subtopic Review";
           }
 
@@ -214,11 +212,18 @@ export async function generateDailySchedule(userId, extensionBudget = 0, extensi
   });
 }
 
-// Keep harvestSubtopics exact...
-async function harvestSubtopics(userId, slotType, sequences, timeBudget, excludedIds = []) {
+/**
+ * Advanced Dynamic Subtopic Harvester Engine - Chunk & Extension Aware
+ */
+async function harvestSubtopics(userId, slotType, sequences, timeBudget, activeSubtasksMetadata = []) {
   if (!sequences || sequences.length === 0) return [];
   let remainingMinutes = timeBudget;
   const output = [];
+
+  // Extract simple subtopic string keys that are already fully resolved/completed on layout
+  const excludedIds = activeSubtasksMetadata
+    .filter(s => s.isFinalChunk !== false)
+    .map(s => s.subtopicId.replace(/_chunk_\d+$/, ""));
 
   for (const seq of sequences) {
     let sub = null;
@@ -246,6 +251,12 @@ async function harvestSubtopics(userId, slotType, sequences, timeBudget, exclude
         if (st.status?.toUpperCase() === "COMPLETED" || progress?.status?.toUpperCase() === "COMPLETED") continue;
         if (excludedIds.includes(st.id)) continue;
 
+        // FIXED CHUNK CHECK: Find if this raw item is already on screen as a Part 1 chunk
+        const matchingActiveSubtask = activeSubtasksMetadata.find(s => s.subtopicId.replace(/_chunk_\d+$/, "") === st.id);
+        if (matchingActiveSubtask && matchingActiveSubtask.isFinalChunk !== false) {
+          continue; 
+        }
+
         let needed = parseInt(st.estimatedMinutes) || 45;
         let currentPart = 1;
         let isRecovery = false;
@@ -259,6 +270,12 @@ async function harvestSubtopics(userId, slotType, sequences, timeBudget, exclude
           }
         }
 
+        // Adjust parameters recursively if it's an extension pass generating Part 2
+        if (matchingActiveSubtask && matchingActiveSubtask.isFinalChunk === false) {
+          needed = parseInt(matchingActiveSubtask.nextRemainingMinutes) || needed;
+          currentPart = (parseInt(matchingActiveSubtask.completedChunksCount) || 1) + 1;
+        }
+
         let formattedName = st.name;
         if (isRecovery) {
           formattedName = `[Recovery] ${st.name}`;
@@ -266,9 +283,12 @@ async function harvestSubtopics(userId, slotType, sequences, timeBudget, exclude
           formattedName = `${st.name} - Part ${currentPart}`;
         }
 
+        // UNIQUE KEY GENERATOR: Inject specific unique subtask key parameters for multi-part tasks
+        const computedSubtaskKey = currentPart > 1 ? `${st.id}_chunk_${currentPart}` : st.id;
+
         if (needed <= remainingMinutes) {
           output.push({ 
-            subtopicId: st.id, topicId: topic.id, subjectId: sub?.id || "", subjectName: sub?.name || "Target Hub", 
+            subtopicId: computedSubtaskKey, topicId: topic.id, subjectId: sub?.id || "", subjectName: sub?.name || "Target Hub", 
             topicName: topic.name, subtopicName: formattedName, duration: needed, isFinalChunk: true, completedChunksCount: currentPart
           });
           remainingMinutes -= needed;
@@ -279,7 +299,7 @@ async function harvestSubtopics(userId, slotType, sequences, timeBudget, exclude
           }
 
           output.push({ 
-            subtopicId: st.id, topicId: topic.id, subjectId: sub?.id || "", subjectName: sub?.name || "Target Hub", 
+            subtopicId: computedSubtaskKey, topicId: topic.id, subjectId: sub?.id || "", subjectName: sub?.name || "Target Hub", 
             topicName: topic.name, subtopicName: formattedName, duration: remainingMinutes, isFinalChunk: false, 
             nextRemainingMinutes: needed - remainingMinutes, completedChunksCount: currentPart 
           });
@@ -294,37 +314,55 @@ async function harvestSubtopics(userId, slotType, sequences, timeBudget, exclude
   return output;
 }
 
+/**
+ * Appends Extension Tasks safely chunked without duplicating or losing grey-out properties
+ */
 async function appendExtensionTasks(userId, todayDate, extraMinutes, slotType, config) {
   const activeTasks = await db.schedule_tasks.where("[userId+scheduledDate]").equals([userId, todayDate]).toArray();
-
+  
   if (slotType === "GS" || slotType === "BOTH") {
     let minutesBudget = slotType === "BOTH" ? Math.round(extraMinutes / 2) : extraMinutes;
     let taskRow = activeTasks.find(t => t.type === "gs");
     if (taskRow) {
-      const activeIds = (taskRow.subtasks || []).map(s => s.subtopicId);
-      const appends = await harvestSubtopics(userId, "gs", config.gsSequence, minutesBudget, activeIds);
+      const appends = await harvestSubtopics(userId, "gs", config.gsSequence, minutesBudget, taskRow.subtasks || []);
+      
       if (appends.length > 0) {
+        // FIXED FILTER PROTECTION: Don't flip main task status row back to pending if all additions are just subsequent chunk extensions!
+        const containsNewUniqueSubtopics = appends.some(app => 
+          !taskRow.subtasks.some(st => st.subtopicId.replace(/_chunk_\d+$/, "") === app.subtopicId.replace(/_chunk_\d+$/, ""))
+        );
+        const finalStatus = containsNewUniqueSubtopics ? "pending" : taskRow.status;
+
         await db.schedule_tasks.update(taskRow.id, { 
-          subtasks: [...taskRow.subtasks, ...appends], 
-          estimatedMinutes: taskRow.estimatedMinutes + minutesBudget,
-          status: "pending" 
+           subtasks: [...taskRow.subtasks, ...appends],
+           estimatedMinutes: taskRow.estimatedMinutes + minutesBudget,
+           status: finalStatus
         });
+      } else {
+        await db.schedule_tasks.update(taskRow.id, { status: "COMPLETED" });
       }
     }
   }
-
+  
   if (slotType === "OPTIONAL" || slotType === "BOTH") {
     let minutesBudget = slotType === "BOTH" ? Math.round(extraMinutes / 2) : extraMinutes;
     let taskRow = activeTasks.find(t => t.type === "optional");
     if (taskRow) {
-      const activeIds = (taskRow.subtasks || []).map(s => s.subtopicId);
-      const appends = await harvestSubtopics(userId, "optional", config.optionalSequence, minutesBudget, activeIds);
+      const appends = await harvestSubtopics(userId, "optional", config.optionalSequence, minutesBudget, taskRow.subtasks || []);
+      
       if (appends.length > 0) {
+        const containsNewUniqueSubtopics = appends.some(app => 
+          !taskRow.subtasks.some(st => st.subtopicId.replace(/_chunk_\d+$/, "") === app.subtopicId.replace(/_chunk_\d+$/, ""))
+        );
+        const finalStatus = containsNewUniqueSubtopics ? "pending" : taskRow.status;
+
         await db.schedule_tasks.update(taskRow.id, { 
-          subtasks: [...taskRow.subtasks, ...appends], 
-          estimatedMinutes: taskRow.estimatedMinutes + minutesBudget,
-          status: "pending" 
+           subtasks: [...taskRow.subtasks, ...appends],
+           estimatedMinutes: taskRow.estimatedMinutes + minutesBudget,
+           status: finalStatus
         });
+      } else {
+        await db.schedule_tasks.update(taskRow.id, { status: "COMPLETED" });
       }
     }
   }

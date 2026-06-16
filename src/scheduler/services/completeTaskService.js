@@ -1,67 +1,47 @@
+// src/scheduler/services/completeTaskService.js
 import { db } from "../../database/dexie";
 import dayjs from "dayjs";
 import { queueSpacedRepetition, checkAndQueueBigCycles } from "../../revision/engine/revisionEngine";
-// IMPORT YOUR UNIFIED 5:00 AM DATE-SHIFT GENERATOR RULE
 import { getActiveShiftDateString } from "../engine/generateDailySchedule";
+
+// IMPORT BOTH DYNAMIC SUBJECT LEVEL MACRO CALCULATORS
+import { scheduleSubjectC1MacroCycle, scheduleSubjectC2MacroCycle } from "./macroCycleEngine";
 
 /**
  * Advanced Chunk-Aware Completion Hook Service
- * FIXED: Implements strict sequential review cascades (D3 -> D10 -> D30) 
- * instead of generating them all simultaneously.
- * UPDATED: Receives recallQuality dynamically from the React interactive UI slider selection.
- * CRITICAL FIX: Bound to getActiveShiftDateString to protect against late-night boundary bugs.
  */
 export async function completeTaskService(taskId, targetSubtopicId, targetTopicId, recallQuality = "Partial Recall (Medium)") {
   const taskRow = await db.schedule_tasks.get(taskId);
   if (!taskRow) return;
 
   const userId = taskRow.userId;
-  
-  // FIXED: Synchronized date matching variable to use the 5:00 AM shift rule tracker
   const todayStr = getActiveShiftDateString();
 
   // --- 1. EVALUATE REVISION CARD TIER PROGRESSION WITH SLIDER METRICS ---
   if (taskRow.type === "revision" || taskRow.slotType === "REVISION") {
     
-    // Find the specific active pending revision record for this target subtopic
+    // Clean the lookup key to handle chunk extensions cleanly
+    const lookupKey = targetSubtopicId || taskRow.subtopicId || "";
     const activeRevision = await db.revisions
       .where("subtopicId")
-      .equals(targetSubtopicId || taskRow.subtopicId || "")
+      .equals(lookupKey)
       .filter(r => r.status === "PENDING")
       .first();
 
     if (activeRevision) {
-      // Mark current tracking tier finished and preserve the explicit recall score
+      // Mark current tracking tier finished
       await db.revisions.update(activeRevision.id, {
         status: "COMPLETED",
         recallQuality: recallQuality,
         updatedAt: Date.now()
       });
 
-      let nextStage = null;
-      let daysToAdd = 0;
-
-      // STAGED PROGRESSION PARSING SYSTEM: D3 -> D10 -> D30
+      // SUBTOPIC LEVEL CONTINUOUS REVISION TRACKING (D3 -> D10 -> D30)
       if (activeRevision.revisionStage === "D3") {
-        nextStage = "D10";
-        daysToAdd = 7; // Day 10 review step (7 days added to Day 3 base)
-      } else if (activeRevision.revisionStage === "D10") {
-        nextStage = "D30";
-        daysToAdd = 20; // Day 30 review step (20 days added to Day 10 base)
-      }
-
-      // If Failed Recall is selected, hold back progress and repeat the stage tomorrow
-      if (recallQuality.includes("Failed Recall") || recallQuality.includes("(Fail)")) {
-        nextStage = activeRevision.revisionStage;
-        daysToAdd = 1; // Reschedules for exactly tomorrow
-      }
-
-      if (nextStage && daysToAdd > 0) {
-        // Guard check to protect against historical duplicate writes
         const duplicateCheck = await db.revisions
           .where("subtopicId")
           .equals(activeRevision.subtopicId)
-          .filter(r => r.revisionStage === nextStage && r.status === "PENDING")
+          .filter(r => r.revisionStage === "D10" && r.status === "PENDING")
           .first();
 
         if (!duplicateCheck) {
@@ -71,16 +51,55 @@ export async function completeTaskService(taskId, targetSubtopicId, targetTopicI
             subjectId: activeRevision.subjectId || "",
             topicId: activeRevision.topicId || "",
             subtopicId: activeRevision.subtopicId,
-            revisionStage: nextStage,
+            revisionStage: "D10",
             status: "PENDING",
-            dueDate: dayjs(todayStr).add(daysToAdd, "day").format("YYYY-MM-DD"),
+            dueDate: dayjs(todayStr).add(7, "day").format("YYYY-MM-DD"), // Day 10
             createdAt: Date.now()
           });
         }
+      } 
+      else if (activeRevision.revisionStage === "D10") {
+        const duplicateCheck = await db.revisions
+          .where("subtopicId")
+          .equals(activeRevision.subtopicId)
+          .filter(r => r.revisionStage === "D30" && r.status === "PENDING")
+          .first();
+
+        if (!duplicateCheck) {
+          await db.revisions.put({
+            id: `rev_${Date.now()}_${activeRevision.subtopicId}`,
+            userId: activeRevision.userId,
+            subjectId: activeRevision.subjectId || "",
+            topicId: activeRevision.topicId || "",
+            subtopicId: activeRevision.subtopicId,
+            revisionStage: "D30",
+            status: "PENDING",
+            dueDate: dayjs(todayStr).add(20, "day").format("YYYY-MM-DD"), // Day 30
+            createdAt: Date.now()
+          });
+        }
+      } 
+      // WHOLE SUBJECT LEVEL MACRO CYCLES TIMELINE (C1 COMPLETION TRIGGERS C2 ONLY)
+      else if (activeRevision.revisionStage === "C1") {
+        await scheduleSubjectC2MacroCycle(userId, activeRevision.subjectId, todayStr);
+      }
+
+      // Handle Fail Cases
+      if (recallQuality.includes("Failed Recall") || recallQuality.includes("(Fail)")) {
+        await db.revisions.put({
+          id: `rev_${Date.now()}_${activeRevision.subtopicId}_fail`,
+          userId: activeRevision.userId,
+          subjectId: activeRevision.subjectId || "",
+          topicId: activeRevision.topicId || "",
+          subtopicId: activeRevision.subtopicId,
+          revisionStage: activeRevision.revisionStage,
+          status: "PENDING",
+          dueDate: dayjs(todayStr).add(1, "day").format("YYYY-MM-DD"),
+          createdAt: Date.now()
+        });
       }
     }
     
-    // Complete the task slot row for UI layout sync update
     await db.schedule_tasks.update(taskId, {
       status: "COMPLETED",
       completedAt: Date.now()
@@ -90,7 +109,9 @@ export async function completeTaskService(taskId, targetSubtopicId, targetTopicI
     return;
   }
 
-  // --- 2. STANDARD WORKSPACE CLOSURES (GS / OPTIONAL) ---
+  // --- 2. STANDARD WORKSPACE CLOSURES (GS / OPTIONAL STUDY TASKS) ---
+  const cleanSubtopicId = (targetSubtopicId || "").replace(/_chunk_\d+$/, "");
+  
   if (targetSubtopicId) {
     const matchedSubtask = taskRow.subtasks?.find(st => st.subtopicId === targetSubtopicId);
     if (matchedSubtask) {
@@ -106,8 +127,62 @@ export async function completeTaskService(taskId, targetSubtopicId, targetTopicI
     }
   }
 
-  // --- 3. EVALUATION RULE: PROGRESS SLOT CARD SYNC CLOSURE ---
+  // --- 3. DYNAMIC TARGET CHECK: AUTOMATIC WHOLE-SUBJECT COMPLETION INTERCEPTOR FOR C1 ONLY ---
   const refetchedTaskRow = await db.schedule_tasks.get(taskId);
+  if (refetchedTaskRow) {
+    // RESOLVE TRUE SUBJECT ID: Look up the parent topic row directly to prevent ID field contamination bugs
+    const sampleTopicId = targetTopicId || refetchedTaskRow.topicId || refetchedTaskRow.subtasks?.[0]?.topicId;
+    let parentSubjectId = refetchedTaskRow.subjectId;
+
+    if (sampleTopicId) {
+      const topicRecord = await db.topics.get(sampleTopicId);
+      if (topicRecord && topicRecord.subjectId) {
+        parentSubjectId = topicRecord.subjectId; // Guaranteed to be the true high-level Subject ID (e.g., 'sub_ancient_history')
+      }
+    }
+
+    if (parentSubjectId) {
+      // 1. Fetch total static syllabus scope subtopics for this true whole subject
+      const allSubjectSubtopics = await db.subtopics
+        .where("subjectId")
+        .equals(parentSubjectId)
+        .toArray();
+
+      // Fallback check: try querying by topic rollup if data keys were seeded with topic overrides
+      let subtopicIds = allSubjectSubtopics.map(s => s.id);
+      if (subtopicIds.length === 0 && sampleTopicId) {
+        const siblingSubtopics = await db.subtopics.where("topicId").equals(sampleTopicId).toArray();
+        subtopicIds = siblingSubtopics.map(s => s.id);
+      }
+
+      if (subtopicIds.length > 0) {
+        // 2. Query actual live progression metrics
+        const progressRecords = await db.subtopic_progress
+          .where("subtopicId")
+          .anyOf(subtopicIds)
+          .filter(p => p.status?.toUpperCase() === "COMPLETED")
+          .toArray();
+
+        // 3. Trigger condition: If the number of finished database progress rows matches the entire subject scope
+        if (progressRecords.length >= subtopicIds.length) {
+          
+          // GATED RE-TRIGGER CHECK: Ensure C1 is only scheduled if it has NEVER been initialized before
+          const subjectTokenKey = `SUBJECT_MASTER_ROLLUP_${parentSubjectId}`;
+          const existingMacroCheck = await db.revisions
+            .where("subtopicId")
+            .equals(subjectTokenKey)
+            .first();
+
+          if (!existingMacroCheck) {
+            console.log(`[Subject Rollup] ${parentSubjectId} has reached 100% completion! Dispatching Master Subject C1...`);
+            await scheduleSubjectC1MacroCycle(userId, parentSubjectId, todayStr);
+          }
+        }
+      }
+    }
+  }
+
+  // --- 4. PROGRESS SLOT CARD SYNC CLOSURE ---
   if (refetchedTaskRow && refetchedTaskRow.subtasks && refetchedTaskRow.subtasks.length > 0) {
     const subtaskIds = refetchedTaskRow.subtasks.map(st => st.subtopicId);
     
@@ -143,58 +218,55 @@ export async function completeTaskService(taskId, targetSubtopicId, targetTopicI
 async function commitSubtopicStatusToDatabase(subtask, userId, todayStr) {
   const { subtopicId, topicId, isFinalChunk, nextRemainingMinutes, completedChunksCount, subjectId } = subtask;
   
-  const progressRecord = await db.subtopic_progress.where("subtopicId").equals(subtopicId).first();
-  const recordId = progressRecord ? progressRecord.id : `prog_node_${Date.now()}_${subtopicId}`;
+  // Clean the id reference pointer to handle multi-part chunks seamlessly
+  const cleanId = (subtopicId || "").replace(/_chunk_\d+$/, "");
+  
+  const progressRecord = await db.subtopic_progress.where("subtopicId").equals(cleanId).first();
+  const recordId = progressRecord ? progressRecord.id : `prog_node_${Date.now()}_${cleanId}`;
 
   const verifiedIsFinal = isFinalChunk !== undefined ? isFinalChunk : true;
 
   if (verifiedIsFinal) {
     await db.subtopic_progress.put({
       id: recordId,
-      subtopicId,
+      subtopicId: cleanId,
       status: "COMPLETED",
       completedAt: Date.now(),
       remainingMinutes: 0,
       completedChunksCount: Number(completedChunksCount || 1)
     });
 
-    await db.subtopics.update(subtopicId, { 
+    await db.subtopics.update(cleanId, { 
       status: "COMPLETED" 
     });
 
-    // --- SEED D3 REVISION MILESTONE FIRST AND ONLY ---
+    // SEED D3 REVISION MILESTONE EXCLUSIVELY FOR SUBTOPICS
     const existingD3 = await db.revisions
       .where("subtopicId")
-      .equals(subtopicId)
+      .equals(cleanId)
       .filter(r => r.revisionStage === "D3")
       .first();
 
     if (!existingD3) {
       await db.revisions.put({
-        id: `rev_${Date.now()}_${subtopicId}`,
+        id: `rev_${Date.now()}_${cleanId}`,
         userId,
         subjectId: subjectId || "",
         topicId: topicId || "",
-        subtopicId: subtopicId,
-        revisionStage: "D3", // Enforced initial start assignment boundary 
+        subtopicId: cleanId,
+        revisionStage: "D3", 
         status: "PENDING",
         dueDate: dayjs(todayStr).add(3, "day").format("YYYY-MM-DD"),
         createdAt: Date.now()
       });
     }
 
-    // Upward Rollup Hook
     if (topicId) {
       const siblings = await db.subtopics.where("topicId").equals(topicId).toArray();
-      const isTopicFinished = siblings.every(s => s.status?.toUpperCase() === "COMPLETED" || s.id === subtopicId);
+      const isTopicFinished = siblings.every(s => s.status?.toUpperCase() === "COMPLETED" || s.id === cleanId);
 
       if (isTopicFinished) {
         await db.topics.update(topicId, { status: "COMPLETED" });
-
-        const parentSubjectId = subjectId || siblings[0]?.subjectId;
-        if (parentSubjectId) {
-          await checkAndQueueBigCycles(userId, parentSubjectId);
-        }
       }
     }
   } else {
@@ -204,14 +276,14 @@ async function commitSubtopicStatusToDatabase(subtask, userId, todayStr) {
 
     await db.subtopic_progress.put({
       id: recordId,
-      subtopicId,
+      subtopicId: cleanId,
       status: "chunked",
       remainingMinutes: Number(nextRemainingMinutes),
       completedChunksCount: currentCompletedChunks,
       updatedAt: Date.now()
     });
     
-    await db.subtopics.update(subtopicId, { 
+    await db.subtopics.update(cleanId, { 
       status: "IN_PROGRESS" 
     });
   }
