@@ -3,361 +3,684 @@ import { useState, useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../database/dexie";
 import useLoginStore from "../../login/store/loginStore";
-import { mainsQueryService } from "../../mains/services/mainsQueryService";
-import { BookOpen, Layers, RefreshCw, HelpCircle, Award, FileText, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import gsSyllabus from "../../constants/gsSyllabus";
+import { firestoreDb } from "../../firebase/firestore/config";
+import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { BookOpen, Layers, RefreshCw, FileText, ChevronLeft, ChevronRight, HelpCircle, PenTool, ClipboardSignature, Save, X, Activity, ShieldAlert, AlertTriangle, Sparkles } from "lucide-react";
 
 function TestYourMains() {
   const user = useLoginStore((state) => state.user);
   
-  // CONFIGURATION INTERFACE STATES
+  // CONFIGURATION INTERFACE SELECTION STATES
+  const [selectedPaper, setSelectedPaper] = useState("");
   const [selectedSubjectId, setSelectedSubjectId] = useState("");
   const [selectedTopicId, setSelectedTopicId] = useState("");
   const [fetchingQuestions, setFetchingQuestions] = useState(false);
   
-  // RUNTIME DATA POOL STATES
-  const [questionsList, setQuestionsList] = useState([]);
-  const [activeTopicName, setActiveTopicName] = useState("");
-  const [hasLoadedQuestions, setHasLoadedQuestions] = useState(false);
+  // CASCADING BLUEPRINT LIST HOLDERS
+  const [availableSubjects, setAvailableSubjects] = useState([]);
+  const [availableTopics, setAvailableTopics] = useState([]);
 
-  // USER MARKS LOGGING DRAWER STATES
-  const [expandedMarksDrawer, setExpandedMarksDrawer] = useState({}); // { [questionId]: boolean }
-  const [userMarksInput, setUserMarksInput] = useState({}); // { [questionId]: scoreNum }
-  const [loggedQuestionsMap, setLoggedQuestionsMap] = useState(new Set()); // Tracking submitted tokens cleanly
+  // RUNTIME WORKSPACE POOL HOLDERS
+  const [questionPool, setQuestionPool] = useState([]);
+  const [hasLoadedPool, setHasLoadedPool] = useState(false);
+  const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
+  const [activeTopicName, setActiveTopicName] = useState("");
+
+  // LOG MARKS MODAL VIEWPORT CONTAINER STATES
+  const [isLogMarksOpen, setIsLogMarksOpen] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [savingLog, setSavingLog] = useState(false);
+
+  // CURRENT ACTIVE QUESTION EVALUATION SNAPSHOT
+  const [activePastAttemptLog, setActivePastAttemptLog] = useState(null);
+
+  // EVALUATION ARRAYS STRUCTURE TRACKERS
+  const [selfScores, setSelfScores] = useState({
+    demand: 0, content: 0, analysis: 0, multi: 0, valueAdd: 0, presentation: 0
+  });
+  const [mentorScores, setMentorScores] = useState({
+    demand: 0, content: 0, analysis: 0, multi: 0, valueAdd: 0, presentation: 0
+  });
 
   /* --------------------------------------------------------------------------
-   * DEXIE LIVE QUERY CASCADES: Subject -> Topic (Gated for GS Cores Only)
+   * CASCADING SYLLABUS MUTATION EFFECT LIFECYCLES
    * -------------------------------------------------------------------------- */
-  const subjectsList = useLiveQuery(async () => {
-    const allSubjects = await db.subjects.toArray();
-    // STRICT FILTER: Meticulously block Optional subjects from showing up in the selection deck
-    return allSubjects.filter(subj => subj.type?.toUpperCase() !== "OPTIONAL" && subj.paper?.toUpperCase() !== "OPTIONAL");
-  }, []);
-
-  const topicsList = useLiveQuery(async () => {
-    if (!selectedSubjectId) return [];
-    return await db.topics.where("subjectId").equals(selectedSubjectId).toArray();
-  }, [selectedSubjectId]);
-
-  // Reset trailing parameters on configuration updates
   useEffect(() => {
+    if (!selectedPaper) {
+      setAvailableSubjects([]);
+      setSelectedSubjectId("");
+      setSelectedTopicId("");
+      return;
+    }
+    const filteredSubjects = gsSyllabus.filter(s => s.paper === selectedPaper);
+    setAvailableSubjects(filteredSubjects);
+    setSelectedSubjectId("");
     setSelectedTopicId("");
-    setQuestionsList([]);
-    setHasLoadedQuestions(false);
-    setLoggedQuestionsMap(new Set());
-  }, [selectedSubjectId]);
+    setHasLoadedPool(false);
+    setQuestionPool([]);
+  }, [selectedPaper]);
 
   useEffect(() => {
-    setQuestionsList([]);
-    setHasLoadedQuestions(false);
-    setLoggedQuestionsMap(new Set());
+    if (!selectedSubjectId) {
+      setAvailableTopics([]);
+      setSelectedTopicId("");
+      return;
+    }
+    const targetSubject = availableSubjects.find(s => s.id === selectedSubjectId);
+    setAvailableTopics(targetSubject?.topics || []);
+    setSelectedTopicId("");
+    setHasLoadedPool(false);
+    setQuestionPool([]);
+  }, [selectedSubjectId, availableSubjects]);
+
+  useEffect(() => {
+    setHasLoadedPool(false);
+    setQuestionPool([]);
   }, [selectedTopicId]);
 
+  const activeQuestionItem = questionPool[currentQuestionIdx] || null;
+
   /* --------------------------------------------------------------------------
-   * BATCH RECOVERY HARVESTER TRIGGER
+   * DYNAMIC PARAMETER CALCULATOR VALUE WEIGHT COEFFICIENTS
    * -------------------------------------------------------------------------- */
-  const handleLoadMainsSandbox = async () => {
-    if (!selectedSubjectId || !selectedTopicId) {
-      alert("Please specify both Subject and Topic parameters before initializing sandbox fields.");
+  const getMaximumParameterWeights = (maxMarksValue) => {
+    const totalMarksNum = Number(maxMarksValue) || 15;
+    if (totalMarksNum <= 10) {
+      return { demand: 2, content: 3, analysis: 2, multi: 1, valueAdd: 1, presentation: 1 };
+    } else if (totalMarksNum <= 12.5) {
+      return { demand: 2.5, content: 3.5, analysis: 2.5, multi: 1.5, valueAdd: 1.25, presentation: 1.25 };
+    } else {
+      return { demand: 3, content: 4, analysis: 3, multi: 2, valueAdd: 1.5, presentation: 1.5 };
+    }
+  };
+
+  const activeMaxBounds = activeQuestionItem ? getMaximumParameterWeights(activeQuestionItem.maxMarks) : { demand: 3, content: 4, analysis: 3, multi: 2, valueAdd: 1.5, presentation: 1.5 };
+
+  /* --------------------------------------------------------------------------
+   * ATTEMPT VERIFICATION RESOLUTION (Local Dexie -> Firestore Fallback Handshake)
+   * -------------------------------------------------------------------------- */
+  useEffect(() => {
+    if (!activeQuestionItem) {
+      setActivePastAttemptLog(null);
+      return;
+    }
+
+    const verifyAndHydratePastMainsLog = async () => {
+      const activeUserId = user?.uid || "local_user";
+      try {
+        // 1. Scan Local Dexie Table Registry
+        let localLogs = await db.mains_log_marks
+          .where("questionId")
+          .equals(activeQuestionItem.id)
+          .toArray();
+
+        // 2. Fallback to Cloud Firestore if local array cache is empty
+        if (localLogs.length === 0) {
+          console.log("[Mains Analytics] Log missing locally. Syncing from cloud ledger...");
+          const cloudLogsRef = collection(firestoreDb, "mains_log_marks");
+          const cloudLogQuery = query(
+            cloudLogsRef,
+            where("userId", "==", activeUserId),
+            where("questionId", "==", activeQuestionItem.id)
+          );
+          const cloudSnapshot = await getDocs(cloudLogQuery);
+          
+          const tempCloudPayloads = [];
+          cloudSnapshot.forEach(doc => {
+            tempCloudPayloads.push({ id: doc.id, ...doc.data() });
+          });
+
+          if (tempCloudPayloads.length > 0) {
+            await db.mains_log_marks.bulkPut(tempCloudPayloads);
+            localLogs = await db.mains_log_marks
+              .where("questionId")
+              .equals(activeQuestionItem.id)
+              .toArray();
+          }
+        }
+
+        if (localLogs.length > 0) {
+          localLogs.sort((a, b) => b.timestamp - a.timestamp);
+          setActivePastAttemptLog(localLogs[0]);
+        } else {
+          setActivePastAttemptLog(null);
+        }
+      } catch (err) {
+        console.warn("Failed syncing previous log history markers:", err);
+      }
+    };
+
+    verifyAndHydratePastMainsLog();
+  }, [activeQuestionItem, isLogMarksOpen, currentQuestionIdx]);
+
+  /* --------------------------------------------------------------------------
+   * METRICS ENGINE HANDSHAKE (Local DB -> Firestore Fallback)
+   * -------------------------------------------------------------------------- */
+  const handleLoadMainsQuestions = async () => {
+    if (!selectedPaper || !selectedSubjectId || !selectedTopicId) {
+      alert("Please ensure Paper, Subject, and Topic boundaries are set completely before initializing.");
       return;
     }
 
     setFetchingQuestions(true);
-    setHasLoadedQuestions(false);
-    setLoggedQuestionsMap(new Set());
+    setHasLoadedPool(false);
+    
     try {
-      const descriptiveBatch = await mainsQueryService.fetchMainsQuestions({
-        subjectId: selectedSubjectId,
-        topicId: selectedTopicId
-      });
+      let cachedMainsBatch = await db.pyqs
+        .where("topicId")
+        .equals(selectedTopicId)
+        .filter(q => q.type === "PYQ_MAINS")
+        .toArray();
 
-      const selectedTopicMetadata = await db.topics.get(selectedTopicId);
+      if (cachedMainsBatch.length === 0) {
+        const qBankRef = collection(firestoreDb, "master_questions_bank");
+        const cloudMainsQuery = query(
+          qBankRef,
+          where("type", "==", "PYQ_MAINS"),
+          where("topicId", "==", selectedTopicId)
+        );
+        const cloudSnapshot = await getDocs(cloudMainsQuery);
+        
+        const processedCloudPayloads = [];
+        cloudSnapshot.forEach(doc => {
+          const item = doc.data();
+          processedCloudPayloads.push({
+            id: doc.id,
+            type: "PYQ_MAINS",
+            paper: item.paper || selectedPaper,
+            subjectId: item.subjectId || selectedSubjectId,
+            topicId: item.topicId || selectedTopicId,
+            subtopicId: item.subtopicId || "",
+            questionText: item.questionText || "",
+            year: item.year ? Number(item.year) : null,
+            maxMarks: item.maxMarks ? Number(item.maxMarks) : 15,
+            wordCountAllowed: item.wordCountAllowed || item.wordCount || 250,
+            keywords: Array.isArray(item.keywords) ? item.keywords : (item.keywords ? item.keywords.split(",").map(k => k.trim()) : []),
+            createdBy: item.createdBy || "cloud_sync",
+            createdAt: item.createdAt || new Date()
+          });
+        });
+
+        if (processedCloudPayloads.length > 0) {
+          await db.pyqs.bulkPut(processedCloudPayloads);
+          cachedMainsBatch = await db.pyqs
+            .where("topicId")
+            .equals(selectedTopicId)
+            .filter(q => q.type === "PYQ_MAINS")
+            .toArray();
+        }
+      }
+
+      const matchedTopicObj = availableTopics.find(t => t.id === selectedTopicId);
+      setActiveTopicName(matchedTopicObj ? matchedTopicObj.name : "Syllabus Module");
       
-      setQuestionsList(descriptiveBatch);
-      setActiveTopicName(selectedTopicMetadata ? selectedTopicMetadata.name : "Selected Module");
-      setHasLoadedQuestions(true);
+      setQuestionPool(cachedMainsBatch);
+      setCurrentQuestionIdx(0);
+      setHasLoadedPool(true);
     } catch (err) {
+      console.error("Mains ledger initialization failed:", err);
       alert(`Could not compile target parameters: ${err.message}`);
     } finally {
       setFetchingQuestions(false);
     }
   };
 
-  /* --------------------------------------------------------------------------
-   * INDIVIDUAL QUESTION MARKS COMMIT CONTROL LIFE CYCLE
-   * -------------------------------------------------------------------------- */
-  const toggleInlineMarksDrawer = (qId) => {
-    setExpandedMarksDrawer(prev => ({ ...prev, [qId]: !prev[qId] }));
+  const handleOpenLogMarksDrawer = () => {
+    setFeedbackText("");
+    setSelfScores({ demand: 0, content: 0, analysis: 0, multi: 0, valueAdd: 0, presentation: 0 });
+    setMentorScores({ demand: 0, content: 0, analysis: 0, multi: 0, valueAdd: 0, presentation: 0 });
+    setIsLogMarksOpen(true);
   };
 
-  const handleCommitQuestionScore = async (qItem) => {
-    const rawScore = userMarksInput[qItem.id];
-    if (rawScore === undefined || rawScore === "") {
-      alert("Please enter a numeric score value before logging metrics.");
-      return;
-    }
+  /* --------------------------------------------------------------------------
+   * PERSISTENT STORAGE SUBMIT COMMIT (Save Matrix to Dexie + Cloud Sync Queue)
+   * -------------------------------------------------------------------------- */
+  const handleSaveEvaluationLogData = async () => {
+    if (!activeQuestionItem) return;
+    setSavingLog(true);
+    
+    const timestamp = Date.now();
+    const activeUserId = user?.uid || "local_user";
+    const logId = `mains_log_${activeQuestionItem.id}_${timestamp}`;
 
-    const numericalScore = Number(rawScore);
-    const maxMarksAllowed = Number(qItem.maxMarks || 15);
-
-    if (isNaN(numericalScore) || numericalScore < 0 || numericalScore > maxMarksAllowed) {
-      alert(`Validation Error: Score must be a valid number between 0 and the maximum awardable limit of ${maxMarksAllowed} marks.`);
-      return;
-    }
+    const metricsPayload = {
+      id: logId,
+      userId: activeUserId,
+      questionId: activeQuestionItem.id,
+      timestamp: timestamp,
+      maxQuestionMarks: Number(activeQuestionItem.maxMarks) || 15,
+      feedback: feedbackText.trim(),
+      selfEvaluation: selfScores,
+      mentorEvaluation: mentorScores
+    };
 
     try {
-      // 1. Log structural telemetry metrics down to local dexie repositories
-      if (db.mains_tests) {
-        await db.mains_tests.put({
-          id: `mains_log_${Date.now()}_${qItem.id}`,
-          userId: user?.uid || "anon_user",
-          subjectId: selectedSubjectId,
-          topicId: selectedTopicId,
-          questionId: qItem.id,
-          maxMarks: maxMarksAllowed,
-          marksObtained: numericalScore,
-          createdAt: new Date()
-        });
+      await db.mains_log_marks.put(metricsPayload);
+
+      try {
+        const { syncEngine } = await import("../../database/services/syncEngine");
+        await syncEngine.pushLocalChangesToCloud(activeUserId);
+      } catch (cloudErr) {
+        console.warn("[Mains Sync] Cloud synchronization deferred out-of-band:", cloudErr);
       }
 
-      // 2. Snap selection map token to flag the item row grey safely
-      setLoggedQuestionsMap(prev => {
-        const updated = new Set(prev);
-        updated.add(qItem.id);
-        return updated;
-      });
-
-      // 3. Close drawer accordion smoothly
-      setExpandedMarksDrawer(prev => ({ ...prev, [qItem.id]: false }));
-      alert("Performance score log committed successfully to the local telemetry registry database!");
+      alert("Success! Evaluation marks logged and committed safely into telemetry history.");
+      setIsLogMarksOpen(false);
     } catch (err) {
-      console.error("[Mains Evaluation Engine] DB Write Bottlenecked:", err);
-      alert("System Error committing evaluation payload rows.");
+      alert(`Could not save evaluation markers: ${err.message}`);
+    } finally {
+      setSavingLog(false);
     }
   };
 
+  /* --------------------------------------------------------------------------
+   * COMPONENT METRICS ANALYSIS CALCULATORS ENGINE
+   * -------------------------------------------------------------------------- */
+  const computeDiagnosticMetricsAnalytics = (attemptLog) => {
+    if (!attemptLog) return null;
+    
+    const bounds = getMaximumParameterWeights(attemptLog.maxQuestionMarks);
+    const self = attemptLog.selfEvaluation || {};
+    const mentor = attemptLog.mentorEvaluation || {};
+
+    const totalSelfSum = Object.values(self).reduce((a, b) => a + b, 0);
+    const totalMentorSum = Object.values(mentor).reduce((a, b) => a + b, 0);
+    const fullMarks = attemptLog.maxQuestionMarks;
+
+    const definitions = [
+      { id: "demand", label: "Demand Fulfilled", score: mentor.demand, max: bounds.demand },
+      { id: "content", label: "Content Quality", score: mentor.content, max: bounds.content },
+      { id: "analysis", label: "Analysis & Depth", score: mentor.analysis, max: bounds.analysis },
+      { id: "multi", label: "Multidimensionality", score: mentor.multi, max: bounds.multi },
+      { id: "valueAdd", label: "Value Addition", score: mentor.valueAdd, max: bounds.valueAdd },
+      { id: "presentation", label: "Presentation/Structure", score: mentor.presentation, max: bounds.presentation },
+    ];
+
+    // Detect structural weakness brackets dynamically
+    const weaknessesList = [];
+    definitions.forEach(d => {
+      const ratio = d.score / d.max;
+      if (ratio < 0.25) {
+        weaknessesList.push({ name: d.label, tag: "EXTREMELY_WEAK", text: "Extremely Weak" });
+      } else if (ratio < 0.50) {
+        weaknessesList.push({ name: d.label, tag: "WEAK", text: "Weakness" });
+      }
+    });
+
+    // Assess overall bracket ratio classifiers
+    let qualityRatingStr = "Average Quality";
+    const overallRatio = totalMentorSum / fullMarks;
+
+    if (overallRatio < (1 / 3)) {
+      qualityRatingStr = "Poor Quality Answer";
+    } else if (overallRatio >= (1 / 3) && overallRatio < 0.50) {
+      qualityRatingStr = "Average Quality";
+    } else if (overallRatio >= 0.50 && overallRatio < 0.65) {
+      qualityRatingStr = "Good Quality";
+    } else if (overallRatio >= 0.65 && overallRatio < 0.80) {
+      qualityRatingStr = "Very Good";
+    } else if (overallRatio >= 0.80) {
+      qualityRatingStr = "Exceptional Quality";
+    }
+
+    return {
+      selfTotal: totalSelfSum,
+      mentorTotal: totalMentorSum,
+      weaknesses: weaknessesList,
+      qualityRating: qualityRatingStr
+    };
+  };
+
+  const analyticsProfile = activePastAttemptLog ? computeDiagnosticMetricsAnalytics(activePastAttemptLog) : null;
+
   return (
-    <div className="space-y-5 text-left font-sans antialiased text-slate-800">
+    <div className="space-y-6 text-left font-sans antialiased text-zinc-800">
       
-      {/* HEADER SEGMENT */}
+      {/* SECTION VIEW DETAILS HEADER */}
       <div className="border-b border-slate-200 pb-4">
-        <h2 className="text-xl font-black text-[#111625] tracking-tight">Test Your Mains</h2>
-        <p className="text-xs font-semibold text-slate-400 mt-0.5">Evaluate multi-dimensional framing limits against descriptive evaluation indexes.</p>
+        <h2 className="text-xl font-black text-zinc-900 tracking-tight">Mains Evaluator Blueprint Workspace</h2>
+        <p className="text-xs font-semibold text-slate-400 mt-0.5">Draft structural frames, organize high-yield keywords, and review previous UPSC parameters.</p>
       </div>
 
-      {/* CONFIGURATION SELECTORS DRAWER GRID */}
+      {/* SYLLABUS ALIGNMENT SELECTOR BLOCK GRID */}
       <div className="bg-white border border-[#EBEFF8] rounded-[2rem] p-6 shadow-[0_8px_24px_rgba(235,240,248,0.35)] space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 border border-slate-200/60 p-4 rounded-2xl shadow-3xs">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 border border-slate-200/60 p-4 rounded-2xl shadow-3xs">
+          
+          {/* Select Paper Input Console */}
           <div className="space-y-1.5">
-            <label className="text-[11px] font-black text-slate-500 uppercase tracking-wide flex items-center gap-1">
-              <BookOpen size={12} className="text-indigo-500" /> 1. Select Subject Allocation
+            <label className="text-[13px] font-black text-black uppercase tracking-wide block">
+              Select Paper
+            </label>
+            <select
+              value={selectedPaper}
+              onChange={(e) => setSelectedPaper(e.target.value)}
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-zinc-700 outline-none focus:border-indigo-500 shadow-3xs cursor-pointer"
+            >
+              <option value="">-- Choose GS Paper Blueprint --</option>
+              <option value="GS1">GS Paper I (Culture, History, Geography, Society)</option>
+              <option value="GS2">GS Paper II (Polity, Governance, Justice, IR)</option>
+              <option value="GS3">GS Paper III (Economy, Tech, Bio, Security, Disaster)</option>
+              <option value="GS4">GS Paper IV (Ethics, Integrity, Aptitude)</option>
+            </select>
+          </div>
+
+          {/* Select Subject Input Console */}
+          <div className="space-y-1.5">
+            <label className="text-[13px] font-black text-black uppercase tracking-wide block">
+              Select Subject
             </label>
             <select
               value={selectedSubjectId}
+              disabled={!selectedPaper || availableSubjects.length === 0}
               onChange={(e) => setSelectedSubjectId(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500 shadow-3xs cursor-pointer"
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-zinc-700 outline-none focus:border-indigo-500 shadow-3xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              <option value="">-- Click to query GS core subjects --</option>
-              {subjectsList?.map((subj) => (
-                <option key={subj.id} value={subj.id}>
-                  {subj.name} ({subj.paper?.toUpperCase()})
-                </option>
+              <option value="">-- Choose Core Subject Node --</option>
+              {availableSubjects.map((sub) => (
+                <option key={sub.id} value={sub.id}>{sub.name}</option>
               ))}
             </select>
           </div>
 
+          {/* Select Topic Input Console */}
           <div className="space-y-1.5">
-            <label className="text-[11px] font-black text-slate-500 uppercase tracking-wide flex items-center gap-1">
-              <Layers size={12} className="text-indigo-500" /> 2. Select Syllabus Topic Chapter
+            <label className="text-[13px] font-black text-black uppercase tracking-wide block">
+              Select Topic
             </label>
             <select
               value={selectedTopicId}
-              disabled={!selectedSubjectId || topicsList?.length === 0}
+              disabled={!selectedSubjectId || availableTopics.length === 0}
               onChange={(e) => setSelectedTopicId(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500 shadow-3xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-zinc-700 outline-none focus:border-indigo-500 shadow-3xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              <option value="">-- Choose topic classification --</option>
-              {topicsList?.map((top) => (
+              <option value="">-- Choose Syllabus Chapter Alignment --</option>
+              {availableTopics.map((top) => (
                 <option key={top.id} value={top.id}>{top.name}</option>
               ))}
             </select>
           </div>
 
-          <div className="md:col-span-2 pt-2 flex justify-end">
+          {/* Load Action Execution Trigger Sub-Bar */}
+          <div className="md:col-span-3 pt-2 flex justify-end">
             <button
               type="button"
-              disabled={fetchingQuestions || !selectedSubjectId || !selectedTopicId}
-              onClick={handleLoadMainsSandbox}
-              className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 text-white hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-400 font-black text-xs rounded-xl tracking-wide uppercase transition-all shadow-3xs cursor-pointer flex items-center justify-center gap-1.5"
+              disabled={fetchingQuestions || !selectedPaper || !selectedSubjectId || !selectedTopicId}
+              onClick={handleLoadMainsQuestions}
+              className="w-full sm:w-auto px-6 py-2.5 bg-zinc-900 text-white hover:bg-zinc-800 disabled:bg-slate-100 disabled:text-zinc-400 font-black text-xs rounded-xl tracking-wide uppercase transition-all shadow-3xs cursor-pointer flex items-center justify-center gap-1.5"
             >
               {fetchingQuestions ? (
                 <span className="flex items-center gap-2">
-                  <RefreshCw size={13} className="animate-spin text-cyan-400" /> Harvesting Descriptive Inventory...
+                  <RefreshCw size={13} className="animate-spin text-cyan-400" /> Syncing Cloud Repository...
                 </span>
               ) : (
-                "Load Sandbox Questions"
+                "Load Questions"
               )}
             </button>
           </div>
         </div>
 
-        {/* DYNAMIC RESULTS PORT DISPLAY BLOCK LAYER */}
-        {hasLoadedQuestions && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            
-            {/* CAPACITY SUB-BAR OVERLAY STRIP */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3.5 gap-4">
-              <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-purple-50 border border-purple-100 text-purple-700 rounded-md tracking-wider">
-                  Descriptive Logs Loaded (Mains)
-                </span>
-                <h4 className="text-base font-black text-slate-900 tracking-tight leading-snug pt-1">
-                  {activeTopicName}
-                </h4>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 px-4 py-1.5 rounded-xl font-mono text-xs font-black text-slate-700 shadow-2xs shrink-0">
-                {questionsList.length} Questions Found
-              </div>
-            </div>
+        {/* WORKSPACE CAROUSEL RUNTIME MOUNT VIEWPORT CONTAINER */}
+        {hasLoadedPool && (
+          <div className="space-y-6 animate-in zoom-in-95 duration-200">
+            {questionPool.length > 0 ? (
+              <div className="space-y-6">
+                
+                {/* META RUN CONTEXT LABEL INFO STRIP */}
+                <div className="border border-indigo-100 bg-gradient-to-r from-indigo-50/20 to-transparent rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-3xs">
+                  <div>
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-md tracking-wider">
+                      Mains Core Queue Loaded
+                    </span>
+                    <h4 className="text-base font-black text-zinc-900 tracking-tight mt-1">{activeTopicName}</h4>
+                  </div>
+                  <div className="text-xs font-mono font-black text-indigo-600 bg-white border px-3 py-1.5 rounded-xl shadow-3xs shrink-0">
+                    Question {currentQuestionIdx + 1} of {questionPool.length}
+                  </div>
+                </div>
 
-            {/* DYNAMIC LIST INTERFACE STREAM GRID MAP */}
-            {questionsList.length > 0 ? (
-              <div className="space-y-4 pt-1">
-                {questionsList.map((q, idx) => {
-                  const isDrawerOpen = !!expandedMarksDrawer[q.id];
-                  const isItemLoggedAlready = loggedQuestionsMap.has(q.id);
-                  
-                  return (
-                    <div 
-                      key={q.id} 
-                      className={`border rounded-2xl p-5 md:p-6 transition-all shadow-3xs bg-white ${
-                        isItemLoggedAlready ? "border-slate-100 opacity-50 bg-slate-50/40 shadow-none" : "border-[#EBEFF8] hover:border-slate-300"
-                      }`}
-                    >
-                      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-50 pb-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[10px] font-mono font-black text-slate-500 bg-slate-100 border px-2 py-0.5 rounded-md">
-                            Question #{String(idx + 1).padStart(2, '0')}
+                {/* VISIBLE ACTIVE MAIN QUESTION PRESENTATION VIEWER */}
+                {activeQuestionItem && (
+                  <div className="border border-slate-100 bg-slate-50/40 rounded-3xl p-6 md:p-8 space-y-6 shadow-3xs relative">
+                    
+                    {/* TOP SUMMARY PARAMETERS CAPTION BAR */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-200 pb-3">
+                      <div className="flex flex-wrap gap-2 text-xs font-mono font-bold text-zinc-600">
+                        {activeQuestionItem.year && (
+                          <span className="bg-zinc-900 text-white px-2.5 py-0.5 rounded-md font-black">
+                            UPSC {activeQuestionItem.year}
                           </span>
-                          {q.year && (
-                            <span className="text-[10px] font-mono font-black text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md">
-                              UPSC {q.year}
-                            </span>
-                          )}
-                          <span className="text-[10px] font-mono font-black text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-md">
-                            Weight: {q.maxMarks || 15}M
+                        )}
+                        {activeQuestionItem.maxMarks && (
+                          <span className="bg-white border px-2 py-0.5 rounded-md shadow-3xs">
+                            Marks: {activeQuestionItem.maxMarks}M
                           </span>
-                          {q.wordCountAllowed && (
-                            <span className="text-[10px] font-mono font-black text-slate-500 bg-slate-50 border px-1.5 py-0.5 rounded-md">
-                              Limit: {q.wordCountAllowed} Words
-                            </span>
-                          )}
-                        </div>
-
-                        {isItemLoggedAlready && (
-                          <span className="text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-md flex items-center gap-1">
-                            ✓ Marks Logged
+                        )}
+                        {activeQuestionItem.wordCountAllowed && (
+                          <span className="bg-white border px-2 py-0.5 rounded-md shadow-3xs">
+                            Constraint: {activeQuestionItem.wordCountAllowed} Words
                           </span>
                         )}
                       </div>
 
-                      {/* QUESTION RICH STATEMENT */}
-                      <div className="text-left pt-4 pb-2">
-                        <div 
-                          className="text-[15px] font-bold text-slate-800 leading-relaxed font-sans tracking-tight"
-                          dangerouslySetInnerHTML={{ __html: q.questionText }}
-                        />
-                      </div>
-
-                      {/* KEYWORDS BADGES CLUSTER NODE */}
-                      {q.keywords && q.keywords.length > 0 && (
-                        <div className="flex flex-wrap gap-1 pt-2 pb-1">
-                          {q.keywords.map((kw, kIdx) => (
-                            <span key={kIdx} className="text-[9px] font-bold tracking-wide uppercase px-2 py-0.5 bg-slate-100 text-slate-500 rounded border border-transparent">
-                              {kw}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* ACTION BUTTON TRIGGER BAR */}
-                      {!isItemLoggedAlready && (
-                        <div className="mt-4 pt-3 border-t border-slate-50 flex justify-end">
-                          <button
-                            type="button"
-                            onClick={() => toggleInlineMarksDrawer(q.id)}
-                            className="px-4 py-1.5 border border-slate-200 hover:border-slate-300 text-slate-700 font-black text-xs rounded-xl transition-all shadow-3xs flex items-center gap-1 cursor-pointer"
-                          >
-                            <Award size={13} className="text-indigo-500" /> 
-                            Submit Marks 
-                            {isDrawerOpen ? <ChevronUp size={12} className="ml-0.5" /> : <ChevronDown size={12} className="ml-0.5" />}
-                          </button>
-                        </div>
-                      )}
-
-                      {/* COLLAPSIBLE ACCORDION LOG DRAWER */}
-                      {isDrawerOpen && (
-                        <div className="mt-4 pt-4 border-t border-dashed border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50/50 p-4 rounded-xl animate-in slide-in-from-top-2 duration-150 text-left">
-                          <div className="sm:col-span-2 space-y-1">
-                            <h5 className="text-xs font-black text-slate-800 tracking-tight flex items-center gap-1">
-                              <FileText size={12} className="text-slate-400" /> Self-Evaluation Entry Panel
-                            </h5>
-                            <p className="text-[11px] text-slate-400 font-medium leading-normal">
-                              Grade your handwritten script structural format objectively based on standard answer model guidelines.
-                            </p>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <div className="relative flex-1">
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.5"
-                                max={q.maxMarks || 15}
-                                placeholder="Score"
-                                value={userMarksInput[q.id] || ""}
-                                onChange={(e) => setUserMarksInput(prev => ({ ...prev, [q.id]: e.target.value }))}
-                                className="w-full bg-white border border-slate-200 rounded-xl pl-4 pr-10 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500 shadow-3xs"
-                              />
-                              <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] font-black text-slate-400">
-                                /{q.maxMarks || 15}M
-                              </span>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => handleCommitQuestionScore(q)}
-                              className="px-3 py-2 bg-indigo-600 text-white hover:bg-indigo-700 font-black text-xs rounded-xl shadow-md cursor-pointer transition-all"
-                            >
-                              Log
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
+                      {/* Log Marks Action Execution Trigger Node (Dynamically Renamed Button) */}
+                      <button
+                        type="button"
+                        onClick={handleOpenLogMarksDrawer}
+                        className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-3xs uppercase tracking-wide transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <PenTool size={12} /> {activePastAttemptLog ? "Reattempt" : "Attempt"}
+                      </button>
                     </div>
-                  );
-                })}
+
+                    {/* CORE QUESTION TEXT FIELD */}
+                    <div className="text-left pt-2">
+                      <div 
+                        className="text-lg font-bold text-zinc-900 leading-relaxed font-sans tracking-tight"
+                        dangerouslySetInnerHTML={{ __html: activeQuestionItem.questionText }}
+                      />
+                    </div>
+
+                    {/* ====================================================================
+                     * LIVE HISTORICAL METRICS DIAGNOSTICS CARD PANEL VIEWPORT
+                     * ==================================================================== */}
+                    {activePastAttemptLog && analyticsProfile && (
+                      <div className="mt-6 border-t border-zinc-200 pt-5 space-y-4 animate-in slide-in-from-top-3 duration-200">
+                        <div className="flex items-center gap-2 text-zinc-900">
+                          <Activity size={16} className="text-indigo-500" />
+                          <h5 className="text-xs font-black uppercase tracking-wider text-zinc-500">Evaluation History Analytics Log</h5>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="bg-white border border-zinc-200 p-4 rounded-xl flex flex-col justify-between shadow-3xs">
+                            <span className="text-[11px] font-bold text-zinc-500 uppercase">Self Evaluation Marks</span>
+                            <span className="text-2xl font-black text-zinc-900 font-mono mt-2">{analyticsProfile.selfTotal} / {activePastAttemptLog.maxQuestionMarks}M</span>
+                          </div>
+                          
+                          <div className="bg-white border border-zinc-200 p-4 rounded-xl flex flex-col justify-between shadow-3xs">
+                            <span className="text-[11px] font-bold text-zinc-500 uppercase">Mentor Evaluation Marks</span>
+                            <span className="text-2xl font-black text-indigo-600 font-mono mt-2">{analyticsProfile.mentorTotal} / {activePastAttemptLog.maxQuestionMarks}M</span>
+                          </div>
+
+                          <div className="bg-zinc-900 text-white p-4 rounded-xl flex flex-col justify-between shadow-sm">
+                            <span className="text-[11px] font-bold text-zinc-400 uppercase">Overall Answer Quality</span>
+                            <span className="text-base font-black text-cyan-400 tracking-tight mt-2 block uppercase">{analyticsProfile.qualityRating}</span>
+                          </div>
+                        </div>
+
+                        {/* Component Vulnerabilities Log Trackers */}
+                        {analyticsProfile.weaknesses.length > 0 ? (
+                          <div className="bg-rose-50/60 border border-rose-200 rounded-xl p-4 space-y-2">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-rose-700 block">Identified Structural Failures & Weaknesses</span>
+                            <div className="flex flex-wrap gap-2">
+                              {analyticsProfile.weaknesses.map((w, wIdx) => (
+                                <span 
+                                  key={wIdx}
+                                  className={`text-[11px] font-black px-3 py-1 rounded-lg border flex items-center gap-1 shadow-3xs ${w.tag === "EXTREMELY_WEAK" ? "bg-rose-600 border-rose-600 text-white animate-pulse" : "bg-white border-rose-300 text-rose-700"}`}
+                                >
+                                  {w.tag === "EXTREMELY_WEAK" ? <ShieldAlert size={12} /> : <AlertTriangle size={12} />}
+                                  {w.name}: {w.text}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-emerald-50/50 border border-emerald-200 text-emerald-800 text-xs font-bold p-3 rounded-xl flex items-center gap-1.5">
+                            <Sparkles size={14} className="text-emerald-500" /> All core answer writing metric components track above satisfactory baseline values.
+                          </div>
+                        )}
+
+                        {activePastAttemptLog.feedback && (
+                          <div className="bg-white border border-zinc-200 p-4 rounded-xl text-xs text-zinc-700 font-medium shadow-3xs leading-relaxed">
+                            <span className="text-[10px] block font-black uppercase text-zinc-400 mb-1 tracking-wide">Latest Mentor Feedback / Remarks</span>
+                            "{activePastAttemptLog.feedback}"
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* PAGINATION QUEUE NAVIGATION CONTROLS */}
+                <div className="flex items-center justify-between pt-2">
+                  <button
+                    disabled={currentQuestionIdx === 0}
+                    onClick={() => setCurrentQuestionIdx(p => Math.max(0, p - 1))}
+                    className="px-5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-zinc-700 font-bold text-xs rounded-xl transition-all shadow-3xs disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
+                  >
+                    <ChevronLeft size={14} strokeWidth={2.5} /> Previous Question
+                  </button>
+                  
+                  <button
+                    disabled={currentQuestionIdx === questionPool.length - 1}
+                    onClick={() => setCurrentQuestionIdx(p => Math.min(questionPool.length - 1, p + 1))}
+                    className="px-6 py-2 bg-zinc-900 text-white hover:bg-zinc-800 font-black text-xs rounded-xl transition-all shadow-3xs disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
+                  >
+                    Next Question <ChevronRight size={14} strokeWidth={2.5} />
+                  </button>
+                </div>
+
               </div>
             ) : (
-              <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 p-4 rounded-xl text-amber-700 text-xs font-medium">
-                <span className="text-lg">⚠️</span>
-                <p className="leading-relaxed">No matching descriptive questions are available for this topic classification inside the cloud bank yet.</p>
+              <div className="flex flex-col items-center justify-center text-center py-12 text-zinc-400 bg-slate-50/50 rounded-2xl border border-dashed">
+                <HelpCircle size={28} className="text-zinc-300 stroke-1.5" />
+                <p className="text-xs font-bold text-zinc-700 mt-2">No Matching Mains Data Profiles Mapped</p>
               </div>
             )}
-
           </div>
         )}
 
-        {/* UNINITIALIZED PLACEHOLDER */}
-        {!hasLoadedQuestions && (
-          <div className="flex flex-col items-center justify-center text-center py-12 text-slate-400 space-y-2">
-            <div className="text-3xl select-none">🔬</div>
-            <p className="text-xs font-bold text-slate-700">Sandbox Workspace Uninitialized</p>
-            <p className="text-[11px] max-w-xs leading-relaxed">Specify your desired descriptive GS Paper classification indices above and click load to initialize evaluation logs.</p>
+        {/* DEFAULT STATE UNINITIALIZED WATERMARK DISPLAY */}
+        {!hasLoadedPool && (
+          <div className="flex flex-col items-center justify-center text-center py-14 text-zinc-400 space-y-2">
+            <div className="text-3xl select-none">✍️</div>
+            <p className="text-xs font-bold text-zinc-700">Mains Sandbox Context Blank</p>
           </div>
         )}
-
       </div>
+
+      {/* ====================================================================
+       * ISOLATED OVERLAY PORTAL DRAWER: KEYBOARD LOCK INPUT MARK MANAGER
+       * ==================================================================== */}
+      {isLogMarksOpen && activeQuestionItem && (
+        <div className="fixed inset-0 z-[100000] bg-zinc-950/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-[2rem] w-full max-w-3xl p-6 md:p-8 shadow-[0_24px_60px_rgba(0,0,0,0.15)] space-y-5 relative my-8 text-left animate-in zoom-in-95 duration-200">
+            
+            <button type="button" onClick={() => setIsLogMarksOpen(false)} className="absolute top-5 right-5 p-1 text-zinc-400 hover:text-zinc-800 cursor-pointer">
+              <X size={18} strokeWidth={2.5} />
+            </button>
+
+            <div className="border-b pb-3">
+              <div className="flex items-center gap-2 text-indigo-600">
+                <ClipboardSignature size={18} />
+                <h3 className="text-base font-black uppercase tracking-tight">Answer Metrics Progression Logger</h3>
+              </div>
+              
+              <div className="mt-3 bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-[11px] font-medium text-zinc-600 leading-relaxed max-h-[100px] overflow-y-auto select-all">
+                <span className="text-[9px] font-black text-indigo-700 block uppercase mb-1">PROMPT FOR ANSWER WRITING EVALUATION (CLICK TO SELECT ALL):</span>
+                "Evaluate my answer of this upsc question on following parameters and give me marks and shortcomings. Parameters are demand of question(if i fulfilled the demand asked in question maximum {activeMaxBounds.demand} marks for {activeQuestionItem.maxMarks} marker), content evaluation (if i have given factual accuracy, relevance of content maximum {activeMaxBounds.content}), analysis/explanation(if i fulfilled and gave enough depth and analysis maximum {activeMaxBounds.analysis}), multidimensionality(if multiple angles is included maximum {activeMaxBounds.multi}), Value addition (if i have given correct article, case, committee, examples, case study etc maximum {activeMaxBounds.valueAdd}), Presentation/balance/conclusion (if i have given good structuring, presentation, diagrams, flowchart, and conclusion maximum {activeMaxBounds.presentation}). And give me advice"
+              </div>
+            </div>
+
+            <div className="space-y-4 overflow-y-auto max-h-[42vh] pr-1">
+              <div className="grid grid-cols-12 gap-2 text-center text-[14px] font-black uppercase tracking-wider text-zinc-700 border-b pb-1 font-mono">
+                <div className="col-span-6 text-left">Core Parameters Metric Criteria</div>
+                <div className="col-span-3 text-indigo-600">Self Score</div>
+                <div className="col-span-3 text-emerald-600">Mentor Score</div>
+              </div>
+
+              {[
+                { key: "demand", label: "1. Demand of Question Fulfilled", max: activeMaxBounds.demand, step: "0.25" },
+                { key: "content", label: "2. Content Accuracy & Relevance", max: activeMaxBounds.content, step: "0.25" },
+                { key: "analysis", label: "3. Analysis & Explanatory Depth", max: activeMaxBounds.analysis, step: "0.25" },
+                { key: "multi", label: "4. Multidimensionality & Framing Angles", max: activeMaxBounds.multi, step: "0.25" },
+                { key: "valueAdd", label: "5. Value Addition (Article, Committee, Data)", max: activeMaxBounds.valueAdd, step: "0.25" },
+                { key: "presentation", label: "6. Presentation (Headings, Diagrams, Conclusion)", max: activeMaxBounds.presentation, step: "0.25" }
+              ].map((param) => (
+                <div key={param.key} className="grid grid-cols-12 gap-2 items-center border-b border-zinc-100 pb-2 text-zinc-900 font-bold">
+                  <div className="col-span-6 text-xs">
+                    <span className="block font-black text-zinc-800">{param.label}</span>
+                    <span className="text-[10px] font-mono text-zinc-400 font-medium">Max Limit Bounds: {param.max}M</span>
+                  </div>
+                  
+                  {/* Self Score Input Container */}
+                  <div className="col-span-3 px-1">
+                    <input 
+                      type="number"
+                      min="0"
+                      max={param.max}
+                      step={param.step}
+                      value={selfScores[param.key]}
+                      onKeyDown={(e) => e.preventDefault()}
+                      onChange={(e) => setSelfScores(p => ({ ...p, [param.key]: Number(e.target.value) }))}
+                      className="w-full font-mono bg-indigo-50/50 focus:bg-white text-indigo-700 font-black border border-indigo-100 rounded-lg p-1.5 text-center outline-none focus:border-indigo-400 text-xs select-none"
+                    />
+                  </div>
+
+                  {/* Mentor Score Input Container */}
+                  <div className="col-span-3 px-1">
+                    <input 
+                      type="number"
+                      min="0"
+                      max={param.max}
+                      step={param.step}
+                      value={mentorScores[param.key]}
+                      onKeyDown={(e) => e.preventDefault()}
+                      onChange={(e) => setMentorScores(p => ({ ...p, [param.key]: Number(e.target.value) }))}
+                      className="w-full font-mono bg-emerald-50/50 focus:bg-white text-emerald-700 font-black border border-emerald-100 rounded-lg p-1.5 text-center outline-none focus:border-emerald-400 text-xs select-none"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-1.5 pt-1">
+              <label className="text-[11px] font-black uppercase text-zinc-400 tracking-wide block">Structured Feedback & Performance Remarks</label>
+              <textarea
+                rows={3}
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                placeholder="Log critical observations, structural bugs, or macro strategy directions here..."
+                className="w-full bg-slate-50 focus:bg-white border border-slate-200 rounded-xl p-3 text-xs text-zinc-800 font-semibold outline-none focus:border-indigo-500 shadow-inner resize-none placeholder-zinc-400"
+              />
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2 border-t">
+              <button type="button" onClick={() => setIsLogMarksOpen(false)} className="px-4 py-2 border bg-white text-zinc-500 hover:text-zinc-800 rounded-xl text-xs font-bold transition-all cursor-pointer">Cancel</button>
+              <button
+                type="button"
+                disabled={savingLog}
+                onClick={handleSaveEvaluationLogData}
+                className="px-6 py-2 bg-zinc-900 text-white hover:bg-zinc-800 rounded-xl text-xs font-black transition-all shadow-3xs flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+              >
+                {savingLog ? <RefreshCw size={12} className="animate-spin text-cyan-400" /> : <Save size={12} />}
+                Save Evaluation Data
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

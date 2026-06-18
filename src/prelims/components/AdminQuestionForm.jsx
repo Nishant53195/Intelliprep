@@ -8,20 +8,21 @@ import { Send, Bold, Italic, List, CheckCircle, FileJson, ChevronLeft, ChevronRi
 function AdminQuestionForm({ onComplete }) {
   const user = useLoginStore((state) => state.user);
   
-  const [questionType, setQuestionType] = useState("MCQ_PRELIMS"); // MCQ_PRELIMS, PYQ_PRELIMS, PYQ_MAINS
+  // MCQ_PRELIMS, PYQ_PRELIMS, PYQ_MAINS, COACHING_TEST
+  const [questionType, setQuestionType] = useState("MCQ_PRELIMS"); 
   const [importJsonText, setImportJsonText] = useState("");
   const [showImportArea, setShowImportArea] = useState(false);
-
+  
   // CAROUSEL QUEUE MANAGEMENT STATES
   const [questionQueue, setQuestionQueue] = useState([
     {
       paperTag: "", subjectTag: "", topicTag: "", subtopicTag: "",
       questionText: "", options: ["", "", "", ""], correctAnswerIndex: 0, explanation: "",
-      year: new Date().getFullYear(), difficulty: "MEDIUM", keywords: "", maxMarks: 15, wordCountAllowed: 250
+      year: new Date().getFullYear(), difficulty: "MEDIUM", keywords: "", maxMarks: 15, wordCountAllowed: 250,
+      coachingName: "", testName: "", testType: "SUBJECT_TEST"
     }
   ]);
   const [currentIdx, setCurrentIdx] = useState(0);
-
   const [availableSubjects, setAvailableSubjects] = useState([]);
   const [availableTopics, setAvailableTopics] = useState([]);
   const [availableSubtopics, setAvailableSubtopics] = useState([]);
@@ -96,7 +97,7 @@ function AdminQuestionForm({ onComplete }) {
   const handleRichChange = (field, ref, optionIdx = null) => {
     if (!ref.current) return;
     const innerHtmlValue = ref.current.innerHTML;
-    
+         
     if (optionIdx !== null) {
       const updatedOptions = [...(activeQuestion.options || ["", "", "", ""])];
       updatedOptions[optionIdx] = innerHtmlValue;
@@ -112,12 +113,10 @@ function AdminQuestionForm({ onComplete }) {
       alert("Please paste a valid JSON structure array string first.");
       return;
     }
-
     try {
       const parsedData = JSON.parse(importJsonText.trim());
       const standardArrayData = Array.isArray(parsedData) ? parsedData : [parsedData];
-
-      // Format array payloads into type-conforming structural schema objects natively
+      
       const structuralQueueElements = standardArrayData.map(item => {
         return {
           paperTag: item.paperTag || item.paper || "",
@@ -132,7 +131,10 @@ function AdminQuestionForm({ onComplete }) {
           difficulty: item.difficulty || "MEDIUM",
           keywords: Array.isArray(item.keywords) ? item.keywords.join(", ") : (item.keywords || ""),
           maxMarks: item.maxMarks ? Number(item.maxMarks) : 15,
-          wordCountAllowed: item.wordCountAllowed || item.wordCount || 250
+          wordCountAllowed: item.wordCountAllowed || item.wordCount || 250,
+          coachingName: item.coachingName || "",
+          testName: item.testName || "",
+          testType: item.testType || "SUBJECT_TEST"
         };
       });
 
@@ -153,7 +155,8 @@ function AdminQuestionForm({ onComplete }) {
       {
         paperTag: "", subjectTag: "", topicTag: "", subtopicTag: "",
         questionText: "", options: ["", "", "", ""], correctAnswerIndex: 0, explanation: "",
-        year: new Date().getFullYear(), difficulty: "MEDIUM", keywords: "", maxMarks: 15, wordCountAllowed: 250
+        year: new Date().getFullYear(), difficulty: "MEDIUM", keywords: "", maxMarks: 15, wordCountAllowed: 250,
+        coachingName: "", testName: "", testType: "SUBJECT_TEST"
       }
     ]);
     setCurrentIdx(questionQueue.length);
@@ -165,7 +168,8 @@ function AdminQuestionForm({ onComplete }) {
         {
           paperTag: "", subjectTag: "", topicTag: "", subtopicTag: "",
           questionText: "", options: ["", "", "", ""], correctAnswerIndex: 0, explanation: "",
-          year: new Date().getFullYear(), difficulty: "MEDIUM", keywords: "", maxMarks: 15, wordCountAllowed: 250
+          year: new Date().getFullYear(), difficulty: "MEDIUM", keywords: "", maxMarks: 15, wordCountAllowed: 250,
+          coachingName: "", testName: "", testType: "SUBJECT_TEST"
         }
       ]);
       return;
@@ -176,8 +180,7 @@ function AdminQuestionForm({ onComplete }) {
 
   const handleSubmitAllQueueItems = async (e) => {
     e.preventDefault();
-
-    // Structural loop scan confirming text completeness bounds
+    
     for (let i = 0; i < questionQueue.length; i++) {
       const cleanText = (questionQueue[i].questionText || "").replace(/<[^>]*>/g, '').trim();
       if (!cleanText || questionQueue[i].questionText === "<br>") {
@@ -188,7 +191,9 @@ function AdminQuestionForm({ onComplete }) {
     }
 
     try {
-      let targetTable = "pyqs";
+      // Use standard pyqs warehouse collection for all objective questions telemetry
+      let targetTable = "pyqs"; 
+      
       const processedBatchPayloads = questionQueue.map((q, idx) => {
         let payload = {
           id: `q_${Date.now()}_${idx}_${crypto.randomUUID()}`,
@@ -198,11 +203,11 @@ function AdminQuestionForm({ onComplete }) {
           topicId: q.topicTag,
           subtopicId: q.subtopicTag,
           questionText: q.questionText,
-          createdBy: user?.email || "nishant53195@gmail.com",
+          createdBy: user?.email || "local_user",
           createdAt: new Date()
         };
 
-        if (questionType === "MCQ_PRELIMS" || questionType === "PYQ_PRELIMS") {
+        if (questionType === "MCQ_PRELIMS" || questionType === "PYQ_PRELIMS" || questionType === "COACHING_TEST") {
           payload = {
             ...payload,
             options: q.options,
@@ -211,6 +216,12 @@ function AdminQuestionForm({ onComplete }) {
             difficulty: q.difficulty,
             year: questionType === "PYQ_PRELIMS" ? Number(q.year) : null
           };
+          
+          if (questionType === "COACHING_TEST") {
+            payload.coachingName = q.coachingName;
+            payload.testName = q.testName;
+            payload.testType = q.testType;
+          }
         } else if (questionType === "PYQ_MAINS") {
           payload = {
             ...payload,
@@ -223,12 +234,10 @@ function AdminQuestionForm({ onComplete }) {
         return payload;
       });
 
-      // 1. Commit full structured array chunk natively down to Dexie IndexedDB
       for (const questionObject of processedBatchPayloads) {
         await db[targetTable].put(questionObject);
       }
 
-      // 2. Immediate Force Push upload call to global master database pool
       try {
         const { syncEngine } = await import("../../database/services/syncEngine");
         await syncEngine.pushLocalChangesToCloud(user.uid);
@@ -237,12 +246,13 @@ function AdminQuestionForm({ onComplete }) {
       }
 
       alert(`Success! Successfully uploaded ${processedBatchPayloads.length} question logs into Cloud Inventory Registry.`);
-      
+            
       setQuestionQueue([
         {
           paperTag: "", subjectTag: "", topicTag: "", subtopicTag: "",
           questionText: "", options: ["", "", "", ""], correctAnswerIndex: 0, explanation: "",
-          year: new Date().getFullYear(), difficulty: "MEDIUM", keywords: "", maxMarks: 15, wordCountAllowed: 250
+          year: new Date().getFullYear(), difficulty: "MEDIUM", keywords: "", maxMarks: 15, wordCountAllowed: 250,
+          coachingName: "", testName: "", testType: "SUBJECT_TEST"
         }
       ]);
       setCurrentIdx(0);
@@ -319,7 +329,7 @@ function AdminQuestionForm({ onComplete }) {
             value={importJsonText}
             onChange={e => setImportJsonText(e.target.value)}
             className="w-full font-mono bg-slate-950 border border-slate-800 rounded-xl p-3 text-[11px] text-emerald-400 placeholder-slate-600 outline-none shadow-inner"
-            placeholder={`[\n  {\n    "questionText": "Sample question context statement string",\n    "paperTag": "GS3",\n    "options": ["A", "B", "C", "D"],\n    "correctAnswerIndex": 0\n  }\n]`}
+            placeholder={`[\n  {\n    "questionText": "Sample question context string",\n    "paperTag": "GS3",\n    "coachingName": "Vision IAS",\n    "testName": "Polity I",\n    "testType": "SUBJECT_TEST",\n    "options": ["A", "B", "C", "D"],\n    "correctAnswerIndex": 0\n  }\n]`}
           />
           <div className="flex justify-end gap-2">
             <button type="button" onClick={() => setShowImportArea(false)} className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 rounded-lg text-[11px] font-bold cursor-pointer">Cancel</button>
@@ -331,14 +341,15 @@ function AdminQuestionForm({ onComplete }) {
       {/* CORE FORM IMPLEMENTATION VIEW OVERLAY GRID */}
       <form onSubmit={handleSubmitAllQueueItems} className="space-y-5">
         
-        {/* SELECTION TYPES TYPE MODE CHIPS */}
+        {/* SELECTION TYPES MODE CHIPS */}
         <div className="space-y-1.5">
           <label className="text-[11px] font-black text-slate-500 uppercase tracking-wide block">Question Blueprint Type Mode</label>
-          <div className="grid grid-cols-3 gap-1 bg-slate-100 border border-slate-200 p-1 rounded-xl">
+          <div className="grid grid-cols-4 gap-1 bg-slate-100 border border-slate-200 p-1 rounded-xl">
             {[
-              { id: "MCQ_PRELIMS", label: "MCQ Prelims" },
-              { id: "PYQ_PRELIMS", label: "PYQ Prelims" },
-              { id: "PYQ_MAINS", label: "PYQ Mains" }
+              { id: "MCQ_PRELIMS", label: "MCQ Topics" },
+              { id: "PYQ_PRELIMS", label: "PYQ Topics" },
+              { id: "PYQ_MAINS", label: "PYQ Mains" },
+              { id: "COACHING_TEST", label: "Coaching Test" }
             ].map(type => (
               <button
                 key={type.id}
@@ -374,7 +385,6 @@ function AdminQuestionForm({ onComplete }) {
                 {["GS1", "GS2", "GS3", "GS4"].map(p => <option key={p} value={p}>{p.slice(0,2) + " " + p.slice(2)}</option>)}
               </select>
             </div>
-
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-slate-400 uppercase">2. Mapped Subject</span>
               <select
@@ -387,7 +397,6 @@ function AdminQuestionForm({ onComplete }) {
                 {availableSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
-
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-slate-400 uppercase">3. Relational Topic Node</span>
               <select
@@ -400,7 +409,6 @@ function AdminQuestionForm({ onComplete }) {
                 {availableTopics.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
-
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-slate-400 uppercase">4. Subtopic Target</span>
               <select
@@ -415,11 +423,50 @@ function AdminQuestionForm({ onComplete }) {
             </div>
           </div>
 
+          {/* DYNAMIC FIELD SETS FOR COACHING MOCK MATRIX SPECIFICATIONS */}
+          {questionType === "COACHING_TEST" && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100 animate-in slide-in-from-top-2 duration-150">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-black text-slate-700 uppercase">Coaching Institute Name</label>
+                <input
+                  type="text"
+                  value={activeQuestion.coachingName || ""}
+                  onChange={e => updateActiveQueueItem({ coachingName: e.target.value })}
+                  placeholder="e.g., Vision IAS, Forum IAS"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold bg-slate-50 placeholder-slate-400 outline-none focus:border-indigo-500 shadow-3xs"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-black text-slate-700 uppercase">Official Test Paper Name</label>
+                <input
+                  type="text"
+                  value={activeQuestion.testName || ""}
+                  onChange={e => updateActiveQueueItem({ testName: e.target.value })}
+                  placeholder="e.g., Polity Sectional Test I"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold bg-slate-50 placeholder-slate-400 outline-none focus:border-indigo-500 shadow-3xs"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-black text-slate-700 uppercase">Mock Simulator Test Type</label>
+                <select
+                  value={activeQuestion.testType || "SUBJECT_TEST"}
+                  onChange={e => updateActiveQueueItem({ testType: e.target.value })}
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold bg-slate-50 outline-none focus:border-indigo-500 shadow-3xs cursor-pointer"
+                >
+                  <option value="SUBJECT_TEST">Subject Specific Test</option>
+                  <option value="MULTIPLE_SUBJECT_TEST">Multiple Subject Combination Test</option>
+                  <option value="FULL_TEST">Complete Full Length Test (FLT)</option>
+                  <option value="CURRENT_AFFAIRS_TEST">Current Affairs Specific Compilation</option>
+                </select>
+              </div>
+            </div>
+          )}
+
           {/* METADATA EXTENSION CRITERIAS */}
           {(questionType === "PYQ_PRELIMS" || questionType === "PYQ_MAINS") && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-50">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-black text-slate-700 uppercase">UPSC Official Exam Year</label>
+                <label className="text-[11px] font-black text-slate-700 uppercase">Official Exam Year</label>
                 <input
                   type="number"
                   value={activeQuestion.year || 2026}
@@ -485,8 +532,8 @@ function AdminQuestionForm({ onComplete }) {
           />
         </div>
 
-        {/* DYNAMIC VIEW PORTS 1: RESPONSE CHOICES MATRIX (PRELIMS) */}
-        {(questionType === "MCQ_PRELIMS" || questionType === "PYQ_PRELIMS") && (
+        {/* OBJECTIVE CHOCE CONFGGURATION VIEWPORTS */}
+        {(questionType === "MCQ_PRELIMS" || questionType === "PYQ_PRELIMS" || questionType === "COACHING_TEST") && (
           <div className="bg-white border border-[#EBEFF8] rounded-2xl p-5 shadow-3xs space-y-4 animate-in fade-in duration-150">
             <h4 className="text-xs font-black text-slate-800 tracking-wider uppercase border-b border-slate-50 pb-1">
               Objective Choice Configurations (Line breaks and Spacing Enabled)
@@ -529,7 +576,7 @@ function AdminQuestionForm({ onComplete }) {
               ))}
             </div>
 
-            {/* RICH WORKSPACE AREA 2: EXPLANATION WINDOW METRICS */}
+            {/* RICH WORKSPACE AREA 2: EXPLANATION METRICS */}
             <div className="space-y-2 pt-2 border-t border-slate-100">
               <div className="flex items-center justify-between">
                 <label className="text-[11px] font-black text-slate-700 uppercase">Detailed Core Explanation (Rich HTML Format Support)</label>
@@ -549,7 +596,7 @@ function AdminQuestionForm({ onComplete }) {
           </div>
         )}
 
-        {/* DYNAMIC VIEW PORTS 2: VALUE MODEL KEYWORDS (MAINS) */}
+        {/* MAINS VALUE KEYWORDS ELEMENT */}
         {questionType === "PYQ_MAINS" && (
           <div className="bg-white border border-[#EBEFF8] rounded-2xl p-5 shadow-3xs space-y-3 animate-in fade-in duration-150">
             <label className="text-[11px] font-black text-slate-700 uppercase tracking-wide block">Evaluation Model Keywords (Comma Separated)</label>
@@ -558,7 +605,7 @@ function AdminQuestionForm({ onComplete }) {
               value={activeQuestion.keywords || ""}
               onChange={e => updateActiveQueueItem({ keywords: e.target.value })}
               className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 shadow-3xs outline-none focus:border-indigo-500"
-              placeholder="E.g., Fiscal Deficit, FRBM Act, Macroeconomic Stability, Crowding Out"
+              placeholder="E.g., Fiscal Deficit, FRBM Act, Macroeconomic Stability"
             />
             <p className="text-[10px] text-slate-400 font-medium italic">These valuation indices will verify answer framing profiles inside evaluation engines.</p>
           </div>
@@ -579,7 +626,6 @@ function AdminQuestionForm({ onComplete }) {
             <Send size={13} strokeWidth={2.5} /> Deploy {questionQueue.length} Questions to Master Cloud
           </button>
         </div>
-
       </form>
     </div>
   );

@@ -41,13 +41,13 @@ function DashboardPage() {
 
   // Verbatim 1:1 labeling matching target layout registry arrays cleanly
   const navigationItems = [
-    { id: "prep_status", label: "Preparation Status", icon: "📊", disabled: false },
+    { id: "prep_status", label: "Intelligent Dashboard", icon: "📊", disabled: false },
     { id: "study_hub", label: "Study Hub (Daily Task)", icon: "🎯", disabled: false },
     { id: "syllabus_progress", label: "Syllabus Progress", icon: "📖", disabled: false },
     { id: "revision_hub", label: "Revision Hub", icon: "🔄", disabled: false },
     { id: "prelims_test", label: "Test your Prelims", icon: "📝", disabled: false },
     { id: "mains_test", label: "Test your Mains", icon: "✍️", disabled: false },
-    { id: "weak_topics", label: "Weak Topics", icon: "⚠️", disabled: true },
+    { id: "weak_topics", label: "Analysis and Intelligence", icon: "⚠️", disabled: false },
     { id: "current_affairs", label: "Current Affairs", icon: "📰", disabled: false },
     { id: "knowledge_graph", label: "Knowledge Graph", icon: "🌐", disabled: false },
     { id: "settings_export", label: "Settings & Exports", icon: "⚙️", disabled: false },
@@ -71,31 +71,15 @@ function DashboardPage() {
               </div>
               <div>
                 <h1 className="text-sm font-black tracking-wider text-slate-900 uppercase leading-none">
-                  INTELLIPREP OS
+                  UPSC INTELLIPREP 
                 </h1>
                 <p className="text-[10px] font-bold text-indigo-500 tracking-tight uppercase mt-0.5">
-                  Your UPSC Command Center
+                  Most Smart UPSC System
                 </p>
               </div>
             </div>
           </div>
 
-          {/* USER PROFILE INFO DROPDOWN SECTION */}
-          <div className="flex items-center justify-between bg-[#F8FAFD] border border-[#EFF2F9] rounded-2xl p-2.5 mx-0.5">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              <div className="h-7 w-7 rounded-full bg-indigo-600 text-white font-extrabold text-xs flex items-center justify-center shadow-inner shrink-0 uppercase">
-                {user?.email?.charAt(0) || "N"}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-mono font-bold text-slate-700 truncate leading-tight">
-                  {user?.email || "nishant53195@gmail.com"}
-                </p>
-              </div>
-            </div>
-            <span className="text-slate-400 text-[8px] pr-0.5 pointer-events-none select-none">
-              ▼
-            </span>
-          </div>
           
           {/* TRANSLATION BAR BUTTON PANEL TOGGLE */}
           <div className="px-0.5">
@@ -119,12 +103,12 @@ function DashboardPage() {
                   key={item.id}
                   disabled={item.disabled}
                   onClick={() => !item.disabled && setActiveNav(item.id)}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 text-xs font-bold rounded-xl transition-all border border-transparent text-left ${
+                  className={`w-full flex items-center justify-between px-1 py-3.5 text-sm font-bold rounded-xl transition-all border border-transparent text-left ${
                     item.disabled
-                      ? "bg-transparent text-slate-400 opacity-30 cursor-not-allowed select-none"
+                      ? "bg-transparent text-black-400 opacity-30 cursor-not-allowed select-none"
                       : isActive
-                      ? "bg-[#E8EEFF] text-indigo-600 font-extrabold shadow-3xs"
-                      : "text-slate-500 hover:bg-slate-50"
+                      ? "bg-[#c4eaec] text-indigo-600 font-extrabold shadow-3xs"
+                      : "text-black-500 hover:bg-green-100"
                   }`}
                 >
                   <div className="flex items-center gap-3 truncate">
@@ -142,16 +126,7 @@ function DashboardPage() {
           </div>
         </div>
 
-        {/* RE-SPACED DECORATIVE GRAPHIC FOOTER BLOCK */}
-        <div className="rounded-xl border border-[#E9EFFD] bg-gradient-to-br from-[#F4F7FF] via-white to-transparent p-3.5 text-left relative overflow-hidden mt-auto shadow-3xs mx-0.5">
-          <div className="absolute right-[-8px] bottom-[-12px] opacity-10 text-4xl pointer-events-none select-none">
-            🏔️
-          </div>
-          <h4 className="text-[10px] font-black text-slate-700 tracking-wide uppercase">Small steps daily</h4>
-          <p className="text-[9px] text-slate-400 font-medium leading-tight mt-0.5">
-            lead to big results. <span className="text-indigo-500 font-bold">Keep going! 🚀</span>
-          </p>
-        </div>
+        
       </nav>
 
       {/* ==========================================

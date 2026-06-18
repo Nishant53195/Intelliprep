@@ -13,21 +13,32 @@ const databaseStores = {
   subtopic_progress: 'id,subtopicId,totalMinutes,completedMinutes,remainingMinutes,status,completedAt',
   schedule_tasks: 'id,userId,subjectId,topicId,subtopicId,revisionId,type,scheduledDate,status,intensityMode,generationType,sourceType,priorityScore,carryForwardCount,recoveryInjectedAt,orderIndex,isRecoveryTask,originalScheduledDate,completedAt,createdAt,[userId+scheduledDate],[scheduledDate+status]',
   revisions: 'id,userId,subjectId,topicId,subtopicId,sourceTaskId,linkedScheduleTaskId,revisionStage,dueDate,completedAt,recallQuality,memoryState,intervalDays,nextRevisionDate,revisionCount,status,createdAt,[userId+dueDate+status]',
-  prelims_tests: 'id,userId,testMode,type,subjectId,topicId,subtopicId,totalQuestions,attemptedCount,correctCount,wrongCount,skippedCount,score,accuracy,completionTime,*taggedWrongTopics,*errorTypes,createdAt,[userId+createdAt],[userId+testMode]',
   mains_tests: 'id,userId,sourceType,subjectId,topicId,maxMarks,marksObtained,wordCountAllowed,wordCountDone,timeTaken,*shortcomings,createdAt,[userId+createdAt]',
   pyqs: 'id,year,paper,type,subjectId,topicId,subtopicId,difficulty,*keywords,*linkedCurrentAffairs,*linkedWeakTopics',
   current_affairs: 'id,title,summary,source,date,paperTag,subjectTag,topicTag,subtopicTag,importanceScore,*issueEvolutionIds,createdBy,createdAt,[subjectTag+date],[paperTag+date]',
   topic_intelligence: 'id,userId,topicId,subjectId,completionScore,confidenceScore,retentionScore,effectiveProgress,importanceScore,healthScore,decayRisk,decayRate,weakTopicCount,revisionMissCount,lastRevisedAt,nextReviewAt,intelligenceState,updatedAt,[userId+topicId],[userId+subjectId],[userId+importanceScore],[userId+effectiveProgress]',
   subject_intelligence: 'id,userId,subjectId,coverageScore,confidenceScore,retentionScore,weakTopicDensity,revisionHealth,effectiveProgress,healthScore,stabilityState,updatedAt,[userId+subjectId],[userId+healthScore]',
-  weak_topics: 'id,userId,subjectId,topicId,confidence,decayRate,lastReviewedAt,nextReviewAt,mistakeCount,*weaknessType,state,*sourceHistory,[userId+topicId],[userId+state]',
-  user_performance_profile: 'id,userId,avgCompletionRate,avgStudyMinutes,consistencyScore,fatigueRisk,strongestDay,weakestDay,lastCalculatedAt',
   reflections: 'id,userId,date,energyLevel,focusQuality,confidenceScore,*distractions,[userId+date]',
+  sync_queue: 'id,status,tableName,recordId,createdAt',
+
+  // Track 1: Topic Wise MCQ Practice Registry
+  topic_test_prelims: 'id,userId,subjectId,topicId,createdAt',
   
-  // Clean store definition for tracking manual delta uploads
-  sync_queue: 'id,status,tableName,recordId,createdAt'
+  // Track 2: Coaching Mock Simulator Test Registry
+  coaching_test_prelims: 'id,userId,coachingName,testName,testType,createdAt',
+  
+  // Track 3: Topic Wise PYQ Practice Registry
+  topic_pyq_prelims: 'id,userId,subjectId,topicId,createdAt',
+
+  // Add this to your existing Dexie database tables configuration setup:
+mains_log_marks: "id, userId, questionId, timestamp",
+  
+  // Track 4: Granular Error-Aware Core Weak Topic Engine [source: 1]
+  weak_topics: 'id,userId,subjectId,topicId,state,[userId+topicId]'
+
 };
 
-db.version(6).stores(databaseStores);
+db.version(9).stores(databaseStores);
 
 /*
 |--------------------------------------------------------------------------
