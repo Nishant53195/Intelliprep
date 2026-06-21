@@ -3468,11 +3468,11 @@ source :"Sonali Bansal: INA and RIN"
     ],
   },
   {
-    id: "cold-war",
+    id: "cold-war-top",
     name: "Cold War",
     subtopics: [
       {
-        id: "cold-war",
+        id: "cold-war-st",
         name: "Cold War",
         estimatedMinutes: 300,
         difficulty: 3,
@@ -4200,7 +4200,7 @@ source :"Sonali Bansal: INA and RIN"
     ],
   },
   {
-    id: "tsunami",
+    id: "tsunami-ch",
     name: "Tsunami",
     subtopics: [
       {
@@ -4228,7 +4228,7 @@ source :"Sonali Bansal: INA and RIN"
         difficulty: 2,
       },
       {
-        id: "landslides",
+        id: "landslides-ero",
         name: "Landslides",
         estimatedMinutes: 25,
         difficulty: 3,
@@ -6327,7 +6327,7 @@ source :"Sonali Bansal: INA and RIN"
     subtopics: [
       { id: "meaning", name: "Meaning", estimatedMinutes: 15, difficulty: 1 },
       { id: "functions", name: "Functions", estimatedMinutes: 15, difficulty: 1 },
-      { id: "classification", name: "Classification", estimatedMinutes: 15, difficulty: 2 },
+      { id: "classification-cns", name: "Classification", estimatedMinutes: 15, difficulty: 2 },
       { id: "constitutionalism", name: "Constitutionalism", estimatedMinutes: 25, difficulty: 3 }
     ]
   },
@@ -6446,7 +6446,7 @@ source :"Sonali Bansal: INA and RIN"
       { id: "martial-law-and-fr", name: "Martial Law and FR", estimatedMinutes: 20, difficulty: 3 },
       { id: "article-35", name: "Article 35", estimatedMinutes: 20, difficulty: 3 },
       { id: "other-exceptions", name: "Other exceptions", estimatedMinutes: 15, difficulty: 2 },
-      { id: "criticism", name: "Criticism", estimatedMinutes: 15, difficulty: 2 },
+      { id: "criticism-exc", name: "Criticism", estimatedMinutes: 15, difficulty: 2 },
       { id: "rights-outside-part-iii", name: "Rights outside Part III", estimatedMinutes: 15, difficulty: 2 }
     ]
   },
@@ -6670,7 +6670,7 @@ source :"Sonali Bansal: INA and RIN"
     id: "parliamentary-committees",
     name: "Parliamentary Committees",
     subtopics: [
-      { id: "classification", name: "Classification", estimatedMinutes: 15, difficulty: 2 },
+      { id: "classification-comm", name: "Classification", estimatedMinutes: 15, difficulty: 2 },
       { id: "public-accounts-committee", name: "Public accounts committee", estimatedMinutes: 25, difficulty: 3 },
       { id: "estimates-committee", name: "Estimates committee", estimatedMinutes: 20, difficulty: 3 },
       { id: "public-undertaking-committee", name: "Public undertaking committee", estimatedMinutes: 20, difficulty: 3 },
@@ -6874,7 +6874,7 @@ source :"Sonali Bansal: INA and RIN"
       { id: "objectives-niti", name: "Objectives", estimatedMinutes: 15, difficulty: 2 },
       { id: "functions-niti", name: "Functions", estimatedMinutes: 20, difficulty: 2 },
       { id: "cooperative-federalism", name: "Cooperative Federalism", estimatedMinutes: 20, difficulty: 3 },
-      { id: "planning-commission", name: "Planning Commission", estimatedMinutes: 20, difficulty: 2 }
+      { id: "planning-commission-niti", name: "Planning Commission", estimatedMinutes: 20, difficulty: 2 }
     ]
   },
   {
@@ -7873,7 +7873,7 @@ source :"Sonali Bansal: INA and RIN"
       { id: "economic-systems", name: "Economic systems", estimatedMinutes: 20, difficulty: 2 },
       { id: "economic-planning-intro", name: "economic planning", estimatedMinutes: 25, difficulty: 3 },
       { id: "industrial-policy-resolution", name: "industrial policy Resolution", estimatedMinutes: 25, difficulty: 3 },
-      { id: "planning-commission", name: "Planning Commission", estimatedMinutes: 20, difficulty: 2 },
+      { id: "planning-commission-plann", name: "Planning Commission", estimatedMinutes: 20, difficulty: 2 },
       { id: "neeti-aayog", name: "Neeti Aayog", estimatedMinutes: 20, difficulty: 2 }
     ]
   },
@@ -8405,7 +8405,7 @@ source :"Sonali Bansal: INA and RIN"
     name: "Natural Hazards",
     subtopics: [
       { id: "earthquake", name: "Earthquake", estimatedMinutes: 30, difficulty: 3 },
-      { id: "tsunami", name: "Tsunami", estimatedMinutes: 25, difficulty: 3 },
+      { id: "tsunami-nat", name: "Tsunami", estimatedMinutes: 25, difficulty: 3 },
       { id: "volcano", name: "Volcano", estimatedMinutes: 20, difficulty: 2 },
       { id: "floods", name: "Floods", estimatedMinutes: 30, difficulty: 3 },
       { id: "urban-floods", name: "Urban Floods", estimatedMinutes: 25, difficulty: 3 },

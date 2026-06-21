@@ -86,7 +86,9 @@ export function normalizeSyllabus(
               if (!subtopic) return;
 
               // GUARANTEE VALID SUBTOPIC ID
-              const safeSubtopicId = subtopic.id || `${safeTopicId}-subtopic-${subtopicIndex}`;
+              const safeSubtopicId = subtopic.id 
+  ? `${safeSubjectId}-${safeTopicId}-${subtopic.id}` 
+  : `${safeTopicId}-subtopic-${subtopicIndex}`;
 
               totalEstimatedMinutes +=
                 subtopic.estimatedMinutes || 0;
