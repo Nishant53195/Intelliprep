@@ -186,7 +186,7 @@ function StudyHub() {
         confidenceScore: parseInt(confidence), distractions: selectedTags
       });
       for (const task of tasks) {
-        await db.schedule_tasks.update(task.id, { status: "closed", closedAt: Date.now() });
+        await db.schedule_tasks.where("id").equals(task.id).modify({ status: "closed", closedAt: Date.now() });
       }
       setShowReflection(false);
       setGsIndex(0); setOptionalIndex(0);
@@ -216,6 +216,27 @@ function StudyHub() {
 
   const isGsSubtaskDone = currentGsSubtask && (completedSubtopicIds.has(currentGsSubtask.subtopicId) || gsTask?.status?.toUpperCase() === "COMPLETED");
   const isOptionalSubtaskDone = currentOptionalSubtask && (completedSubtopicIds.has(currentOptionalSubtask.subtopicId) || optionalTask?.status?.toUpperCase() === "COMPLETED");
+
+  // --- DYNAMIC SEQUENTIAL LOCKING ALGORITHM CHECKS ---
+  let isPreviousGsTaskPending = false;
+  if (gsTask && gsTask.subtasks && gsIndex > 0) {
+    for (let i = 0; i < gsIndex; i++) {
+      if (!completedSubtopicIds.has(gsTask.subtasks[i].subtopicId)) {
+        isPreviousGsTaskPending = true;
+        break;
+      }
+    }
+  }
+
+  let isPreviousOptionalTaskPending = false;
+  if (optionalTask && optionalTask.subtasks && optionalIndex > 0) {
+    for (let i = 0; i < optionalIndex; i++) {
+      if (!completedSubtopicIds.has(optionalTask.subtasks[i].subtopicId)) {
+        isPreviousOptionalTaskPending = true;
+        break;
+      }
+    }
+  }
 
   const isGsSlotDone = !gsTask || gsTask.status?.toUpperCase() === "COMPLETED";
   const isOptionalSlotDone = !optionalTask || optionalTask.status?.toUpperCase() === "COMPLETED";
@@ -348,15 +369,17 @@ function StudyHub() {
                 {currentGsSubtask?.duration || 0} Mins
               </span>
             <button
-              disabled={isGsSlotDone || !currentGsSubtask || isGsSubtaskDone}
+              disabled={isGsSlotDone || !currentGsSubtask || isGsSubtaskDone || isPreviousGsTaskPending}
               onClick={() => handleSubtaskComplete(gsTask, currentGsSubtask)}
               className={`px-4 py-2 text-xs font-bold rounded-xl transition-all shadow-3xs flex items-center gap-1 ${
                 isGsSubtaskDone
                   ? "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed shadow-none"
+                  : isPreviousGsTaskPending
+                  ? "bg-amber-50 border border-amber-200 text-amber-600 font-semibold cursor-not-allowed"
                   : "bg-[#EFF4FF] hover:bg-[#E2ECFF] text-[#1E75FF]"
               }`}
             >
-              {isGsSubtaskDone ? "Completed" : "Mark Complete"}
+              {isGsSubtaskDone ? "Completed" : isPreviousGsTaskPending ? "Finish previous task first" : "Mark Complete"}
             </button>
           </div>
         </div>
@@ -413,15 +436,17 @@ function StudyHub() {
                 {currentOptionalSubtask?.duration || 0} Mins
               </span>
             <button
-              disabled={isOptionalSlotDone || !currentOptionalSubtask || isOptionalSubtaskDone}
+              disabled={isOptionalSlotDone || !currentOptionalSubtask || isOptionalSubtaskDone || isPreviousOptionalTaskPending}
               onClick={() => handleSubtaskComplete(optionalTask, currentOptionalSubtask)}
               className={`px-4 py-2 text-xs font-bold rounded-xl transition-all shadow-3xs flex items-center gap-1 ${
                 isOptionalSubtaskDone
                   ? "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed shadow-none"
+                  : isPreviousOptionalTaskPending
+                  ? "bg-amber-50 border border-amber-200 text-amber-600 font-semibold cursor-not-allowed"
                   : "bg-[#F4F3FF] hover:bg-[#EBE9FF] text-[#5851ED]"
               }`}
             >
-              {isOptionalSubtaskDone ? "Completed" : "Mark Complete"}
+              {isOptionalSubtaskDone ? "Completed" : isPreviousOptionalTaskPending ? "Finish previous task first" : "Mark Complete"}
             </button>
           </div>
         </div>
@@ -436,7 +461,7 @@ function StudyHub() {
           <div className="py-4">
             <div className="text-4xl mb-2">📋</div>
             <h4 className="text-2xl font-black text-[#1E2538] tracking-tight">
-              {revisionTask?.subtasks?.filter(sub => !sub.subtopicId?.startsWith("SUBJECT_MASTER_ROLLUP_")).length || 0} Revision Tasks
+              {revisionTask?.subtasks?.filter(sub => !sub.subtopicId?.startsWith("SUBJECT_MASTER_ROLLUP_")).length || 0} Scheduled Tasks
             </h4>
             <p className="text-xs font-medium text-slate-400 mt-1">
               {revisionTask?.status?.toUpperCase() === "COMPLETED" 
