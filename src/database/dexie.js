@@ -31,14 +31,14 @@ const databaseStores = {
   topic_pyq_prelims: 'id,userId,subjectId,topicId,createdAt',
 
   // Add this to your existing Dexie database tables configuration setup:
-mains_log_marks: "id, userId, questionId, timestamp",
+  mains_log_marks: "id, userId, questionId, timestamp",
   
-  // Track 4: Granular Error-Aware Core Weak Topic Engine [source: 1]
+  // Track 4: Granular Error-Aware Core Weak Topic Engine
   weak_topics: 'id,userId,subjectId,topicId,state,[userId+topicId]'
-
 };
 
-db.version(9).stores(databaseStores);
+// BUMPED TO VERSION 10 TO FORCE RE-INDEX CLEANSE IN BROWSER
+db.version(10).stores(databaseStores);
 
 /*
 |--------------------------------------------------------------------------

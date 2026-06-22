@@ -138,6 +138,7 @@ function RevisionHub() {
       const isTodayItem = todayRevisions.some(r => r.id === selectedRevItem.id);
       const remainingCount = todayRevisions.filter(r => r.id !== selectedRevItem.id && !locallyCompletedIds.has(r.id) && r.status !== "COMPLETED").length;
 
+      // IF LAST TASK: completeTaskService handles both completion and single adjustment cleanly
       if (matchedScheduleTask && isTodayItem && remainingCount === 0) {
         await completeTaskService(
           matchedScheduleTask.id,
@@ -146,6 +147,58 @@ function RevisionHub() {
           textLabelValue
         );
       } else {
+        // IF NOT LAST TASK: Manually apply single score adjustment cleanly here
+        if (selectedRevItem.topicId) {
+          let topicIntel = await db.topic_intelligence
+            .where("[userId+topicId]")
+            .equals([user.uid, selectedRevItem.topicId])
+            .first();
+
+          if (!topicIntel) {
+            topicIntel = await db.topic_intelligence
+              .where("topicId")
+              .equals(selectedRevItem.topicId)
+              .filter(r => r.userId === user.uid)
+              .first();
+          }
+            
+          let currentConfidence = topicIntel ? (topicIntel.confidenceScore || 0) : 0;
+          let adjustment = 0;
+          const qualityLower = textLabelValue.toLowerCase();
+
+          if (qualityLower.includes("strong") || qualityLower.includes("easy")) {
+            adjustment = 3;
+          } else if (qualityLower.includes("medium") || qualityLower.includes("partial")) {
+            adjustment = 2;
+          } else if (qualityLower.includes("tough") || qualityLower.includes("hard")) {
+            adjustment = 1;
+          } else if (qualityLower.includes("fail") || qualityLower.includes("weak")) {
+            adjustment = -4;
+          }
+
+          const newConfidence = Math.max(0, Math.min(100, currentConfidence + adjustment));
+
+          if (topicIntel) {
+            await db.topic_intelligence.update(topicIntel.id, {
+              confidenceScore: newConfidence,
+              updatedAt: new Date()
+            });
+          } else {
+            await db.topic_intelligence.put({
+              id: `intel_t_${Date.now()}_${selectedRevItem.topicId}`,
+              userId: user.uid,
+              topicId: selectedRevItem.topicId,
+              subjectId: selectedRevItem.subjectId || "",
+              completionScore: 0,
+              confidenceScore: newConfidence,
+              updatedAt: new Date()
+            });
+          }
+
+          const { syncTopicIntelligence } = await import("../../syllabus/services/intelligenceSyncService");
+          await syncTopicIntelligence(selectedRevItem.topicId, user.uid);
+        }
+
         await db.revisions.update(selectedRevItem.id, {
           status: "COMPLETED",
           recallQuality: textLabelValue,
@@ -293,7 +346,6 @@ function RevisionHub() {
             <RefreshCw size={11} className="animate-spin-slow" /> Spaced Repetition Active
           </span>
           
-          {/* FIXED: Stays in place, but dynamically updates background style to a greyed-out accent when finished */}
           <button
             disabled={!currentActiveRev || isActiveItemDone}
             onClick={() => handleOpenSlider(currentActiveRev)}
@@ -360,7 +412,6 @@ function RevisionHub() {
                       </div>
                     </div>
 
-                    {/* FIXED: Keeps resolving buttons locked into the view frame while applying layout grey overrides */}
                     <button
                       disabled={isBacklogDone}
                       onClick={() => handleOpenSlider(item)}
@@ -383,7 +434,7 @@ function RevisionHub() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN PANEL: UPCOMING REVISION TIMELINE */}
+        
         <div className="lg:col-span-3 bg-white border border-[#EBEFF8] rounded-[1.75rem] p-5 shadow-[0_8px_24px_rgba(235,240,248,0.35)] flex flex-col justify-between min-h-[300px]">
           <div>
             <h4 className="text-xs font-black tracking-wider uppercase text-indigo-600 flex items-center gap-1.5 border-b border-slate-50 pb-2">

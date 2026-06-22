@@ -1,96 +1,40 @@
-import { db }
-from "../../database/dexie";
-
-import {
-  getTopicIntelligence,
-} from "./topicIntelligenceEngine";
-
-import {
-  getSubjectAnalytics,
-} from "./subjectAnalyticsEngine";
+// src/syllabus/services/intelligenceSyncService.js
+import { db } from "../../database/dexie";
+import { getTopicIntelligence } from "./topicIntelligenceEngine";
+import { getSubjectAnalytics } from "./subjectAnalyticsEngine";
 
 /*
 |--------------------------------------------------------------------------
 | TOPIC INTELLIGENCE SYNC
 |--------------------------------------------------------------------------
 */
+export async function syncTopicIntelligence(topicId, userId = "local_user") {
+  // FIXED: Forward the true userId down into the engine to look up the correct row
+  const intelligence = await getTopicIntelligence(topicId, userId); 
+  if (!intelligence) return null;
 
-export async function syncTopicIntelligence(
-  topicId
-) {
-  /*
-   --------------------------
-   CALCULATE
-   --------------------------
-  */
-
-  const intelligence =
-    await getTopicIntelligence(
-      topicId
-    );
-
-  if (!intelligence) {
-    return null;
-  }
-
-  /*
-   --------------------------
-   EXISTING RECORD
-   --------------------------
-  */
-
-  const existing =
-    await db.topic_intelligence
-      .where("[userId+topicId]")
-      .equals([
-        "local_user",
-        topicId,
-      ])
-      .first();
-
-  /*
-   --------------------------
-   UPSERT
-   --------------------------
-  */
+  const existing = await db.topic_intelligence
+    .where("[userId+topicId]")
+    .equals([userId, topicId])
+    .first();
 
   const payload = {
     ...intelligence,
-
-    userId:
-      "local_user",
-
+    userId,
     topicId,
-
-    updatedAt:
-      new Date(),
+    updatedAt: new Date(),
   };
 
   if (existing) {
-    await db.topic_intelligence.update(
-      existing.id,
-      payload
-    );
+    await db.topic_intelligence.update(existing.id, payload);
   } else {
-    await db.topic_intelligence.add(
-      {
-        id:
-          crypto.randomUUID(),
-
-        ...payload,
-      }
-    );
+    await db.topic_intelligence.add({
+      id: crypto.randomUUID(),
+      ...payload,
+    });
   }
 
-  /*
-   --------------------------
-   SYNC SUBJECT
-   --------------------------
-  */
-
-  await syncSubjectIntelligence(
-    intelligence.subjectId
-  );
+  await syncSubjectIntelligence(intelligence.subjectId, userId);
 
   return intelligence;
 }
@@ -100,96 +44,35 @@ export async function syncTopicIntelligence(
 | SUBJECT INTELLIGENCE SYNC
 |--------------------------------------------------------------------------
 */
+export async function syncSubjectIntelligence(subjectId, userId = "local_user") {
+  const analytics = await getSubjectAnalytics(subjectId);
 
-export async function syncSubjectIntelligence(
-  subjectId
-) {
-  /*
-   --------------------------
-   CALCULATE
-   --------------------------
-  */
-
-  const analytics =
-    await getSubjectAnalytics(
-      subjectId
-    );
-
-  /*
-   --------------------------
-   EXISTING
-   --------------------------
-  */
-
-  const existing =
-    await db.subject_intelligence
-      .where("[userId+subjectId]")
-      .equals([
-        "local_user",
-        subjectId,
-      ])
-      .first();
-
-  /*
-   --------------------------
-   PAYLOAD
-   --------------------------
-  */
+  const existing = await db.subject_intelligence
+    .where("[userId+subjectId]")
+    .equals([userId, subjectId])
+    .first();
 
   const payload = {
-    userId:
-      "local_user",
-
+    userId,
     subjectId,
-
-    coverageScore:
-      analytics.completionProgress,
-
-    confidenceScore:
-      analytics.confidenceScore,
-
-    retentionScore:
-      analytics.retentionScore,
-
-    weakTopicDensity:
-      analytics.weakTopicsCount,
-
-    revisionHealth:
-      analytics.revisionHealth,
-
-    effectiveProgress:
-      analytics.effectiveProgress,
-
-    healthScore:
-      analytics.healthScore,
-
-    stabilityState:
-      analytics.intelligenceState,
-
-    updatedAt:
-      new Date(),
+    coverageScore: analytics.completionProgress,
+    confidenceScore: analytics.confidenceScore,
+    retentionScore: analytics.retentionScore,
+    weakTopicDensity: analytics.weakTopicsCount,
+    revisionHealth: analytics.revisionHealth,
+    effectiveProgress: analytics.effectiveProgress,
+    healthScore: analytics.healthScore,
+    stabilityState: analytics.intelligenceState,
+    updatedAt: new Date(),
   };
 
-  /*
-   --------------------------
-   UPSERT
-   --------------------------
-  */
-
   if (existing) {
-    await db.subject_intelligence.update(
-      existing.id,
-      payload
-    );
+    await db.subject_intelligence.update(existing.id, payload);
   } else {
-    await db.subject_intelligence.add(
-      {
-        id:
-          crypto.randomUUID(),
-
-        ...payload,
-      }
-    );
+    await db.subject_intelligence.add({
+      id: crypto.randomUUID(),
+      ...payload,
+    });
   }
 
   return payload;

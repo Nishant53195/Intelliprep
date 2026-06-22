@@ -85,7 +85,6 @@ function TestYourPrelims() {
     return await db.topics.where("subjectId").equals(selectedSubjectId).toArray();
   }, [selectedSubjectId]);
 
-  // Read all previous coaching attempts out of local database for the History grid view[cite: 1]
   const localCoachingHistoryRecords = useLiveQuery(async () => {
     return await db.coaching_test_prelims.toArray();
   }, [testActive, showSummary]);
@@ -240,7 +239,6 @@ function TestYourPrelims() {
       }
 
       setActiveTopicName(`${selectedCoachingBundle} - ${testItem.testName}`);
-      finalSelectedQuestions.length = 0; // Guard clear memory pointers
       setFinalSelectedQuestions(testItem.questions);
       setCurrentQuestionIdx(0);
       setSelectedAnswersMap({});
@@ -255,7 +253,7 @@ function TestYourPrelims() {
   };
 
   /* --------------------------------------------------------------------------
-   * INTERACTIVE OPTION MUTATION LIFECYCLES (Dynamic Option Selection Toggle)
+   * INTERACTIVE OPTION MUTATION LIFECYCLES
    * -------------------------------------------------------------------------- */
   const handleOptionToggleSelect = (questionItem, optionIdx) => {
     if (subSection === "coaching_series") {
@@ -281,9 +279,6 @@ function TestYourPrelims() {
     setErrorClassificationsMap(prev => ({ ...prev, [questionId]: classificationId }));
   };
 
-  /* --------------------------------------------------------------------------
-   * CENTRAL SUBMISSION REDIRECT ROLLUP LOGIC
-   * -------------------------------------------------------------------------- */
   const handlePreSubmitEvaluationRollup = () => {
     const totalCount = finalSelectedQuestions.length;
     const answeredCount = Object.keys(selectedAnswersMap).length;
@@ -317,6 +312,9 @@ function TestYourPrelims() {
     }
   };
 
+  /* --------------------------------------------------------------------------
+   * CENTRAL COMMIT TRANSACTION PASS + SCORING SCALE RULE INTEGRATOR
+   * -------------------------------------------------------------------------- */
   const executeFinalDatabaseCommitTransaction = async (finalReport) => {
     const timestamp = Date.now();
     const activeUserId = user?.uid || "local_user";
@@ -334,13 +332,25 @@ function TestYourPrelims() {
 
     const wrongQuestionBatch = [];
     const subjectsInvolved = new Set();
+    const topicConfidenceAdjustmentsMap = {};
 
     finalSelectedQuestions.forEach((q) => {
       const choice = selectedAnswersMap[q.id];
       if (choice === undefined) return;
       if (q.subjectId) subjectsInvolved.add(q.subjectId);
 
-      if (Number(choice) !== Number(q.correctAnswerIndex)) {
+      const targetTopicIdRef = q.topicId || selectedTopicId;
+      if (!targetTopicIdRef) return;
+
+      if (!topicConfidenceAdjustmentsMap[targetTopicIdRef]) {
+        topicConfidenceAdjustmentsMap[targetTopicIdRef] = { correct: 0, wrong: 0, subjectId: q.subjectId || selectedSubjectId || "" };
+      }
+
+      const isCorrectKey = Number(choice) === Number(q.correctAnswerIndex);
+      if (isCorrectKey) {
+        topicConfidenceAdjustmentsMap[targetTopicIdRef].correct++;
+      } else {
+        topicConfidenceAdjustmentsMap[targetTopicIdRef].wrong++;
         wrongQuestionBatch.push({
           questionId: q.id,
           subtopicId: q.subtopicId || "",
@@ -350,7 +360,8 @@ function TestYourPrelims() {
     });
 
     try {
-      await db.transaction("rw", [db[targetTableStr], db.weak_topics], async () => {
+      // 1. RUN NATIVE DB WRITES EXCLUSIVELY INSIDE TRANSACTION
+      await db.transaction("rw", [db[targetTableStr], db.weak_topics, db.topic_intelligence], async () => {
         const existingRecord = await db[targetTableStr].get(recordId);
 
         const newAttempt = {
@@ -378,6 +389,52 @@ function TestYourPrelims() {
             id: recordId, userId: activeUserId, subjectId: selectedSubjectId, topicId: selectedTopicId,
             maximumMarks: finalReport.total * 2, totalQuestion: finalReport.total, Attempts: updatedAttempts
           });
+        }
+
+        // --- APPLY EXCLUSIVE CONFIDENCE ADJUSTMENTS PASSTHROUGH RULES ---
+        for (const [targetTopicIdKey, counts] of Object.entries(topicConfidenceAdjustmentsMap)) {
+          let topicIntel = await db.topic_intelligence
+            .where("[userId+topicId]")
+            .equals([activeUserId, targetTopicIdKey])
+            .first();
+
+          if (!topicIntel) {
+            topicIntel = await db.topic_intelligence
+              .where("topicId")
+              .equals(targetTopicIdKey)
+              .filter(r => r.userId === activeUserId)
+              .first();
+          }
+
+          let baseConfidence = topicIntel ? (topicIntel.confidenceScore || 0) : 0;
+          let netAdjustmentValue = 0;
+
+          if (subSection === "coaching_series") {
+            netAdjustmentValue = (counts.correct * 1) + (counts.wrong * -2);
+          } else if (activeChip === "pyq") {
+            netAdjustmentValue = (counts.correct * 2) + (counts.wrong * -3);
+          } else {
+            netAdjustmentValue = (counts.correct * 1) + (counts.wrong * -2);
+          }
+
+          const finalizedConfidenceScore = Math.max(0, Math.min(100, baseConfidence + netAdjustmentValue));
+
+          if (topicIntel) {
+            await db.topic_intelligence.update(topicIntel.id, {
+              confidenceScore: finalizedConfidenceScore,
+              updatedAt: new Date()
+            });
+          } else {
+            await db.topic_intelligence.put({
+              id: `intel_t_${Date.now()}_${targetTopicIdKey}`,
+              userId: activeUserId,
+              topicId: targetTopicIdKey,
+              subjectId: counts.subjectId,
+              completionScore: 0,
+              confidenceScore: finalizedConfidenceScore,
+              updatedAt: new Date()
+            });
+          }
         }
 
         for (const wq of wrongQuestionBatch) {
@@ -413,6 +470,16 @@ function TestYourPrelims() {
         }
       });
 
+      // 2. RUN TELEMETRY SYNC OUTSIDE TRANSACTION TO PREVENT PREMATURE COMMIT ERRORS
+      try {
+        const { syncTopicIntelligence } = await import("../../syllabus/services/intelligenceSyncService");
+        for (const targetTopicIdKey of Object.keys(topicConfidenceAdjustmentsMap)) {
+          await syncTopicIntelligence(targetTopicIdKey, activeUserId);
+        }
+      } catch (syncErr) {
+        console.warn("[Sync Hook Deferred]", syncErr);
+      }
+
       setTestActive(false);
       setAuditModeActive(false);
       setShowSummary(true);
@@ -435,7 +502,6 @@ function TestYourPrelims() {
   return (
     <div className="space-y-5 text-left font-sans antialiased text-zinc-800">
       
-      {/* STANDARD HEADER TAB CONTEXT STRIPS */}
       {!testActive && (
         <>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
@@ -511,10 +577,8 @@ function TestYourPrelims() {
             <AdminQuestionForm onComplete={() => setSubSection("take_test")} />
           ) : subSection === "coaching_series" && activeChip === "mcq" ? (
             
-            /* DYNAMIC GENERATED INSTITUTES CATALOG VIEWS MATRIX */
             <div className="space-y-6 animate-in fade-in duration-200">
               
-              {/* BRAND SELECTION GRID STATE CONTAINER */}
               {!selectedCoachingBundle && (
                 <>
                   <div>
@@ -550,9 +614,6 @@ function TestYourPrelims() {
                     </div>
                   )}
 
-                  {/* ====================================================================
-                   * COMPACT HISTORY VAULT (ONLY VISIBLE ON THE COACHING NAME SELECTOR PAGE)[cite: 1]
-                   * ==================================================================== */}
                   {localCoachingHistoryRecords && localCoachingHistoryRecords.length > 0 && !loadingCoachingMetaData && (
                     <div className="mt-8 border-t border-slate-150 pt-6 space-y-4 animate-in fade-in duration-300">
                       <div className="flex items-center gap-2 text-zinc-900">
@@ -569,22 +630,18 @@ function TestYourPrelims() {
                             <div key={record.id} className="border border-slate-200 bg-white rounded-3xl p-6 shadow-3xs flex flex-col justify-between space-y-4 hover:shadow-2xs transition-all relative">
                               <div className="space-y-1">
                                 <div className="flex items-center justify-between">
-                                  {/* Dynamic Coaching Provider Pill */}
                                   <span className="text-[11px] font-black font-mono uppercase bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg tracking-wide border border-indigo-100">
                                     {record.coachingName}
                                   </span>
-                                  {/* Enlarged Dynamic History Evaluation Execution Date */}
                                   <span className="text-[13px] font-black text-zinc-700 font-mono tracking-wide">
                                     {new Date(latestRun.attemptDate).toLocaleDateString()}
                                   </span>
                                 </div>
-                                {/* Compact Testing Booklet Title Layout */}
                                 <h4 className="text-xl font-black text-zinc-900 tracking-tight pt-2 leading-tight">
                                   {record.testName}
                                 </h4>
                               </div>
 
-                              {/* Performance Layout Grid Mirroring image_ffd401.png perfectly */}
                               <div className="border border-zinc-900/90 rounded-2xl p-4 bg-white shadow-3xs space-y-3">
                                 <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-left font-sans">
                                   <div className="space-y-0.5">
@@ -627,7 +684,6 @@ function TestYourPrelims() {
                 </>
               )}
 
-              {/* INDOOR INSIDE BOOKLET SUITE VIEWPORT */}
               {selectedCoachingBundle && !loadingCoachingMetaData && (
                 <div className="space-y-4 animate-in slide-in-from-bottom-2 duration-200">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -658,11 +714,8 @@ function TestYourPrelims() {
                             </span>
                            
                             <h2 className="text-xl font-black text-zinc-900 tracking-tight pt-1">{test.testName}</h2>
-                           <p className="text-[14px] text-blue-600 font-mono font-bold">{test.questions.length} Questions
-                              
-                            </p>
+                            <p className="text-[14px] text-blue-600 font-mono font-bold">{test.questions.length} Questions</p>
                             
-                            {/* MINI COMPACT AT-A-GLANCE REPORT[cite: 1] */}
                             {pastAttempt && (
                               <div className="mt-2 text-xs bg-zinc-50 border p-3 rounded-xl flex flex-wrap gap-x-4 gap-y-1 text-zinc-700 font-black max-w-xl shadow-3xs">
                                 <span>Accuracy: <strong className="text-blue-600">{pastAttempt.accuracy}%</strong></span>
@@ -671,7 +724,6 @@ function TestYourPrelims() {
                                 <span>Wrong: <strong className="text-rose-600">-{pastAttempt.wrongCount}</strong></span>
                               </div>
                             )}
-                            
                           </div>
                           
                           <button
@@ -690,7 +742,6 @@ function TestYourPrelims() {
             </div>
 
           ) : showSummary ? (
-            /* POST-SUBMIT ANALYTICS SCORECARD VIEWPORT */
             <div className="space-y-6 text-left animate-in zoom-in-95 duration-200">
               <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
                 <div className="h-10 w-10 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-2xl flex items-center justify-center text-lg">🏆</div>
@@ -745,7 +796,6 @@ function TestYourPrelims() {
               </div>
             </div>
           ) : (
-            /* TRACK 1 & 3 GS ADAPTIVE DRILL VIEW CONSOLES */
             <div className="space-y-6 animate-in fade-in duration-200 text-left">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 border border-slate-200/60 p-4 rounded-2xl shadow-3xs">
                 <div className="space-y-1.5">
@@ -782,7 +832,7 @@ function TestYourPrelims() {
                     type="button"
                     disabled={fetchingQuestions || !selectedSubjectId || !selectedTopicId}
                     onClick={handleLoadSandboxPool}
-                    className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 text-white hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-400 font-black text-xs rounded-xl tracking-wide uppercase transition-all shadow-3xs flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 text-white hover:bg-zinc-800 disabled:bg-slate-100 disabled:text-zinc-400 font-black text-xs rounded-xl tracking-wide uppercase transition-all shadow-3xs flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     {fetchingQuestions ? (
                       <span className="flex items-center gap-2">
@@ -831,25 +881,49 @@ function TestYourPrelims() {
                       <span className="text-xl font-black text-indigo-600 block mt-1 font-mono">{questionPool.length} MCQs</span>
                     </div>
                     <button
-                      type="button"
-                      onClick={() => {
-                        const randomDeck = [...questionPool];
-                        for (let i = randomDeck.length - 1; i > 0; i--) {
-                          const j = Math.floor(Math.random() * (i + 1));
-                          [randomDeck[i], randomDeck[j]] = [randomDeck[j], randomDeck[i]];
-                        }
-                        setFinalSelectedQuestions(randomDeck);
-                        setCurrentQuestionIdx(0);
-                        setSelectedAnswersMap({}); 
-                        setQuestionAnsweredState({});
-                        setErrorClassificationsMap({});
-                        setShowSummary(false);
-                        setTestActive(true);
-                      }}
-                      className="px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-xs rounded-xl tracking-wider uppercase transition-all shadow-md flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
-                    >
-                      <Play size={12} fill="currentColor" /> {lastAttemptData ? "Reattempt" : "Attempt"}
-                    </button>
+  type="button"
+  onClick={async () => {
+    // 1. Guard rule: coaching series bypasses this block automatically
+    if (subSection !== "coaching_series" && selectedTopicId) {
+      const activeUserId = user?.uid || "local_user";
+      let topicIntel = await db.topic_intelligence
+        .where("[userId+topicId]")
+        .equals([activeUserId, selectedTopicId])
+        .first();
+
+      if (!topicIntel) {
+        topicIntel = await db.topic_intelligence
+          .where("topicId")
+          .equals(selectedTopicId)
+          .filter(r => r.userId === activeUserId)
+          .first();
+      }
+
+      // Check if topic hasn't reached 100% completion yet
+      if (!topicIntel || topicIntel.completionScore < 100) {
+        alert("🔒 Cannot start test! This topic must be marked 100% complete in your syllabus configuration before practice runs can be initiated.");
+        return;
+      }
+    }
+
+    // 2. Existing launch setup code runs exactly as before
+    const randomDeck = [...questionPool];
+    for (let i = randomDeck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [randomDeck[i], randomDeck[j]] = [randomDeck[j], randomDeck[i]];
+    }
+    setFinalSelectedQuestions(randomDeck);
+    setCurrentQuestionIdx(0);
+    setSelectedAnswersMap({}); 
+    setQuestionAnsweredState({});
+    setErrorClassificationsMap({});
+    setShowSummary(false);
+    setTestActive(true);
+  }}
+  className="px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-xs rounded-xl tracking-wider uppercase transition-all shadow-md flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+>
+  <Play size={12} fill="currentColor" /> {lastAttemptData ? "Reattempt" : "Attempt"}
+</button>
                   </div>
                 </div>
               )}
@@ -858,9 +932,6 @@ function TestYourPrelims() {
         </div>
       ) : auditModeActive ? (
         
-        /* ====================================================================
-         * COMPULSORY ISOLATED ERROR AUDIT PANEL LOCK VAULT
-         * ==================================================================== */
         <div className="fixed inset-0 z-[100000] bg-[#FFF5F5] w-screen h-screen overflow-y-auto p-4 md:p-8 flex flex-col justify-start text-left select-none animate-in fade-in duration-200">
           <div className="w-full max-w-4xl mx-auto bg-white border border-rose-200 rounded-[2.5rem] p-6 md:p-10 shadow-[0_20px_50px_rgba(220,38,38,0.15)] space-y-6">
             
@@ -928,9 +999,6 @@ function TestYourPrelims() {
         </div>
 
       ) : (
-        /* ====================================================================
-         * SECURED SIMULATOR CONTAINER CAROUSEL VIEWPORT
-         * ==================================================================== */
         <div className="fixed inset-0 z-[99999] bg-[#FAFBFD] w-screen h-screen overflow-y-auto px-4 py-6 md:p-8 flex flex-col justify-start text-left select-none animate-in fade-in duration-200">
           <div className="w-full max-w-7xl mx-auto space-y-6 flex flex-col justify-start">
             
@@ -1014,7 +1082,6 @@ function TestYourPrelims() {
                       })}
                     </div>
 
-                    {/* RE-EVALUATION COGNITIVE INTELLIGENCE LAYERS */}
                     {subSection !== "coaching_series" && questionAnsweredState[activeQuestionItem.id] && lastAttemptData && (
                       <div className="animate-in fade-in zoom-in-95 duration-200">
                         {(() => {
@@ -1043,7 +1110,6 @@ function TestYourPrelims() {
                       </div>
                     )}
 
-                    {/* COMPACT CLASSIFICATION FOR TRACK 1 & 3 */}
                     {subSection !== "coaching_series" && questionAnsweredState[activeQuestionItem.id] && 
                      Number(selectedAnswersMap[activeQuestionItem.id]) !== Number(activeQuestionItem.correctAnswerIndex) && 
                      selectedAnswersMap[activeQuestionItem.id] !== undefined && (
@@ -1083,7 +1149,7 @@ function TestYourPrelims() {
                   <button
                     disabled={currentQuestionIdx === finalSelectedQuestions.length - 1}
                     onClick={() => setCurrentQuestionIdx(p => Math.min(finalSelectedQuestions.length - 1, p + 1))}
-                    className="px-6 py-2.5 bg-slate-900 text-white hover:bg-slate-800 font-black text-xs rounded-xl transition-all shadow-3xs flex items-center gap-1 cursor-pointer"
+                    className="px-6 py-2.5 bg-slate-900 text-white hover:bg-zinc-800 font-black text-xs rounded-xl transition-all shadow-3xs flex items-center gap-1 cursor-pointer"
                   >
                     Next <ChevronRight size={14} strokeWidth={2.5} />
                   </button>
@@ -1138,11 +1204,9 @@ function TestYourPrelims() {
               </div>
 
             </div>
-
           </div>
         </div>
       )}
-
     </div>
   );
 }

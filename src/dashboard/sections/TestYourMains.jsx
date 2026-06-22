@@ -43,9 +43,6 @@ function TestYourMains() {
     demand: 0, content: 0, analysis: 0, multi: 0, valueAdd: 0, presentation: 0
   });
 
-  /* --------------------------------------------------------------------------
-   * CASCADING SYLLABUS MUTATION EFFECT LIFECYCLES
-   * -------------------------------------------------------------------------- */
   useEffect(() => {
     if (!selectedPaper) {
       setAvailableSubjects([]);
@@ -81,9 +78,6 @@ function TestYourMains() {
 
   const activeQuestionItem = questionPool[currentQuestionIdx] || null;
 
-  /* --------------------------------------------------------------------------
-   * DYNAMIC PARAMETER CALCULATOR VALUE WEIGHT COEFFICIENTS
-   * -------------------------------------------------------------------------- */
   const getMaximumParameterWeights = (maxMarksValue) => {
     const totalMarksNum = Number(maxMarksValue) || 15;
     if (totalMarksNum <= 10) {
@@ -97,9 +91,6 @@ function TestYourMains() {
 
   const activeMaxBounds = activeQuestionItem ? getMaximumParameterWeights(activeQuestionItem.maxMarks) : { demand: 3, content: 4, analysis: 3, multi: 2, valueAdd: 1.5, presentation: 1.5 };
 
-  /* --------------------------------------------------------------------------
-   * ATTEMPT VERIFICATION RESOLUTION (Local Dexie -> Firestore Fallback Handshake)
-   * -------------------------------------------------------------------------- */
   useEffect(() => {
     if (!activeQuestionItem) {
       setActivePastAttemptLog(null);
@@ -109,13 +100,11 @@ function TestYourMains() {
     const verifyAndHydratePastMainsLog = async () => {
       const activeUserId = user?.uid || "local_user";
       try {
-        // 1. Scan Local Dexie Table Registry
         let localLogs = await db.mains_log_marks
           .where("questionId")
           .equals(activeQuestionItem.id)
           .toArray();
 
-        // 2. Fallback to Cloud Firestore if local array cache is empty
         if (localLogs.length === 0) {
           console.log("[Mains Analytics] Log missing locally. Syncing from cloud ledger...");
           const cloudLogsRef = collection(firestoreDb, "mains_log_marks");
@@ -154,9 +143,6 @@ function TestYourMains() {
     verifyAndHydratePastMainsLog();
   }, [activeQuestionItem, isLogMarksOpen, currentQuestionIdx]);
 
-  /* --------------------------------------------------------------------------
-   * METRICS ENGINE HANDSHAKE (Local DB -> Firestore Fallback)
-   * -------------------------------------------------------------------------- */
   const handleLoadMainsQuestions = async () => {
     if (!selectedPaper || !selectedSubjectId || !selectedTopicId) {
       alert("Please ensure Paper, Subject, and Topic boundaries are set completely before initializing.");
@@ -234,7 +220,7 @@ function TestYourMains() {
   };
 
   /* --------------------------------------------------------------------------
-   * PERSISTENT STORAGE SUBMIT COMMIT (Save Matrix to Dexie + Cloud Sync Queue)
+   * TRACK 4 MAINS SUBMIT ACTION + SCORE BRACKET LOGIC ENGINE
    * -------------------------------------------------------------------------- */
   const handleSaveEvaluationLogData = async () => {
     if (!activeQuestionItem) return;
@@ -244,19 +230,84 @@ function TestYourMains() {
     const activeUserId = user?.uid || "local_user";
     const logId = `mains_log_${activeQuestionItem.id}_${timestamp}`;
 
+    const maxQuestionMarks = Number(activeQuestionItem.maxMarks) || 15;
+    const totalMentorObtainedSum = Object.values(mentorScores).reduce((a, b) => a + b, 0);
+
     const metricsPayload = {
       id: logId,
       userId: activeUserId,
       questionId: activeQuestionItem.id,
       timestamp: timestamp,
-      maxQuestionMarks: Number(activeQuestionItem.maxMarks) || 15,
+      maxQuestionMarks: maxQuestionMarks,
       feedback: feedbackText.trim(),
       selfEvaluation: selfScores,
       mentorEvaluation: mentorScores
     };
 
     try {
-      await db.mains_log_marks.put(metricsPayload);
+      await db.transaction("rw", [db.mains_log_marks, db.topic_intelligence], async () => {
+        await db.mains_log_marks.put(metricsPayload);
+
+        // --- EVALUATE MULTI-MARKER PERCENTAGE RATIO BRACKETS ---
+        const obtainedPercentage = (totalMentorObtainedSum / maxQuestionMarks) * 100;
+        let adjustment = 0;
+
+        if (obtainedPercentage < 35) {
+          adjustment = -4;
+        } else if (obtainedPercentage >= 35 && obtainedPercentage < 45) {
+          adjustment = 1;
+        } else if (obtainedPercentage >= 45 && obtainedPercentage < 55) {
+          adjustment = 2;
+        } else if (obtainedPercentage >= 55 && obtainedPercentage < 70) {
+          adjustment = 3;
+        } else if (obtainedPercentage >= 70) {
+          adjustment = 4;
+        }
+
+        const targetTopicId = activeQuestionItem.topicId || selectedTopicId;
+
+        let topicIntel = await db.topic_intelligence
+          .where("[userId+topicId]")
+          .equals([activeUserId, targetTopicId])
+          .first();
+
+        if (!topicIntel) {
+          topicIntel = await db.topic_intelligence
+            .where("topicId")
+            .equals(targetTopicId)
+            .filter(r => r.userId === activeUserId)
+            .first();
+        }
+
+        let baseConfidence = topicIntel ? (topicIntel.confidenceScore || 0) : 0;
+        const finalizedConfidenceScore = Math.max(0, Math.min(100, baseConfidence + adjustment));
+
+        if (topicIntel) {
+          await db.topic_intelligence.update(topicIntel.id, {
+            confidenceScore: finalizedConfidenceScore,
+            updatedAt: new Date()
+          });
+        } else {
+          await db.topic_intelligence.put({
+            id: `intel_t_${Date.now()}_${targetTopicId}`,
+            userId: activeUserId,
+            topicId: targetTopicId,
+            subjectId: activeQuestionItem.subjectId || selectedSubjectId || "",
+            completionScore: 0,
+            confidenceScore: finalizedConfidenceScore,
+            updatedAt: new Date()
+          });
+        }
+      });
+
+      // 2. TRIGGER HOOK ONCE TRANSACTION HAS CONCLUDED NATIVELY
+      const targetTopicId = activeQuestionItem.topicId || selectedTopicId;
+      try {
+        const { syncTopicIntelligence } = await import("../../syllabus/services/intelligenceSyncService");
+        await syncTopicIntelligence(targetTopicId, activeUserId);
+      } catch (syncErr) {
+        console.warn("[Mains Intel Sync Deferred]", syncErr);
+      }
 
       try {
         const { syncEngine } = await import("../../database/services/syncEngine");
@@ -274,9 +325,6 @@ function TestYourMains() {
     }
   };
 
-  /* --------------------------------------------------------------------------
-   * COMPONENT METRICS ANALYSIS CALCULATORS ENGINE
-   * -------------------------------------------------------------------------- */
   const computeDiagnosticMetricsAnalytics = (attemptLog) => {
     if (!attemptLog) return null;
     
@@ -297,7 +345,6 @@ function TestYourMains() {
       { id: "presentation", label: "Presentation/Structure", score: mentor.presentation, max: bounds.presentation },
     ];
 
-    // Detect structural weakness brackets dynamically
     const weaknessesList = [];
     definitions.forEach(d => {
       const ratio = d.score / d.max;
@@ -308,7 +355,6 @@ function TestYourMains() {
       }
     });
 
-    // Assess overall bracket ratio classifiers
     let qualityRatingStr = "Average Quality";
     const overallRatio = totalMentorSum / fullMarks;
 
@@ -337,17 +383,14 @@ function TestYourMains() {
   return (
     <div className="space-y-6 text-left font-sans antialiased text-zinc-800">
       
-      {/* SECTION VIEW DETAILS HEADER */}
       <div className="border-b border-slate-200 pb-4">
         <h2 className="text-xl font-black text-zinc-900 tracking-tight">Mains Evaluator Blueprint Workspace</h2>
         <p className="text-xs font-semibold text-slate-400 mt-0.5">Draft structural frames, organize high-yield keywords, and review previous UPSC parameters.</p>
       </div>
 
-      {/* SYLLABUS ALIGNMENT SELECTOR BLOCK GRID */}
       <div className="bg-white border border-[#EBEFF8] rounded-[2rem] p-6 shadow-[0_8px_24px_rgba(235,240,248,0.35)] space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 border border-slate-200/60 p-4 rounded-2xl shadow-3xs">
           
-          {/* Select Paper Input Console */}
           <div className="space-y-1.5">
             <label className="text-[13px] font-black text-black uppercase tracking-wide block">
               Select Paper
@@ -365,7 +408,6 @@ function TestYourMains() {
             </select>
           </div>
 
-          {/* Select Subject Input Console */}
           <div className="space-y-1.5">
             <label className="text-[13px] font-black text-black uppercase tracking-wide block">
               Select Subject
@@ -383,7 +425,6 @@ function TestYourMains() {
             </select>
           </div>
 
-          {/* Select Topic Input Console */}
           <div className="space-y-1.5">
             <label className="text-[13px] font-black text-black uppercase tracking-wide block">
               Select Topic
@@ -401,7 +442,6 @@ function TestYourMains() {
             </select>
           </div>
 
-          {/* Load Action Execution Trigger Sub-Bar */}
           <div className="md:col-span-3 pt-2 flex justify-end">
             <button
               type="button"
@@ -420,13 +460,11 @@ function TestYourMains() {
           </div>
         </div>
 
-        {/* WORKSPACE CAROUSEL RUNTIME MOUNT VIEWPORT CONTAINER */}
         {hasLoadedPool && (
           <div className="space-y-6 animate-in zoom-in-95 duration-200">
             {questionPool.length > 0 ? (
               <div className="space-y-6">
                 
-                {/* META RUN CONTEXT LABEL INFO STRIP */}
                 <div className="border border-indigo-100 bg-gradient-to-r from-indigo-50/20 to-transparent rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-3xs">
                   <div>
                     <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-md tracking-wider">
@@ -439,11 +477,9 @@ function TestYourMains() {
                   </div>
                 </div>
 
-                {/* VISIBLE ACTIVE MAIN QUESTION PRESENTATION VIEWER */}
                 {activeQuestionItem && (
                   <div className="border border-slate-100 bg-slate-50/40 rounded-3xl p-6 md:p-8 space-y-6 shadow-3xs relative">
                     
-                    {/* TOP SUMMARY PARAMETERS CAPTION BAR */}
                     <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-200 pb-3">
                       <div className="flex flex-wrap gap-2 text-xs font-mono font-bold text-zinc-600">
                         {activeQuestionItem.year && (
@@ -463,17 +499,38 @@ function TestYourMains() {
                         )}
                       </div>
 
-                      {/* Log Marks Action Execution Trigger Node (Dynamically Renamed Button) */}
                       <button
-                        type="button"
-                        onClick={handleOpenLogMarksDrawer}
-                        className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-3xs uppercase tracking-wide transition-all flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <PenTool size={12} /> {activePastAttemptLog ? "Reattempt" : "Attempt"}
-                      </button>
+  type="button"
+  onClick={async () => {
+    if (selectedTopicId) {
+      const activeUserId = user?.uid || "local_user";
+      let topicIntel = await db.topic_intelligence
+        .where("[userId+topicId]")
+        .equals([activeUserId, selectedTopicId])
+        .first();
+
+      if (!topicIntel) {
+        topicIntel = await db.topic_intelligence
+          .where("topicId")
+          .equals(selectedTopicId)
+          .filter(r => r.userId === activeUserId)
+          .first();
+      }
+
+      if (!topicIntel || topicIntel.completionScore < 100) {
+        alert("🔒 Practice Blocked! You must finish studying all component nodes for this topic and hit 100% completion progress before recording written marks.");
+        return;
+      }
+    }
+    // Fire original drawer layout if valid
+    handleOpenLogMarksDrawer();
+  }}
+  className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-3xs uppercase tracking-wide transition-all flex items-center gap-1.5 cursor-pointer"
+>
+  <PenTool size={12} /> {activePastAttemptLog ? "Reattempt" : "Attempt"}
+</button>
                     </div>
 
-                    {/* CORE QUESTION TEXT FIELD */}
                     <div className="text-left pt-2">
                       <div 
                         className="text-lg font-bold text-zinc-900 leading-relaxed font-sans tracking-tight"
@@ -481,9 +538,6 @@ function TestYourMains() {
                       />
                     </div>
 
-                    {/* ====================================================================
-                     * LIVE HISTORICAL METRICS DIAGNOSTICS CARD PANEL VIEWPORT
-                     * ==================================================================== */}
                     {activePastAttemptLog && analyticsProfile && (
                       <div className="mt-6 border-t border-zinc-200 pt-5 space-y-4 animate-in slide-in-from-top-3 duration-200">
                         <div className="flex items-center gap-2 text-zinc-900">
@@ -508,7 +562,6 @@ function TestYourMains() {
                           </div>
                         </div>
 
-                        {/* Component Vulnerabilities Log Trackers */}
                         {analyticsProfile.weaknesses.length > 0 ? (
                           <div className="bg-rose-50/60 border border-rose-200 rounded-xl p-4 space-y-2">
                             <span className="text-[10px] font-black uppercase tracking-wider text-rose-700 block">Identified Structural Failures & Weaknesses</span>
@@ -541,7 +594,6 @@ function TestYourMains() {
                   </div>
                 )}
 
-                {/* PAGINATION QUEUE NAVIGATION CONTROLS */}
                 <div className="flex items-center justify-between pt-2">
                   <button
                     disabled={currentQuestionIdx === 0}
@@ -570,7 +622,6 @@ function TestYourMains() {
           </div>
         )}
 
-        {/* DEFAULT STATE UNINITIALIZED WATERMARK DISPLAY */}
         {!hasLoadedPool && (
           <div className="flex flex-col items-center justify-center text-center py-14 text-zinc-400 space-y-2">
             <div className="text-3xl select-none">✍️</div>
@@ -579,9 +630,6 @@ function TestYourMains() {
         )}
       </div>
 
-      {/* ====================================================================
-       * ISOLATED OVERLAY PORTAL DRAWER: KEYBOARD LOCK INPUT MARK MANAGER
-       * ==================================================================== */}
       {isLogMarksOpen && activeQuestionItem && (
         <div className="fixed inset-0 z-[100000] bg-zinc-950/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200 overflow-y-auto">
           <div className="bg-white border border-slate-200 rounded-[2rem] w-full max-w-3xl p-6 md:p-8 shadow-[0_24px_60px_rgba(0,0,0,0.15)] space-y-5 relative my-8 text-left animate-in zoom-in-95 duration-200">
@@ -623,7 +671,6 @@ function TestYourMains() {
                     <span className="text-[10px] font-mono text-zinc-400 font-medium">Max Limit Bounds: {param.max}M</span>
                   </div>
                   
-                  {/* Self Score Input Container */}
                   <div className="col-span-3 px-1">
                     <input 
                       type="number"
@@ -637,7 +684,6 @@ function TestYourMains() {
                     />
                   </div>
 
-                  {/* Mentor Score Input Container */}
                   <div className="col-span-3 px-1">
                     <input 
                       type="number"
@@ -677,11 +723,9 @@ function TestYourMains() {
                 Save Evaluation Data
               </button>
             </div>
-
           </div>
         </div>
       )}
-
     </div>
   );
 }

@@ -139,58 +139,64 @@ function TopicExplorer({ subject, onBackSubject }) {
               }
 
               return (
-                <div
-                  key={topic.id}
-                  onClick={() => setSelectedTopic(topic)}
-                  className="relative group bg-white border border-[#EBEFF8] rounded-2xl p-5 shadow-[0_8px_24px_rgba(235,240,248,0.35)] hover:shadow-md hover:border-slate-200 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[160px]"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-[#F0F4FF] text-indigo-600 flex items-center justify-center text-sm shrink-0">
-                        {completed ? "🏛️" : "📖"}
-                      </div>
-                      
-                      <span className="text-[11px] font-mono font-black text-slate-600 shrink-0 bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded">
-                        {realProgressPercent}%
-                      </span>
-                    </div>
+  <div
+    key={topic.id}
+    onClick={() => setSelectedTopic(topic)}
+    className="group bg-white border border-[#EBEFF8] rounded-[2rem] p-5 shadow-[0_10px_30px_rgba(235,240,248,0.4)] hover:shadow-md hover:border-slate-200/80 transition-all duration-200 cursor-pointer relative flex flex-col justify-between min-h-[180px]"
+  >
+    <div className="space-y-4">
+      {/* Top Meta Row matching Subject Explorer badge styles */}
+      <div className="flex items-center justify-between gap-4">
+        <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-md border uppercase tracking-wider ${
+          completed 
+            ? "bg-emerald-50 border-emerald-100 text-emerald-700" 
+            : inProgress 
+            ? "bg-blue-50 border-blue-100 text-blue-600" 
+            : "bg-slate-50 border-slate-200 text-slate-400"
+        }`}>
+          {completed ? "Completed" : inProgress ? "In Progress" : "Pending"}
+        </span>
+       
+      </div>
 
-                    <h4 className="text-xs font-black text-slate-800 tracking-tight leading-snug pt-1 group-hover:text-indigo-600 transition-colors line-clamp-2">
-                      {topic.name}
-                    </h4>
+      {/* Main Title Row matching Subject Explorer typography layout */}
+      <div className="flex items-center gap-3 pt-1">
+        <div className="h-10 w-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-lg shadow-3xs group-hover:bg-[#F0F4FF] transition-colors shrink-0">
+          {completed ? "🏛️" : "📖"}
+        </div>
+        <h3 className="text-sm font-black text-slate-800 tracking-tight leading-tight line-clamp-2">
+          {topic.name}
+        </h3>
+      </div>
+    </div>
 
-                    {/* INTELLIGENCE PARAMETER TAGS */}
-                    <div className="flex flex-wrap gap-1 pt-1">
-                      {highImportance && (
-                        <span className="text-[8px] font-black tracking-wide uppercase px-1.5 py-0.5 rounded bg-indigo-50 border border-indigo-100 text-indigo-600">
-                          CRITICAL CORE
-                        </span>
-                      )}
-                      {highDecay && (
-                        <span className="text-[8px] font-black tracking-wide uppercase px-1.5 py-0.5 rounded bg-rose-50 border border-rose-100 text-rose-600">
-                          DECAY RISK
-                        </span>
-                      )}
-                    </div>
-                  </div>
+    {/* High Density Split-Card Column Grid pulled directly from Subject Explorer UI */}
+    <div className="mt-5 pt-3 border-t border-slate-50 space-y-4">
+      <div className="grid grid-cols-2 gap-3 text-left">
+        <div className="rounded-xl bg-[#F8FAFD] border border-[#EFF2F9] p-2.5">
+          <p className="text-[9px] font-extrabold uppercase text-slate-400 tracking-tight">Progress</p>
+          <p className="text-xs font-black text-indigo-600 mt-0.5">
+            {realProgressPercent}%
+          </p>
+        </div>
+        <div className="rounded-xl bg-[#F8FAFD] border border-[#EFF2F9] p-2.5">
+          <p className="text-[9px] font-extrabold uppercase text-slate-400 tracking-tight">Confidence</p>
+          <p className="text-xs font-black text-amber-600 mt-0.5">
+            {intelligence ? intelligence.confidenceScore : 0}%
+          </p>
+        </div>
+      </div>
 
-                  <div className="mt-4 pt-2 border-t border-slate-50 flex items-center justify-between">
-                    <span className={`text-[10px] font-black tracking-wide uppercase px-2.5 py-0.5 rounded-full border ${statusClass}`}>
-                      • {statusLabel}
-                    </span>
-
-                    <div className="h-6 w-6 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-all">
-                      <span className="text-xs font-bold font-mono">→</span>
-                    </div>
-                  </div>
-
-                  {inProgress && (
-                    <div className="absolute bottom-0 left-5 right-5 h-[3px] bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full w-[35%] bg-blue-500 rounded-full" />
-                    </div>
-                  )}
-                </div>
-              );
+      {/* Clean Card Footer Row matching layout alignment */}
+      <div className="flex items-center justify-between text-[10px] font-bold pt-1 text-slate-400 border-t border-slate-50/50">
+        <span className="font-mono">Direct Data Stream</span>
+        <span className="text-indigo-600 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
+          Explore Items <span className="text-xs">→</span>
+        </span>
+      </div>
+    </div>
+  </div>
+);
             })}
           </div>
         </div>

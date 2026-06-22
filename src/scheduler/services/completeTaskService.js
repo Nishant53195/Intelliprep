@@ -36,6 +36,61 @@ export async function completeTaskService(taskId, targetSubtopicId, targetTopicI
         updatedAt: Date.now()
       });
 
+      // --- DYNAMIC TOPIC CONFIDENCE SCORE ADJUSTMENT ---
+      if (activeRevision.topicId) {
+        let topicIntel = await db.topic_intelligence
+          .where("[userId+topicId]")
+          .equals([userId, activeRevision.topicId])
+          .first();
+
+        // Robust fallback lookup check to verify profile consistency 
+        if (!topicIntel) {
+          topicIntel = await db.topic_intelligence
+            .where("topicId")
+            .equals(activeRevision.topicId)
+            .filter(r => r.userId === userId)
+            .first();
+        }
+          
+        // Base baseline calculation starts at 0 if no record exists yet
+        let currentConfidence = topicIntel ? (topicIntel.confidenceScore || 0) : 0;
+        let adjustment = 0;
+        const qualityLower = recallQuality.toLowerCase();
+
+        if (qualityLower.includes("strong") || qualityLower.includes("easy")) {
+          adjustment = 3;
+        } else if (qualityLower.includes("medium") || qualityLower.includes("partial")) {
+          adjustment = 2;
+        } else if (qualityLower.includes("tough") || qualityLower.includes("hard")) {
+          adjustment = 1;
+        } else if (qualityLower.includes("fail") || qualityLower.includes("weak")) {
+          adjustment = -4;
+        }
+
+        const newConfidence = Math.max(0, Math.min(100, currentConfidence + adjustment));
+
+        if (topicIntel) {
+          await db.topic_intelligence.update(topicIntel.id, {
+            confidenceScore: newConfidence,
+            updatedAt: new Date()
+          });
+        } else {
+          await db.topic_intelligence.put({
+            id: `intel_t_${Date.now()}_${activeRevision.topicId}`,
+            userId,
+            topicId: activeRevision.topicId,
+            subjectId: activeRevision.subjectId || "",
+            completionScore: 0,
+            confidenceScore: newConfidence,
+            updatedAt: new Date()
+          });
+        }
+
+        // Re-sync topic intelligence parameters to instantly apply the updated score
+        const { syncTopicIntelligence } = await import("../../syllabus/services/intelligenceSyncService");
+        await syncTopicIntelligence(activeRevision.topicId, userId);
+      }
+
       // SUBTOPIC LEVEL CONTINUOUS REVISION TRACKING (D3 -> D10 -> D30)
       if (activeRevision.revisionStage === "D3") {
         const duplicateCheck = await db.revisions
@@ -110,8 +165,6 @@ export async function completeTaskService(taskId, targetSubtopicId, targetTopicI
   }
 
   // --- 2. STANDARD WORKSPACE CLOSURES (GS / OPTIONAL STUDY TASKS) ---
-  const cleanSubtopicId = (targetSubtopicId || "").replace(/_chunk_\d+$/, "");
-  
   if (targetSubtopicId) {
     const matchedSubtask = taskRow.subtasks?.find(st => st.subtopicId === targetSubtopicId);
     if (matchedSubtask) {
@@ -130,25 +183,22 @@ export async function completeTaskService(taskId, targetSubtopicId, targetTopicI
   // --- 3. DYNAMIC TARGET CHECK: AUTOMATIC WHOLE-SUBJECT COMPLETION INTERCEPTOR FOR C1 ONLY ---
   const refetchedTaskRow = await db.schedule_tasks.get(taskId);
   if (refetchedTaskRow) {
-    // RESOLVE TRUE SUBJECT ID: Look up the parent topic row directly to prevent ID field contamination bugs
     const sampleTopicId = targetTopicId || refetchedTaskRow.topicId || refetchedTaskRow.subtasks?.[0]?.topicId;
     let parentSubjectId = refetchedTaskRow.subjectId;
 
     if (sampleTopicId) {
       const topicRecord = await db.topics.get(sampleTopicId);
       if (topicRecord && topicRecord.subjectId) {
-        parentSubjectId = topicRecord.subjectId; // Guaranteed to be the true high-level Subject ID (e.g., 'sub_ancient_history')
+        parentSubjectId = topicRecord.subjectId; 
       }
     }
 
     if (parentSubjectId) {
-      // 1. Fetch total static syllabus scope subtopics for this true whole subject
       const allSubjectSubtopics = await db.subtopics
         .where("subjectId")
         .equals(parentSubjectId)
         .toArray();
 
-      // Fallback check: try querying by topic rollup if data keys were seeded with topic overrides
       let subtopicIds = allSubjectSubtopics.map(s => s.id);
       if (subtopicIds.length === 0 && sampleTopicId) {
         const siblingSubtopics = await db.subtopics.where("topicId").equals(sampleTopicId).toArray();
@@ -156,17 +206,13 @@ export async function completeTaskService(taskId, targetSubtopicId, targetTopicI
       }
 
       if (subtopicIds.length > 0) {
-        // 2. Query actual live progression metrics
         const progressRecords = await db.subtopic_progress
           .where("subtopicId")
           .anyOf(subtopicIds)
           .filter(p => p.status?.toUpperCase() === "COMPLETED")
           .toArray();
 
-        // 3. Trigger condition: If the number of finished database progress rows matches the entire subject scope
         if (progressRecords.length >= subtopicIds.length) {
-          
-          // GATED RE-TRIGGER CHECK: Ensure C1 is only scheduled if it has NEVER been initialized before
           const subjectTokenKey = `SUBJECT_MASTER_ROLLUP_${parentSubjectId}`;
           const existingMacroCheck = await db.revisions
             .where("subtopicId")
@@ -218,9 +264,7 @@ export async function completeTaskService(taskId, targetSubtopicId, targetTopicI
 async function commitSubtopicStatusToDatabase(subtask, userId, todayStr) {
   const { subtopicId, topicId, isFinalChunk, nextRemainingMinutes, completedChunksCount, subjectId } = subtask;
   
-  // Clean the id reference pointer to handle multi-part chunks seamlessly
   const cleanId = (subtopicId || "").replace(/_chunk_\d+$/, "");
-  
   const progressRecord = await db.subtopic_progress.where("subtopicId").equals(cleanId).first();
   const recordId = progressRecord ? progressRecord.id : `prog_node_${Date.now()}_${cleanId}`;
 
@@ -239,6 +283,26 @@ async function commitSubtopicStatusToDatabase(subtask, userId, todayStr) {
     await db.subtopics.update(cleanId, { 
       status: "COMPLETED" 
     });
+
+    // --- INITIALIZE TOPIC INTELLIGENCE ROWS IMMEDIATELY ON FIRST SUBTOPIC COMPLETION ---
+    if (topicId) {
+      const existingIntel = await db.topic_intelligence
+        .where("[userId+topicId]")
+        .equals([userId, topicId])
+        .first();
+
+      if (!existingIntel) {
+        await db.topic_intelligence.put({
+          id: `intel_t_${Date.now()}_${topicId}`,
+          userId,
+          topicId,
+          subjectId: subjectId || "",
+          completionScore: 0,
+          confidenceScore: 0, // Starts at 0
+          updatedAt: new Date()
+        });
+      }
+    }
 
     // SEED D3 REVISION MILESTONE EXCLUSIVELY FOR SUBTOPICS
     const existingD3 = await db.revisions
@@ -267,6 +331,21 @@ async function commitSubtopicStatusToDatabase(subtask, userId, todayStr) {
 
       if (isTopicFinished) {
         await db.topics.update(topicId, { status: "COMPLETED" });
+
+        // --- ADD EXTRA +60 BONUS ON WHOLE TOPIC COMPLETION ---
+        const intelRecord = await db.topic_intelligence
+          .where("[userId+topicId]")
+          .equals([userId, topicId])
+          .first();
+
+        if (intelRecord) {
+          const newConfidence = Math.min(100, (intelRecord.confidenceScore || 0) + 60);
+          await db.topic_intelligence.update(intelRecord.id, {
+            confidenceScore: newConfidence,
+            completionScore: 100,
+            updatedAt: new Date()
+          });
+        }
       }
     }
   } else {
