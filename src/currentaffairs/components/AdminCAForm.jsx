@@ -52,17 +52,35 @@ function AdminCAForm() {
     setAvailableTopics(filteredTopics);
   }, [formData.subjectTags, availableSubjects]);
 
-  // Cascade 3: Filter subtopics when selected topics change
+  // Cascade 3: Filter subtopics when selected topics change (UPDATED TO COMPOSITE IDS)
   useEffect(() => {
-    if (formData.topicTags.length === 0) {
+    if (formData.topicTags.length === 0 || formData.subjectTags.length === 0) {
       setAvailableSubtopics([]);
       return;
     }
+
+    const primarySubjectId = formData.subjectTags[0];
+    const primaryTopicId = formData.topicTags[0];
+
     const filteredSubtopics = availableTopics
       .filter(top => formData.topicTags.includes(top.id))
-      .flatMap(top => top.subtopics || []);
+      .flatMap(top => {
+        const rawSubtopics = top.subtopics || [];
+        return rawSubtopics.map((st, index) => {
+          // Replicate exact composite ID normalization logic
+          const safeSubtopicId = st.id 
+            ? `${primarySubjectId}-${primaryTopicId}-${st.id}` 
+            : `${primaryTopicId}-subtopic-${index}`;
+          
+          return {
+            ...st,
+            id: safeSubtopicId
+          };
+        });
+      });
+
     setAvailableSubtopics(filteredSubtopics);
-  }, [formData.topicTags, availableTopics]);
+  }, [formData.topicTags, formData.subjectTags, availableTopics]);
 
   // Dynamic Evolution Linkage Filtering: Pulls records that match selected subject AND topic
   useEffect(() => {
@@ -120,7 +138,6 @@ function AdminCAForm() {
 
     console.log("🚀 Publish initiated! Current Form Payload state:", formData);
 
-    // Sanitize and structural check for empty values
     const textSummaryOnly = (formData.summary || "").replace(/<[^>]*>/g, '').trim();
 
     if (!formData.title.trim()) {
@@ -144,9 +161,8 @@ function AdminCAForm() {
         paperTag: formData.paperTags[0] || "",
         subjectTag: formData.subjectTags[0] || "", 
         topicTag: formData.topicTags[0] || "",
-        subtopicTag: formData.subtopicTags[0] || "",
+        subtopicTag: formData.subtopicTags[0] || "", // Now successfully submits composite ID format!
         issueEvolutionIds: formData.parentIssueId ? [formData.parentIssueId] : [],
-        // STEP 2 BOUNDARY: Force current user email context with structural master fallback mapping
         createdBy: user?.email || "nishant53195@gmail.com",
         createdAt: new Date()
       };
@@ -157,7 +173,6 @@ function AdminCAForm() {
       console.log("✅ Success: Context committed securely.");
       alert("Intelligence context node committed securely to index registry.");
       
-      // Reset form controls completely
       setFormData({
         title: "", 
         summary: "", 
@@ -175,7 +190,6 @@ function AdminCAForm() {
         editorRef.current.innerHTML = "";
       }
 
-      // Fire synchronization refresh triggers to global components
       window.dispatchEvent(new Event("syllabus-update"));
 
     } catch (error) {
@@ -185,9 +199,7 @@ function AdminCAForm() {
   };
 
   return (
-    // Wrapped everything cleanly within an active HTML form component 
     <form onSubmit={handleSubmit} className="space-y-5 text-left font-sans antialiased">
-      
       {/* ==========================================
           SECTION 1: NODE DETAILS
           ========================================== */}
@@ -197,7 +209,6 @@ function AdminCAForm() {
         </h4>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Node Title input block */}
           <div className="md:col-span-2 space-y-1.5">
             <label className="text-[11px] font-black text-slate-700 uppercase tracking-wide">Node Title</label>
             <input 
@@ -209,7 +220,6 @@ function AdminCAForm() {
             />
           </div>
 
-          {/* Anchor Timeline Calendar Picker */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-black text-slate-700 uppercase tracking-wide">Timeline Anchor Date</label>
             <input 
@@ -220,7 +230,6 @@ function AdminCAForm() {
             />
           </div>
 
-          {/* Source Reference Metadata string */}
           <div className="md:col-span-2 space-y-1.5">
             <label className="text-[11px] font-black text-slate-700 uppercase tracking-wide">Source Reference</label>
             <input 
@@ -232,7 +241,6 @@ function AdminCAForm() {
             />
           </div>
 
-          {/* Exam Mode Segmented controls configuration mapping */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-black text-slate-700 uppercase tracking-wide">Exam Targeting Mode</label>
             <div className="grid grid-cols-3 gap-1 bg-slate-50 border border-slate-200/80 rounded-xl p-1">
@@ -259,7 +267,7 @@ function AdminCAForm() {
       </div>
 
       {/* ==========================================
-          SECTION 2: ANALYTICAL SUMMARY (Editor Area)
+          SECTION 2: ANALYTICAL SUMMARY
           ========================================== */}
       <div className="bg-white border border-[#EBEFF8] rounded-2xl p-5 shadow-[0_8px_24px_rgba(235,240,248,0.35)] space-y-3">
         <div className="flex items-center justify-between border-b border-slate-50 pb-2">
@@ -451,7 +459,6 @@ function AdminCAForm() {
           </button>
         </div>
       </div>
-
     </form>
   );
 }

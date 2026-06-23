@@ -69,15 +69,29 @@ function AdminQuestionForm({ onComplete }) {
     setAvailableTopics(selectedSubj?.topics || []);
   }, [activeQuestion.subjectTag, availableSubjects]);
 
-  // Cascade 3: Topics -> Subtopics
+  // Cascade 3: Topics -> Subtopics (FULLY REWRITTEN TO INTERCEPT COMPOSITE KEY MAPS)
   useEffect(() => {
-    if (!activeQuestion.topicTag) {
+    if (!activeQuestion.topicTag || !activeQuestion.subjectTag) {
       setAvailableSubtopics([]);
       return;
     }
     const selectedTopic = availableTopics.find(t => t.id === activeQuestion.topicTag);
-    setAvailableSubtopics(selectedTopic?.subtopics || []);
-  }, [activeQuestion.topicTag, availableTopics]);
+    const rawSubtopics = selectedTopic?.subtopics || [];
+
+    // Map structural elements to generate composite IDs exactly matching normalizeSyllabus.js
+    const normalizedSubtopicsForDropdown = rawSubtopics.map((st, index) => {
+      const safeSubtopicId = st.id 
+        ? `${activeQuestion.subjectTag}-${activeQuestion.topicTag}-${st.id}` 
+        : `${activeQuestion.topicTag}-subtopic-${index}`;
+
+      return {
+        ...st,
+        id: safeSubtopicId // Enforce tracking structural alignment
+      };
+    });
+
+    setAvailableSubtopics(normalizedSubtopicsForDropdown);
+  }, [activeQuestion.topicTag, activeQuestion.subjectTag, availableTopics]);
 
   // Unified nested state array mutation updater channel
   const updateActiveQueueItem = (fields) => {
@@ -118,11 +132,21 @@ function AdminQuestionForm({ onComplete }) {
       const standardArrayData = Array.isArray(parsedData) ? parsedData : [parsedData];
       
       const structuralQueueElements = standardArrayData.map(item => {
+        const paperTag = item.paperTag || item.paper || "";
+        const subjectTag = item.subjectTag || item.subjectId || "";
+        const topicTag = item.topicTag || item.topicId || "";
+        let subtopicTag = item.subtopicTag || item.subtopicId || "";
+
+        // If the imported subtopic id is a simple short raw key instead of a unified composite format, normalize it
+        if (subtopicTag && subjectTag && topicTag && !subtopicTag.includes(topicTag)) {
+          subtopicTag = `${subjectTag}-${topicTag}-${subtopicTag}`;
+        }
+
         return {
-          paperTag: item.paperTag || item.paper || "",
-          subjectTag: item.subjectTag || item.subjectId || "",
-          topicTag: item.topicTag || item.topicId || "",
-          subtopicTag: item.subtopicTag || item.subtopicId || "",
+          paperTag,
+          subjectTag,
+          topicTag,
+          subtopicTag,
           questionText: item.questionText || item.question || "",
           options: Array.isArray(item.options) ? [...item.options, "", "", ""].slice(0, 4) : ["", "", "", ""],
           correctAnswerIndex: item.correctAnswerIndex !== undefined ? Number(item.correctAnswerIndex) : 0,
@@ -191,7 +215,6 @@ function AdminQuestionForm({ onComplete }) {
     }
 
     try {
-      // Use standard pyqs warehouse collection for all objective questions telemetry
       let targetTable = "pyqs"; 
       
       const processedBatchPayloads = questionQueue.map((q, idx) => {
@@ -329,7 +352,7 @@ function AdminQuestionForm({ onComplete }) {
             value={importJsonText}
             onChange={e => setImportJsonText(e.target.value)}
             className="w-full font-mono bg-slate-950 border border-slate-800 rounded-xl p-3 text-[11px] text-emerald-400 placeholder-slate-600 outline-none shadow-inner"
-            placeholder={`[\n  {\n    "questionText": "Sample question context string",\n    "paperTag": "GS3",\n    "coachingName": "Vision IAS",\n    "testName": "Polity I",\n    "testType": "SUBJECT_TEST",\n    "options": ["A", "B", "C", "D"],\n    "correctAnswerIndex": 0\n  }\n]`}
+            placeholder={`[\n  {\n    "questionText": "Sample question context string",\n    "paperTag": "GS3",\n    "subjectTag": "economy",\n    "topicTag": "fiscal-policy",\n    "subtopicTag": "subtopic-0",\n    "options": ["A", "B", "C", "D"],\n    "correctAnswerIndex": 0\n  }\n]`}
           />
           <div className="flex justify-end gap-2">
             <button type="button" onClick={() => setShowImportArea(false)} className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 rounded-lg text-[11px] font-bold cursor-pointer">Cancel</button>

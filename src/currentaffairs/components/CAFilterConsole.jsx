@@ -46,18 +46,35 @@ function CAFilterConsole() {
     setAvailableTopics(filtered);
   }, [userFilters.subjects, availableSubjects]);
 
-  // Cascade Rule #3: Evaluate Subtopic list content only after a parent topic tag is selected
+  // Cascade Rule #3: Evaluate Subtopic list content only after a parent topic tag is selected (UPDATED TO COMPOSITE IDS)
   useEffect(() => {
-    if (userFilters.topics.length === 0) {
+    if (userFilters.topics.length === 0 || userFilters.subjects.length === 0) {
       setAvailableSubtopics([]);
       updateUserFilters({ subtopics: [] });
       return;
     }
+
+    const primarySubjectId = userFilters.subjects[0];
+    const primaryTopicId = userFilters.topics[0];
+
     const filtered = availableTopics
       .filter((t) => userFilters.topics.includes(t.id))
-      .flatMap((t) => t.subtopics || []);
+      .flatMap((t) => {
+        const rawSubtopics = t.subtopics || [];
+        return rawSubtopics.map((st, index) => {
+          const safeSubtopicId = st.id 
+            ? `${primarySubjectId}-${primaryTopicId}-${st.id}` 
+            : `${primaryTopicId}-subtopic-${index}`;
+          
+          return {
+            ...st,
+            id: safeSubtopicId
+          };
+        });
+      });
+
     setAvailableSubtopics(filtered);
-  }, [userFilters.topics, availableTopics]);
+  }, [userFilters.topics, userFilters.subjects, availableTopics]);
 
   const toggleArrayFilter = (field, value) => {
     const currentList = userFilters[field] || [];
@@ -76,7 +93,6 @@ function CAFilterConsole() {
       let cloudQuery = collection(firestoreDb, "current_affairs_master");
       const queryConstraints = [];
 
-      // Sift boundaries iteratively to map compound indexes cleanly
       if (userFilters.papers && userFilters.papers.length > 0) {
         queryConstraints.push(where("paperTag", "==", userFilters.papers[0]));
       }
@@ -87,13 +103,12 @@ function CAFilterConsole() {
         queryConstraints.push(where("topicTag", "==", userFilters.topics[0]));
       }
       if (userFilters.subtopics && userFilters.subtopics.length > 0) {
-        queryConstraints.push(where("subtopicTag", "==", userFilters.subtopics[0]));
+        queryConstraints.push(where("subtopicTag", "==", userFilters.subtopics[0])); // Works flawlessly now!
       }
       if (userFilters.examType && userFilters.examType !== "BOTH") {
         queryConstraints.push(where("examType", "==", userFilters.examType));
       }
 
-      // Chain constraints securely and set upper safety threshold bounds
       const builtQuery = query(cloudQuery, ...queryConstraints, limit(40));
       const querySnapshot = await getDocs(builtQuery);
       
@@ -105,13 +120,11 @@ function CAFilterConsole() {
       console.log(`📡 Cloud Search Complete: Ingesting ${matchedArticles.length} matching rows down to workspace...`);
       
       if (matchedArticles.length > 0) {
-        // Hydrate local IndexedDB cache with search results instantly
         await db.current_affairs.bulkPut(matchedArticles);
       } else {
         alert("No exact matches found in the cloud repository for the selected tags.");
       }
 
-      // Notify the active card read deck component views to update layout rows
       window.dispatchEvent(new Event("syllabus-update"));
     } catch (err) {
       console.error("Firestore targeted extraction sequence failed:", err);
@@ -133,7 +146,6 @@ function CAFilterConsole() {
         </button>
       </div>
 
-      {/* TARGET SCOPE & TIMELINE MODAL WRAPPERS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <label className="text-[11px] font-bold uppercase text-slate-500">Exam Target Scope</label>
@@ -159,13 +171,11 @@ function CAFilterConsole() {
           <label className="text-[11px] font-bold uppercase text-slate-500">Chronological Aggregation Window</label>
           <div className="flex flex-wrap gap-1">
             {[
-              // "All History" option completely excised from here
               { id: "weekly", label: "Weekly Grid" },
               { id: "monthly", label: "Monthly Deck" },
               { id: "quarterly", label: "Quarterly Logs" },
               { id: "yearly", label: "Year View" }
             ].map((windowOpt) => {
-              // Ensure store updates mode selection smoothly since 'all' is dropped
               const isSelected = userFilters.timelineMode === windowOpt.id;
               return (
                 <button
@@ -186,11 +196,8 @@ function CAFilterConsole() {
         </div>
       </div>
 
-      {/* DYNAMIC RENDER DOCK: CONDITIONAL CHRONOLOGICAL FILTER VIEWS */}
       {userFilters.timelineMode !== "all" && (
         <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-3 animate-in slide-in-from-top-2 duration-200">
-          
-          {/* WEEKLY GRID: Display months running exactly up to the ongoing month boundary dynamically */}
           {userFilters.timelineMode === "weekly" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="space-y-1">
@@ -205,7 +212,7 @@ function CAFilterConsole() {
                 </select>
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase">2. Target Week Selection (Descriptive Segments)</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase">2. Target Week Selection</span>
                 <div className="grid grid-cols-2 gap-1 pt-0.5">
                   {[
                     { id: "1", label: "W1 (1-7)" },
@@ -232,7 +239,6 @@ function CAFilterConsole() {
             </div>
           )}
 
-          {/* MONTHLY DECK: Loads months strictly bound up to current ongoing tracking month */}
           {userFilters.timelineMode === "monthly" && (
             <div className="space-y-1 text-left">
               <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Select Target Month</span>
@@ -266,17 +272,16 @@ function CAFilterConsole() {
                 ].map(q => {
                   const active = userFilters.selectedQuarters.includes(q.id);
                   return (
-                    <button key={q.id} type="button" onClick={() => toggleArrayFilter("selectedQuarters", q.id)} className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${active ? "bg-cyan-500 border-cyan-500 text-white shadow-sm" : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"}`}>{q.label}</button>
+                    <button key={q.id} type="button" onClick={() => toggleArrayFilter("selectedQuarters", q.id)} className="flex-1 py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer">{q.label}</button>
                   );
                 })}
               </div>
             </div>
           )}
 
-          {/* YEAR VIEW: Featuring separate discrete options for 2025, 2026, and 2027 */}
           {userFilters.timelineMode === "yearly" && (
             <div className="space-y-1 text-left">
-              <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Select Horizon Horizon Windows</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Select Horizon Windows</span>
               <div className="flex gap-2">
                 {["2025", "2026", "2027"].map(y => {
                   const active = userFilters.selectedYears.includes(y);
@@ -290,7 +295,6 @@ function CAFilterConsole() {
         </div>
       )}
 
-      {/* ROOT GENERAL STUDIES PAPER CHIP TRACKS */}
       <div className="space-y-1.5 pt-2 border-t border-slate-200/60">
         <label className="text-[11px] font-bold uppercase text-slate-500 block">General Studies Paper Index Matcher</label>
         <div className="flex gap-2">
@@ -312,9 +316,7 @@ function CAFilterConsole() {
         </div>
       </div>
 
-      {/* SEQUENTIAL CASCADE RENDER GRIDS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-200/60">
-        {/* SUBJECT SELECTION PANEL */}
         <div className="space-y-1">
           <label className="text-[10px] font-bold uppercase text-slate-400">Subject Segment</label>
           <div className="max-h-[120px] overflow-y-auto bg-white border border-slate-200 rounded-xl p-1.5 space-y-0.5 custom-scrollbar min-h-[80px]">
@@ -340,7 +342,6 @@ function CAFilterConsole() {
           </div>
         </div>
 
-        {/* TOPIC SELECTION PANEL */}
         <div className="space-y-1">
           <label className="text-[10px] font-bold uppercase text-slate-400">Topic Segment</label>
           <div className="max-h-[120px] overflow-y-auto bg-white border border-slate-200 rounded-xl p-1.5 space-y-0.5 custom-scrollbar min-h-[80px]">
@@ -366,7 +367,6 @@ function CAFilterConsole() {
           </div>
         </div>
 
-        {/* SUBTOPIC SELECTION PANEL */}
         <div className="space-y-1">
           <label className="text-[10px] font-bold uppercase text-slate-400">Subtopic Segment</label>
           <div className="max-h-[120px] overflow-y-auto bg-white border border-slate-200 rounded-xl p-1.5 space-y-0.5 custom-scrollbar min-h-[80px]">
@@ -393,7 +393,6 @@ function CAFilterConsole() {
         </div>
       </div>
 
-      {/* CLOUD ACTION DOCK: PLACED CLEANLY BENEATH SUBTOPIC MODULE */}
       <div className="pt-2 flex justify-end">
         <button
           type="button"

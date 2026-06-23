@@ -238,6 +238,7 @@ function StudyHub() {
     }
   }
 
+  
   const isGsSlotDone = !gsTask || gsTask.status?.toUpperCase() === "COMPLETED";
   const isOptionalSlotDone = !optionalTask || optionalTask.status?.toUpperCase() === "COMPLETED";
   const isMidnightLockActive = tasks.length === 0;

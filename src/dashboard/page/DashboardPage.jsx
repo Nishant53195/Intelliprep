@@ -1,5 +1,5 @@
 // src/dashboard/page/DashboardPage.jsx
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import useLoginStore from "../../login/store/loginStore";
 
 // Section Components
@@ -17,26 +17,120 @@ import SettingsAndExports from "../sections/SettingsAndExports";
 function DashboardPage() {
   const [activeNav, setActiveNav] = useState("study_hub");
   const [isHindi, setIsHindi] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
   const user = useLoginStore((state) => state.user);
+  
+  // Refs to keep track of state inside the observer memory block safely
+  const isHindiRef = useRef(false);
+  const observerRef = useRef(null);
 
-  const toggleTranslation = () => {
-    let googleCombo = document.querySelector('.goog-te-combo');
-    if (!googleCombo && window.googleTranslateElementInit) {
-      window.googleTranslateElementInit();
-    }
-    setTimeout(() => {
-      googleCombo = document.querySelector('.goog-te-combo');
-      if (googleCombo) {
-        if (!isHindi) {
-          googleCombo.value = 'hi';
-          setIsHindi(true);
-        } else {
-          googleCombo.value = 'en';
-          setIsHindi(false);
-        }
-        googleCombo.dispatchEvent(new Event('change'));
+  // Targets text nodes, standard text containers, custom question wrappers, and canvas layouts
+  const targetSelectors = "h1, h2, h3, h4, h5, h6, p, span, button:not(.nav-toggle), label, li, [class*='question'], [id*='question'], .question-text, .question-body";
+
+  // Helper utility function to walk down elements and translate ONLY actual raw text nodes
+  const translateElementTextNodes = async (element) => {
+    // Walk through all child nodes of the element recursively
+    const walk = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+    let textNode;
+
+    const nodesToTranslate = [];
+    while ((textNode = walk.nextNode())) {
+      const trimmedText = textNode.nodeValue.trim();
+      
+      // Skip empty spaces, lone numbers, icons, or navigational locks
+      if (!trimmedText || trimmedText === "" || trimmedText.match(/^[📊🎯📖🔄📝✍️⚠️📰🌐⚙️🔒]+$/)) {
+        continue;
       }
-    }, 150);
+      nodesToTranslate.push(textNode);
+    }
+
+    // Process every identified leaf text node concurrently without dropping layout classes
+    const promises = nodesToTranslate.map(async (node) => {
+      // Use the parent element's dataset context dictionary to store original text mapping properties safely
+      const parentEl = node.parentElement;
+      if (!parentEl) return;
+
+      // Unique tracking identifier bound to the exact initial text string context
+      const textKey = node.nodeValue;
+
+      if (!parentEl.dataset.originalTextMap) {
+        parentEl.dataset.originalTextMap = JSON.stringify({});
+      }
+      
+      const textMap = JSON.parse(parentEl.dataset.originalTextMap);
+      
+      if (!textMap[textKey]) {
+        textMap[textKey] = textKey;
+        parentEl.dataset.originalTextMap = JSON.stringify(textMap);
+      }
+
+      if (isHindiRef.current) {
+        const sourceText = textMap[textKey];
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=hi&dt=t&q=${encodeURIComponent(sourceText)}`;
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data && data[0] && data[0][0] && data[0][0][0]) {
+            node.nodeValue = data[0][0][0];
+          }
+        } catch (err) {
+          console.error("Leaf node network translation failed:", err);
+        }
+      } else {
+        // Restore original English text cleanly
+        if (textMap[textKey]) {
+          node.nodeValue = textMap[textKey];
+        }
+      }
+    });
+
+    await Promise.all(promises);
+  };
+
+  // Setup the recursive MutationObserver to watch for carousel updates, tab swaps, and Firestore data fetches
+  useEffect(() => {
+    observerRef.current = new MutationObserver((mutations) => {
+      if (!isHindiRef.current) return;
+
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            if (node.matches(targetSelectors)) {
+              translateElementTextNodes(node);
+            }
+            const children = node.querySelectorAll(targetSelectors);
+            children.forEach(translateElementTextNodes);
+          }
+        });
+      });
+    });
+
+    observerRef.current.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      if (observerRef.current) observerRef.current.disconnect();
+    };
+  }, []);
+
+  const toggleTranslation = async () => {
+    if (isTranslating) return;
+    setIsTranslating(true);
+
+    const nextHindiState = !isHindi;
+    isHindiRef.current = nextHindiState;
+
+    try {
+      const targetElements = document.querySelectorAll(targetSelectors);
+      const translationPromises = Array.from(targetElements).map(translateElementTextNodes);
+      
+      await Promise.all(translationPromises);
+      setIsHindi(nextHindiState);
+
+    } catch (err) {
+      console.error("[Translate Engine] Direct API translation pipeline failed:", err);
+    } finally {
+      setIsTranslating(false);
+    }
   };
 
   // Verbatim 1:1 labeling matching target layout registry arrays cleanly
@@ -60,7 +154,6 @@ function DashboardPage() {
           1. SIDEBAR LAYOUT (LAPTOP / DESKTOP VIEW)
           ========================================== */}
       <nav className="hidden md:flex flex-col w-[255px] bg-white border-r border-[#EBEFF8] px-4.5 py-4 shrink-0 h-screen sticky top-0 justify-between select-none text-left overflow-hidden">
-        {/* Optimized step spacing balance: holds clear text styles without overflowing viewports */}
         <div className="space-y-4">
           
           {/* BRAND HEADLINE HEADER */}
@@ -80,16 +173,16 @@ function DashboardPage() {
             </div>
           </div>
 
-          
           {/* TRANSLATION BAR BUTTON PANEL TOGGLE */}
           <div className="px-0.5">
             <button
               onClick={toggleTranslation}
-              className="w-full flex items-center justify-start gap-2 px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-all shadow-2xs group"
+              disabled={isTranslating}
+              className="w-full flex items-center justify-start gap-2 px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-all shadow-2xs group cursor-pointer disabled:opacity-60"
             >
               <span className="text-slate-400 group-hover:text-slate-600 text-sm">🌐</span>
               <span className="tracking-wide truncate">
-                {isHindi ? "Translate to English" : "Translate to Hindi / हिंदी"}
+                {isTranslating ? "Translating..." : isHindi ? "Translate to English" : "Translate to Hindi / हिंदी"}
               </span>
             </button>
           </div>
@@ -125,8 +218,6 @@ function DashboardPage() {
             })}
           </div>
         </div>
-
-        
       </nav>
 
       {/* ==========================================
@@ -136,11 +227,12 @@ function DashboardPage() {
         <div className="px-1.5">
           <button
             onClick={toggleTranslation}
-            className={`w-full py-1.5 text-[11px] font-black tracking-wide rounded-lg border text-center transition-all ${
+            disabled={isTranslating}
+            className={`w-full py-1.5 text-[11px] font-black tracking-wide rounded-lg border text-center transition-all disabled:opacity-60 ${
               isHindi ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-slate-50 border-slate-200 text-slate-600"
             }`}
           >
-            {isHindi ? "ENGLISH MODE" : "HINDI MODE / हिंदी"}
+            {isTranslating ? "LOADING..." : isHindi ? "ENGLISH MODE" : "HINDI MODE / हिंदी"}
           </button>
         </div>
         
