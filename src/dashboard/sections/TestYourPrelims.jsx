@@ -171,18 +171,27 @@ function TestYourPrelims() {
     const recordId = `${activeChip}_prac_${selectedSubjectId}_${selectedTopicId}`;
 
     try {
-      const cloudDocRef = doc(firestoreDb, "users", activeUserId, targetTableStr, recordId);
-      const cloudSnapshot = await getDoc(cloudDocRef);
-      if (cloudSnapshot.exists()) {
-        await db[targetTableStr].put(cloudSnapshot.data());
+      // 🔥 CHECK LOCAL DB FIRST FOR MCQ/PYQ TOPIC RECORD
+      let existingRegistryDoc = await db[targetTableStr].get(recordId);
+
+      // 🔥 IF DATA DOES NOT EXIST LOCALLY, THEN CHECK FIRESTORE COLLECTION
+      if (!existingRegistryDoc) {
+        const cloudDocRef = doc(firestoreDb, "users", activeUserId, targetTableStr, recordId);
+        const cloudSnapshot = await getDoc(cloudDocRef);
+        if (cloudSnapshot.exists()) {
+          const cloudData = cloudSnapshot.data();
+          await db[targetTableStr].put(cloudData);
+          existingRegistryDoc = cloudData;
+        }
       }
+
       const fetchedBatch = await prelimsQueryService.fetchSandboxQuestions({
         subjectId: selectedSubjectId, topicId: selectedTopicId, isPyqMode: activeChip === "pyq"
       });
       if (!fetchedBatch || fetchedBatch.length === 0) {
         alert("No records stored matching current schema constraints."); setFetchingQuestions(false); return;
       }
-      const existingRegistryDoc = await db[targetTableStr].get(recordId);
+
       if (existingRegistryDoc && existingRegistryDoc.Attempts?.length > 0) {
         const lastAttempt = existingRegistryDoc.Attempts[existingRegistryDoc.Attempts.length - 1];
         setLastAttemptData(lastAttempt);
@@ -191,7 +200,7 @@ function TestYourPrelims() {
           lastAttempt.wrongQuestion.forEach(wq => { tempWrongMap[wq.questionId] = true; });
         }
         setWrongQuestionsHistoryMap(tempWrongMap);
-      } else {
+      } else if (!existingRegistryDoc) {
         await db[targetTableStr].put({
           id: recordId, userId: activeUserId, subjectId: selectedSubjectId, topicId: selectedTopicId,
           maximumMarks: fetchedBatch.length * 2, totalQuestion: fetchedBatch.length, Attempts: []
@@ -215,13 +224,20 @@ function TestYourPrelims() {
     const recordId = `coaching_${selectedCoachingBundle.toLowerCase().replace(/\s+/g, '_')}_${testItem.testName.toLowerCase().replace(/\s+/g, '_')}`;
     
     try {
-      const cloudDocRef = doc(firestoreDb, "users", activeUserId, "coaching_test_prelims", recordId);
-      const cloudSnapshot = await getDoc(cloudDocRef);
-      if (cloudSnapshot.exists()) {
-        await db.coaching_test_prelims.put(cloudSnapshot.data());
+      // 🔥 CHECK LOCAL DB FIRST FOR COACHING TESTS RECORD
+      let existingRecord = await db.coaching_test_prelims.get(recordId);
+
+      // 🔥 IF DATA DOES NOT EXIST LOCALLY, THEN CHECK FIRESTORE COLLECTION
+      if (!existingRecord) {
+        const cloudDocRef = doc(firestoreDb, "users", activeUserId, "coaching_test_prelims", recordId);
+        const cloudSnapshot = await getDoc(cloudDocRef);
+        if (cloudSnapshot.exists()) {
+          const cloudData = cloudSnapshot.data();
+          await db.coaching_test_prelims.put(cloudData);
+          existingRecord = cloudData;
+        }
       }
 
-      const existingRecord = await db.coaching_test_prelims.get(recordId);
       if (existingRecord && existingRecord.Attempts?.length > 0) {
         const lastAttempt = existingRecord.Attempts[existingRecord.Attempts.length - 1];
         setLastAttemptData(lastAttempt);
@@ -230,7 +246,7 @@ function TestYourPrelims() {
           lastAttempt.wrongQuestion.forEach(wq => { tempWrongMap[wq.questionId] = true; });
         }
         setWrongQuestionsHistoryMap(tempWrongMap);
-      } else {
+      } else if (!existingRecord) {
         await db.coaching_test_prelims.put({
           id: recordId, userId: activeUserId, coachingName: selectedCoachingBundle, testName: testItem.testName,
           testType: testItem.testType, subjectId: [], maximumMarks: testItem.questions.length * 2,
@@ -261,7 +277,7 @@ function TestYourPrelims() {
         const currentSelection = prev[questionItem.id];
         if (currentSelection === optionIdx) {
           const nextAnswers = { ...prev };
-          delete nextAnswers[questionItem.id];
+          delete nextAnswers[nextAnswers];
           return nextAnswers;
         } else {
           return { ...prev, [questionItem.id]: optionIdx };
