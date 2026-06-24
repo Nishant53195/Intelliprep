@@ -1,3 +1,4 @@
+// src/onboarding/components/steps/WelcomeStep.jsx
 import React, { useState } from "react";
 import useOnboardingStore from "../../store/onboardingStore";
 import OnboardingCard from "../OnboardingCard";
@@ -5,6 +6,7 @@ import { syncEngine } from "../../../database/services/syncEngine";
 import { auth } from "../../../firebase/firestore/config";
 import useScheduleStore from "../../../scheduler/store/scheduleStore";
 import { generateDailySchedule } from "../../../scheduler/engine/generateDailySchedule";
+import { db } from "../../../database/dexie"; 
 
 function WelcomeStep() {
   const name = useOnboardingStore((state) => state.name);
@@ -29,19 +31,16 @@ function WelcomeStep() {
 
     setLoadingCloud(true);
     setIsError(false);
-    setFeedbackMessage("Checking Firestore for existing sync snapshots...");
+    setFeedbackMessage("Synchronizing changes down to local client storage cache...");
 
     try {
-      // 1. Direct manual pull download request to Firestore collections
       const outcome = await syncEngine.pullCloudChangesToLocal(currentUserId);
       
       if (outcome.success) {
-        setFeedbackMessage("Data downloaded successfully! Reassembling schedule paths...");
+        setFeedbackMessage("Data downloaded! Reassembling day schedules...");
 
-        // 2. Recalculate schedule timelines from the newly loaded database state parameters
         const activeTasks = await generateDailySchedule(currentUserId);
         
-        // 3. Immediately update global schedule state values to avoid blank states
         setTodayTasks({
           gsTasks: activeTasks.filter((t) => t.type === "gs"),
           optionalTasks: activeTasks.filter((t) => t.type === "optional"),
@@ -49,27 +48,44 @@ function WelcomeStep() {
           practiceTasks: activeTasks.filter((t) => t.type === "practice"),
         });
 
-        setFeedbackMessage("Backup detected and successfully synchronized! Launching workspace...");
+        setFeedbackMessage("Clearing synchronization queues and optimizing hooks...");
+
+        // 🔥 BULLETPROOF SYNC QUEUE FLUSH ENGINE
+        // Runs a repeated cleanup cycle over 800ms to intercept and clear 
+        // trailing queue tasks created by the Dexie microtask background write loop
+        let cleanupCycles = 0;
+        const queueClearInterval = setInterval(async () => {
+          try {
+            await db.sync_queue.clear();
+            cleanupCycles++;
+            
+            if (cleanupCycles >= 4) {
+              clearInterval(queueClearInterval);
+              
+              // Set the onboarding completion flags
+              completeOnboarding();
+              localStorage.setItem("intelliprep_onboarding_completed", "true");
+              localStorage.setItem("onboardingCompleted", "true");
+
+              setFeedbackMessage("Launching dashboard workspace...");
+              
+              // 🔥 HARD DIRECT ROUTING JUMP TO /dashboard
+              window.location.href = window.location.origin + "/dashboard";
+            }
+          } catch (err) {
+            console.error("Queue clearing cycle failure:", err);
+          }
+        }, 200);
         
-        // 4. Notify the Zustand store that onboarding is skipped/complete
-        completeOnboarding();
-        
-        // 5. CRITICAL FIX: Explicitly set local storage flag so the router guard resolves immediately on boot
-        localStorage.setItem("intelliprep_onboarding_completed", "true");
-        
-        // 6. Redirect directly to workspace dashboard via state refresh
-        setTimeout(() => {
-          window.location.reload();
-        }, 1200);
       } else {
         setIsError(true);
-        setFeedbackMessage("Data not available: No prior backup exists for this account. Please continue onboarding.");
+        setFeedbackMessage("Data not available: No prior backup exists for this account.");
+        setLoadingCloud(false);
       }
     } catch (err) {
       console.error("[Onboarding Cloud Verification Error]:", err);
       setIsError(true);
-      setFeedbackMessage("Data not available: Your cloud profile is currently empty. Please proceed manually.");
-    } finally {
+      setFeedbackMessage("Data not available: Your cloud profile is currently empty.");
       setLoadingCloud(false);
     }
   };
@@ -94,7 +110,6 @@ function WelcomeStep() {
           />
         </div>
 
-        {/* Feedback message overlay layout panel block */}
         {feedbackMessage && (
           <div 
             className={`p-3.5 border text-xs font-mono text-left rounded-xl transition-all ${
@@ -107,9 +122,7 @@ function WelcomeStep() {
           </div>
         )}
 
-        {/* Layout footer layout cluster */}
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-end gap-4 pt-2">
-          {/* Load existing profile button choice node */}
           <button
             type="button"
             disabled={loadingCloud}
@@ -119,7 +132,6 @@ function WelcomeStep() {
             {loadingCloud ? "Verifying Archive..." : "Load Existing Cloud Backup"}
           </button>
 
-          {/* Regular Manual Wizard Multi-Step Flow Router button */}
           <button
             type="button"
             onClick={nextStep}
