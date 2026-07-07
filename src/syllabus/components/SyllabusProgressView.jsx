@@ -146,7 +146,7 @@ function SyllabusProgressView() {
 
       {/* 3. CORE CONDITIONAL CANVAS SHELL PORT VIEWPORT */}
       {!selectedSubject ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3 pt-1">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 pt-1">
           {enrichedSubjects?.map((subject) => (
             <div
               key={subject.id}
