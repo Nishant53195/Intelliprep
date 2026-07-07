@@ -22,13 +22,13 @@ const databaseStores = {
   sync_queue: 'id,status,tableName,recordId,createdAt',
 
   // Track 1: Topic Wise MCQ Practice Registry
-  topic_test_prelims: 'id,userId,subjectId,topicId,createdAt',
+  topic_test_prelims: 'id,userId,subjectId,topicId,createdAt,[userId+topicId]',
   
   // Track 2: Coaching Mock Simulator Test Registry
   coaching_test_prelims: 'id,userId,coachingName,testName,testType,createdAt',
   
   // Track 3: Topic Wise PYQ Practice Registry
-  topic_pyq_prelims: 'id,userId,subjectId,topicId,createdAt',
+  topic_pyq_prelims: 'id,userId,subjectId,topicId,createdAt,[userId+topicId]',
 
   // Add this to your existing Dexie database tables configuration setup:
   mains_log_marks: "id, userId, questionId, timestamp",
@@ -38,7 +38,7 @@ const databaseStores = {
 };
 
 // BUMPED TO VERSION 10 TO FORCE RE-INDEX CLEANSE IN BROWSER
-db.version(10).stores(databaseStores);
+db.version(11).stores(databaseStores);
 
 /*
 |--------------------------------------------------------------------------

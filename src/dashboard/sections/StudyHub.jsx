@@ -5,9 +5,12 @@ import useScheduleStore from "../../scheduler/store/scheduleStore";
 import { generateDailySchedule, getActiveShiftDateString } from "../../scheduler/engine/generateDailySchedule";
 import { completeTaskService } from "../../scheduler/services/completeTaskService";
 import { db } from "../../database/dexie";
-import { ChevronLeft, ChevronRight, Sliders, Activity, Zap, Award, Gauge, CalendarClock, ShieldAlert, CheckCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sliders, Activity, Zap, Award, Gauge, CalendarClock, ShieldAlert, CheckCircle, Loader2 } from "lucide-react";
 // IMPORT TARGETED VELOCITY CALCULATOR ENGINE
 import { calculateVelocityMetrics } from "../../scheduler/services/velocityCheckerEngine";
+
+// IMPORT FIRESTORE CORE CLIENT MODULES FOR MASTER BANK LOOKUPS
+import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 
 function StudyHub() {
   const user = useLoginStore((state) => state.user);
@@ -23,6 +26,12 @@ function StudyHub() {
   // Pagination Track Indexes for Carousel Steps
   const [gsIndex, setGsIndex] = useState(0);
   const [optionalIndex, setOptionalIndex] = useState(0);
+  const [practiceIndex, setPracticeIndex] = useState(0); 
+
+  // Dynamic Live Practice Tasks State Mappings & Network Loading Indicators
+  const [dynamicPracticeTasks, setDynamicPracticeTasks] = useState([]);
+  const [practiceSlotLoading, setPracticeSlotLoading] = useState(false);
+  const [practiceNetworkError, setPracticeNetworkError] = useState(false);
 
   // Extend Session Control Fields
   const [sessionHours, setSessionHours] = useState(1);
@@ -87,6 +96,130 @@ function StudyHub() {
     return resolvedSet;
   }
 
+  // Scans topic records, wraps fetches inside strict error handlings, and polls Firestore with fallback rules
+  async function computeDynamicPracticeSuite(userId) {
+    try {
+      setPracticeSlotLoading(true);
+      setPracticeNetworkError(false);
+
+      const intelRecords = await db.topic_intelligence
+        .where("userId")
+        .equals(userId)
+        .toArray();
+
+      const fullyCompletedIntel = intelRecords.filter(r => parseInt(r.completionScore, 10) === 100);
+      const generatedPracticeItems = [];
+      const firestoreInstance = getFirestore();
+
+      for (const record of fullyCompletedIntel) {
+        const topicRecord = await db.topics.get(record.topicId);
+        const subjectRecord = await db.subjects.get(record.subjectId);
+        if (!topicRecord || !subjectRecord) continue;
+
+        // Step A: Local Dexie Index Lookups
+        const mcqMatches = await db.topic_test_prelims
+          .where("[userId+topicId]")
+          .equals([userId, record.topicId])
+          .toArray();
+        const hasNoMcqAttempts = mcqMatches.length === 0;
+
+        if (hasNoMcqAttempts) {
+          let mcqCount = 0;
+          let failedFetch = false;
+
+          try {
+            // Promise wrapper to force execute a 5-second maximum timeout limit rule
+            const cloudFetchPromise = async () => {
+              const q = query(
+                collection(firestoreInstance, "master_questions_bank"),
+                where("topicId", "==", record.topicId),
+                where("type", "==", "MCQ_PRELIMS")
+              );
+              const snapshot = await getDocs(q);
+              return snapshot.size;
+            };
+
+            const timeoutPromise = new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("Timeout")), 5000)
+            );
+
+            mcqCount = await Promise.race([cloudFetchPromise(), timeoutPromise]);
+          } catch (cloudErr) {
+            console.warn("Firestore MCQ verification network failure, using dynamic safety fallback:", cloudErr);
+            failedFetch = true;
+            setPracticeNetworkError(true);
+          }
+
+          // SAFE FALLBACK: If network drops or times out, assume questions exist so user is never stuck infinitely!
+          if (mcqCount > 0 || failedFetch) {
+            generatedPracticeItems.push({
+              id: `practice_mcq_${record.topicId}`,
+              topicId: record.topicId,
+              subjectId: record.subjectId,
+              type: "MCQ",
+              title: `Attempt MCQ : ${topicRecord.name}`,
+              subtitle: `Category: ${subjectRecord.name}`,
+              duration: 30
+            });
+          }
+        }
+
+        // Step B: Local Dexie Index Lookups for PYQs
+        const pyqMatches = await db.topic_pyq_prelims
+          .where("[userId+topicId]")
+          .equals([userId, record.topicId])
+          .toArray();
+        const hasNoPyqAttempts = pyqMatches.length === 0;
+
+        if (hasNoPyqAttempts) {
+          let pyqCount = 0;
+          let failedFetch = false;
+
+          try {
+            const cloudFetchPromise = async () => {
+              const q = query(
+                collection(firestoreInstance, "master_questions_bank"),
+                where("topicId", "==", record.topicId),
+                where("type", "==", "PYQ_PRELIMS")
+              );
+              const snapshot = await getDocs(q);
+              return snapshot.size;
+            };
+
+            const timeoutPromise = new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("Timeout")), 5000)
+            );
+
+            pyqCount = await Promise.race([cloudFetchPromise(), timeoutPromise]);
+          } catch (cloudErr) {
+            console.warn("Firestore PYQ verification network failure, using dynamic safety fallback:", cloudErr);
+            failedFetch = true;
+            setPracticeNetworkError(true);
+          }
+
+          // SAFE FALLBACK: If network drops or times out, assume questions exist so user is never stuck infinitely!
+          if (pyqCount > 0 || failedFetch) {
+            generatedPracticeItems.push({
+              id: `practice_pyq_${record.topicId}`,
+              topicId: record.topicId,
+              subjectId: record.subjectId,
+              type: "PYQ",
+              title: `Attempt PYQ  : ${topicRecord.name}`,
+              subtitle: `Category: ${subjectRecord.name}`,
+              duration: 30
+            });
+          }
+        }
+      }
+
+      setDynamicPracticeTasks(generatedPracticeItems);
+    } catch (err) {
+      console.error("Critical practice suite pipeline error:", err);
+    } finally {
+      setPracticeSlotLoading(false);
+    }
+  }
+
   async function loadTodaySchedule() {
     if (!user?.uid) return;
     try {
@@ -94,6 +227,9 @@ function StudyHub() {
       await verifyLocalSyllabusSeeding();
       const activeTasks = await generateDailySchedule(user.uid);
       await scanAndSyncCompletedKeys();
+      
+      // Calculate practice suite actions seamlessly on schedule boot
+      await computeDynamicPracticeSuite(user.uid);
       
       // Compute dynamic velocity check projections tracking out-of-band metrics
       const report = await calculateVelocityMetrics(user.uid);
@@ -118,8 +254,14 @@ function StudyHub() {
     const triggerLiveLayoutReload = () => {
       loadTodaySchedule();
     };
+
     window.addEventListener("syllabus-update", triggerLiveLayoutReload);
-    return () => window.removeEventListener("syllabus-update", triggerLiveLayoutReload);
+    window.addEventListener("focus", triggerLiveLayoutReload);
+
+    return () => {
+      window.removeEventListener("syllabus-update", triggerLiveLayoutReload);
+      window.removeEventListener("focus", triggerLiveLayoutReload);
+    };
   }, [user]);
 
   const handleSubtaskComplete = async (task, subtask) => {
@@ -195,7 +337,7 @@ function StudyHub() {
         await db.schedule_tasks.where("id").equals(task.id).modify({ status: "closed", closedAt: Date.now() });
       }
       setShowReflection(false);
-      setGsIndex(0); setOptionalIndex(0);
+      setGsIndex(0); setOptionalIndex(0); setPracticeIndex(0);
       await loadTodaySchedule();
     } catch (err) {
       console.error("Failed saving profile performance markers:", err);
@@ -219,6 +361,9 @@ function StudyHub() {
 
   const currentGsSubtask = gsTask?.subtasks?.[Math.min(gsIndex, gsTask.subtasks.length - 1)] || null;
   const currentOptionalSubtask = optionalTask?.subtasks?.[Math.min(optionalIndex, optionalTask.subtasks.length - 1)] || null;
+  
+  // Dynamic Practice Target Index Selection Map Resolver
+  const currentPracticeSubtask = dynamicPracticeTasks?.[Math.min(practiceIndex, dynamicPracticeTasks.length - 1)] || null;
 
   const isGsSubtaskDone = currentGsSubtask && (completedSubtopicIds.has(currentGsSubtask.subtopicId) || gsTask?.status?.toUpperCase() === "COMPLETED");
   const isOptionalSubtaskDone = currentOptionalSubtask && (completedSubtopicIds.has(currentOptionalSubtask.subtopicId) || optionalTask?.status?.toUpperCase() === "COMPLETED");
@@ -494,29 +639,69 @@ function StudyHub() {
           </div>
         </div>
 
-        {/* SLOT D: COMPILATION PRACTICE SLOT CARD */}
-        <div className="bg-[#F3F5FA]/50 border border-slate-200/60 rounded-[2.25rem] p-6 flex flex-col justify-between min-h-[170px] relative overflow-hidden select-none opacity-50">
-          <div className="text-left">
-            <span className="text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-400 border border-slate-200">
-              PRACTICE TASKS (DISABLED)
-            </span>
-          </div>
-          <div className="text-left relative pr-16">
-            <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">PRACTICE SUITE</p>
-            <h4 className="text-base font-black text-slate-600 tracking-tight mt-0.5">MCQ / PYQ / Mains Logs</h4>
-            <p className="text-xs font-medium text-slate-400 mt-0.5">Splitting evenly across compilation targets</p>
-            <svg className="absolute right-0 top-[-5px] h-14 w-14 text-slate-400/20 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" />
-            </svg>
-          </div>
-          <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between">
-            <span className="text-xs font-mono font-bold text-slate-400">60 Mins</span>
-            <button disabled className="px-3 py-1 bg-slate-100 text-slate-400 text-[10px] font-black border border-slate-200 rounded-lg flex items-center gap-1 cursor-not-allowed">
-              Disabled
-            </button>
-          </div>
+        {/* SLOT D: COMPILATION PRACTICE SLOT CARD - WITH EMBEDDED INTEGRATED LOADING HANDLERS */}
+        <div className="relative bg-white border border-[#EBEFF8] rounded-[2.25rem] p-6 shadow-[0_12px_40px_rgba(235,240,248,0.5)] flex flex-col justify-between min-h-[230px] group transition-all duration-300 hover:shadow-md">
+          {practiceSlotLoading ? (
+            <div className="flex-1 flex flex-col items-center justify-center py-10 space-y-3">
+              <Loader2 className="h-7 w-7 animate-spin text-emerald-500" />
+              <p className="text-xs font-bold text-slate-400 font-mono tracking-tight uppercase">Verifying Cloud Banks...</p>
+            </div>
+          ) : (
+            <>
+              {dynamicPracticeTasks?.length > 1 && (
+                <>
+                  <button disabled={practiceIndex === 0} onClick={() => setPracticeIndex(p => Math.max(0, p - 1))} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white shadow-md border border-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800 disabled:opacity-0 transition-opacity">
+                    <ChevronLeft size={18} strokeWidth={2.5} />
+                  </button>
+                  <button disabled={practiceIndex >= dynamicPracticeTasks.length - 1} onClick={() => setPracticeIndex(p => p + 1)} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white shadow-md border border-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800 disabled:opacity-0 transition-opacity">
+                    <ChevronRight size={18} strokeWidth={2.5} />
+                  </button>
+                </>
+              )}
+              <div className={dynamicPracticeTasks?.length > 1 ? "px-6" : ""}>
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-0.5 rounded-md bg-[#EFFFF6] border border-[#D2F7E1] text-[#0FAF52]">
+                    Practice Slot
+                  </span>
+                  <span className="text-xs font-mono font-bold text-slate-500">
+                    {dynamicPracticeTasks?.length ? practiceIndex + 1 : 0} / {dynamicPracticeTasks?.length || 0}
+                  </span>
+                </div>
+                {currentPracticeSubtask ? (
+                  <div className="mt-5 space-y-1.5 relative pr-16">
+                    <p className="text-[11px] font-extrabold text-[#0FAF52] tracking-wider uppercase">
+                      {currentPracticeSubtask.subtitle}
+                    </p>
+                    <h3 className="text-base font-black text-[#1E2538] tracking-tight leading-snug">
+                      {currentPracticeSubtask.title}
+                    </h3>
+                    <p className="text-xs text-slate-400 font-medium mt-1">
+                      {practiceNetworkError ? (
+                        <span className="text-amber-600 font-bold">⚠️ Cloud check timed out. Running in local fallback state mode. Tasks are open.</span>
+                      ) : (
+                        "Generated automatically following 100% topic mastery rollup. This item will clear itself instantly once the database registers your test submission."
+                      )}
+                    </p>
+                    <svg className="absolute right-0 top-[-5px] h-14 w-14 text-emerald-500/10 pointer-events-none select-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 font-bold italic py-10 text-center">No practice items assigned for mastered topics yet.</p>
+                )}
+              </div>
+              <div className={`mt-5 pt-4 border-t border-slate-100 flex items-center justify-between ${dynamicPracticeTasks?.length > 1 ? "px-6" : ""}`}>
+                <span className="text-[11px] font-mono font-bold text-[#0FAF52] bg-[#EFFFF6] border border-[#D2F7E1] px-2.5 py-0.5 rounded-lg flex items-center gap-1">
+                  {currentPracticeSubtask ? currentPracticeSubtask.duration : 0} Mins
+                </span>
+                <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tight bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg select-none">
+                  Auto-Managed Task
+                </span>
+              </div>
+            </>
+          )}
         </div>
 
       </div>
