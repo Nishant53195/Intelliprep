@@ -1,6 +1,8 @@
 // src/dashboard/page/DashboardPage.jsx
 import { useState, useEffect, useRef } from "react";
 import useLoginStore from "../../login/store/loginStore";
+import useTimerStore from "../../scheduler/store/useTimerStore"; // Import global persistent store
+import { Play, Pause, RotateCcw } from "lucide-react"; // Import control icons
 
 // Section Components
 import PreparationStatus from "../sections/PreparationStatus";
@@ -14,6 +16,14 @@ import CurrentAffairsHub from "../sections/CurrentAffairsHub";
 import KnowledgeGraph from "../sections/KnowledgeGraph";
 import SettingsAndExports from "../sections/SettingsAndExports";
 
+// FIXED: Moved helper mapping utility to the absolute top to prevent un-hoisted runtime definition errors[cite: 7]
+const formatDisplayTime = (totalSecs) => {
+  const hrs = Math.floor(totalSecs / 3600);
+  const mins = Math.floor((totalSecs % 3600) / 60);
+  const secs = totalSecs % 60;
+  return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+};
+
 function DashboardPage() {
   const [activeNav, setActiveNav] = useState("study_hub");
   const [isHindi, setIsHindi] = useState(false);
@@ -24,12 +34,24 @@ function DashboardPage() {
   const isHindiRef = useRef(false);
   const observerRef = useRef(null);
 
+  // Connect global timer hooks
+  const {
+    hoursInput, setHoursInput,
+    minutesInput, setMinutesInput,
+    remainingSeconds, isActive, isPaused,
+    startTimer, pauseTimer, resetTimer
+  } = useTimerStore();
+
   // Targets text nodes, standard text containers, custom question wrappers, and canvas layouts
-  const targetSelectors = "h1, h2, h3, h4, h5, h6, p, span, button:not(.nav-toggle), label, li, [class*='question'], [id*='question'], .question-text, .question-body";
+  const targetSelectors = "h1, h2, h3, h4, h5, h6, p, span:not(.no-translate), button:not(.nav-toggle):not(.no-translate), label, li, [class*='question'], [id*='question'], .question-text, .question-body";
 
   // Helper utility function to walk down elements and translate ONLY actual raw text nodes
   const translateElementTextNodes = async (element) => {
-    // Walk through all child nodes of the element recursively
+    // Guard check to completely bypass elements with the no-translate utility or their children
+    if (!element || element.classList?.contains("no-translate") || element.closest?.(".no-translate")) {
+      return;
+    }
+
     const walk = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
     let textNode;
 
@@ -44,13 +66,10 @@ function DashboardPage() {
       nodesToTranslate.push(textNode);
     }
 
-    // Process every identified leaf text node concurrently without dropping layout classes
     const promises = nodesToTranslate.map(async (node) => {
-      // Use the parent element's dataset context dictionary to store original text mapping properties safely
       const parentEl = node.parentElement;
-      if (!parentEl) return;
+      if (!parentEl || parentEl.classList?.contains("no-translate") || parentEl.closest?.(".no-translate")) return;
 
-      // Unique tracking identifier bound to the exact initial text string context
       const textKey = node.nodeValue;
 
       if (!parentEl.dataset.originalTextMap) {
@@ -77,7 +96,6 @@ function DashboardPage() {
           console.error("Leaf node network translation failed:", err);
         }
       } else {
-        // Restore original English text cleanly
         if (textMap[textKey]) {
           node.nodeValue = textMap[textKey];
         }
@@ -87,7 +105,6 @@ function DashboardPage() {
     await Promise.all(promises);
   };
 
-  // Setup the recursive MutationObserver to watch for carousel updates, tab swaps, and Firestore data fetches
   useEffect(() => {
     observerRef.current = new MutationObserver((mutations) => {
       if (!isHindiRef.current) return;
@@ -133,7 +150,6 @@ function DashboardPage() {
     }
   };
 
-  // Verbatim 1:1 labeling matching target layout registry arrays cleanly
   const navigationItems = [
     { id: "prep_status", label: "Intelligent Dashboard", icon: "📊", disabled: false },
     { id: "study_hub", label: "Study Hub (Daily Task)", icon: "🎯", disabled: false },
@@ -154,69 +170,140 @@ function DashboardPage() {
           1. SIDEBAR LAYOUT (LAPTOP / DESKTOP VIEW)
           ========================================== */}
       <nav className="hidden md:flex flex-col w-[255px] bg-white border-r border-[#EBEFF8] px-4.5 py-4 shrink-0 h-screen sticky top-0 justify-between select-none text-left overflow-hidden">
-        <div className="space-y-4">
-          
-          {/* BRAND HEADLINE HEADER */}
-          <div className="px-1.5 pt-0.5">
-            <div className="flex items-center gap-2.5">
-              <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-black shadow-md shadow-indigo-500/20">
-                Ω
+        <div className="space-y-4 flex flex-col h-full justify-between">
+          <div className="space-y-4">
+            {/* BRAND HEADLINE HEADER */}
+            <div className="px-1.5 pt-0.5">
+              <div className="flex items-center gap-2.5">
+                <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-black shadow-md shadow-indigo-500/20">
+                  Ω
+                </div>
+                <div>
+                  <h1 className="text-sm font-black tracking-wider text-slate-900 uppercase leading-none">
+                    UPSC INTELLIPREP 
+                  </h1>
+                  <p className="text-[10px] font-bold text-indigo-500 tracking-tight uppercase mt-0.5">
+                    Most Smart UPSC System
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-sm font-black tracking-wider text-slate-900 uppercase leading-none">
-                  UPSC INTELLIPREP 
-                </h1>
-                <p className="text-[10px] font-bold text-indigo-500 tracking-tight uppercase mt-0.5">
-                  Most Smart UPSC System
-                </p>
+            </div>
+
+            {/* TRANSLATION BAR BUTTON PANEL TOGGLE */}
+            <div className="px-0.2">
+              <button
+                onClick={toggleTranslation}
+                disabled={isTranslating}
+                className="w-full flex items-center justify-start gap-2 px-2 py-1 text-xs font-bold rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-all shadow-2xs group cursor-pointer disabled:opacity-60"
+              >
+                <span className="text-slate-400 group-hover:text-slate-600 text-sm">🌐</span>
+                <span className="tracking-wide truncate">
+                  {isTranslating ? "Translating..." : isHindi ? "Translate to English" : "Translate to Hindi / हिंदी"}
+                </span>
+              </button>
+            </div>
+
+            {/* CONDENSED SPACING SELECTION NAVIGATION LIST ITEMS */}
+            <div className="space-y-0 overflow-y-auto max-h-[calc(100vh-320px)] scrollbar-none">
+              {navigationItems.map((item) => {
+                const isActive = activeNav === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    disabled={item.disabled}
+                    onClick={() => !item.disabled && setActiveNav(item.id)}
+                    className={`w-full flex items-center justify-between px-1 py-3.5 text-sm font-bold rounded-xl transition-all border border-transparent text-left ${
+                      item.disabled
+                        ? "bg-transparent text-black-400 opacity-30 cursor-not-allowed select-none"
+                        : isActive
+                        ? "bg-[#c4eaec] text-indigo-600 font-extrabold shadow-3xs"
+                        : "text-black-500 hover:bg-green-100"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 truncate">
+                      <span className={`text-base shrink-0 ${item.disabled ? "grayscale opacity-30" : "opacity-90"}`}>
+                        {item.icon}
+                      </span>
+                      <span className="truncate tracking-wide font-sans">{item.label}</span>
+                    </div>
+                    {item.disabled && (
+                      <span className="text-xs opacity-40 shrink-0 select-none pl-1">🔒</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* CIRCULAR TIMER CENTER PORTION AT THE SIDEBAR BASE */}
+          <div className="mt-auto pt-0 border-t border-slate-100 no-translate flex flex-col items-center">
+            <div className="w-60 h-45 bg-white-100 border border-black-300 rounded-[1.5rem] flex flex-col items-center justify-between p-2 shadow-3xs no-translate">
+              <span className="text-[12px] font-black text-blue-500 uppercase tracking-wider text-center no-translate">
+                Focus Timer
+              </span>
+
+              {/* Central Clock Circle */}
+              <div className="w-28 h-28 rounded-full border-4 border-slate-300 bg-white shadow-inner flex items-center justify-center relative no-translate">
+                {isActive || isPaused ? (
+                  <span className="text-xs font-mono font-black text-black tracking-tight no-translate">
+                    {formatDisplayTime(remainingSeconds)}
+                  </span>
+                ) : (
+                  <div className="flex items-center justify-center gap-0.1 px-2 no-translate">
+                    <input
+                      type="number"
+                      placeholder="0h"
+                      min="0"
+                      max="23"
+                      value={hoursInput}
+                      onChange={(e) => setHoursInput(e.target.value)}
+                      className="w-7 text-center font-mono text-s font-black text-black bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none no-translate placeholder-red-600"
+                    />
+                    <span className="text-black-400 text-xs font-black no-translate">:</span>
+                    <input
+                      type="number"
+                      placeholder="00m"
+                      min="0"
+                      max="59"
+                      value={minutesInput}
+                      onChange={(e) => setMinutesInput(e.target.value)}
+                      className="w-8 text-center font-mono text-s font-black text-black bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none no-translate  placeholder-red-600"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Lower Control Actions Layer */}
+              <div className="flex items-center justify-center gap-2 w-full mt-1 no-translate">
+                {isActive || isPaused ? (
+                  <>
+                    {isActive ? (
+                      <button type="button" onClick={pauseTimer} className="p-1.5 bg-black-200 hover:bg-slate-300 text-slate-700 rounded-lg transition-colors cursor-pointer no-translate">
+                        <Pause size={12} />
+                      </button>
+                    ) : (
+                      <button type="button" onClick={startTimer} className="p-1.5 bg-slate-900 text-white border border-slate-900 rounded-lg hover:bg-black transition-colors cursor-pointer no-translate">
+                        <Play size={10} fill="currentColor" />
+                      </button>
+                    )}
+                    <button type="button" onClick={resetTimer} className="p-1.5 bg-rose-100 text-rose-600 border border-rose-200 rounded-xl hover:bg-rose-200 hover:text-white transition-colors cursor-pointer no-translate">
+                      <RotateCcw size={10} />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={startTimer}
+                    disabled={!hoursInput && !minutesInput}
+                    className="w-full py-1.5 bg-[#101726] hover:bg-indigo-600 text-white font-black text-[10px] uppercase tracking-wide rounded-xl transition-all shadow-2xs cursor-pointer disabled:opacity-80 disabled:hover:bg-[#768bb9] disabled:cursor-not-allowed flex items-center justify-center gap-1 no-translate"
+                  >
+                    <Play size={10} fill="currentColor" /> Start
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
-          {/* TRANSLATION BAR BUTTON PANEL TOGGLE */}
-          <div className="px-0.5">
-            <button
-              onClick={toggleTranslation}
-              disabled={isTranslating}
-              className="w-full flex items-center justify-start gap-2 px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-all shadow-2xs group cursor-pointer disabled:opacity-60"
-            >
-              <span className="text-slate-400 group-hover:text-slate-600 text-sm">🌐</span>
-              <span className="tracking-wide truncate">
-                {isTranslating ? "Translating..." : isHindi ? "Translate to English" : "Translate to Hindi / हिंदी"}
-              </span>
-            </button>
-          </div>
-
-          {/* CONDENSED SPACING SELECTION NAVIGATION LIST ITEMS */}
-          <div className="space-y-1 overflow-hidden">
-            {navigationItems.map((item) => {
-              const isActive = activeNav === item.id;
-              return (
-                <button
-                  key={item.id}
-                  disabled={item.disabled}
-                  onClick={() => !item.disabled && setActiveNav(item.id)}
-                  className={`w-full flex items-center justify-between px-1 py-3.5 text-sm font-bold rounded-xl transition-all border border-transparent text-left ${
-                    item.disabled
-                      ? "bg-transparent text-black-400 opacity-30 cursor-not-allowed select-none"
-                      : isActive
-                      ? "bg-[#c4eaec] text-indigo-600 font-extrabold shadow-3xs"
-                      : "text-black-500 hover:bg-green-100"
-                  }`}
-                >
-                  <div className="flex items-center gap-3 truncate">
-                    <span className={`text-base shrink-0 ${item.disabled ? "grayscale opacity-30" : "opacity-90"}`}>
-                      {item.icon}
-                    </span>
-                    <span className="truncate tracking-wide font-sans">{item.label}</span>
-                  </div>
-                  {item.disabled && (
-                    <span className="text-xs opacity-40 shrink-0 select-none pl-1">🔒</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
         </div>
       </nav>
 
