@@ -156,15 +156,21 @@ function StudyHub() {
         practiceTasks: updatedTasks.filter((t) => t.type === "practice"),
       });
 
+      // Force reset pagination pointer scopes back to index 0 if slots were previously empty
       const newGsTask = updatedTasks.find(t => t.type === "gs");
-      if (newGsTask && newGsTask.subtasks) {
+      if (newGsTask && newGsTask.subtasks && newGsTask.subtasks.length > 0) {
         const firstPendingGsIndex = newGsTask.subtasks.findIndex(st => !completedSets.has(st.subtopicId));
-        if (firstPendingGsIndex !== -1) setGsIndex(firstPendingGsIndex);
+        setGsIndex(firstPendingGsIndex !== -1 ? firstPendingGsIndex : 0);
+      } else {
+        setGsIndex(0);
       }
+
       const newOptionalTask = updatedTasks.find(t => t.type === "optional");
-      if (newOptionalTask && newOptionalTask.subtasks) {
+      if (newOptionalTask && newOptionalTask.subtasks && newOptionalTask.subtasks.length > 0) {
         const firstPendingOptIndex = newOptionalTask.subtasks.findIndex(st => !completedSets.has(st.subtopicId));
-        if (firstPendingOptIndex !== -1) setOptionalIndex(firstPendingOptIndex);
+        setOptionalIndex(firstPendingOptIndex !== -1 ? firstPendingOptIndex : 0);
+      } else {
+        setOptionalIndex(0);
       }
     } catch (err) {
       console.error("Extension assembly execution error:", err);
@@ -241,6 +247,16 @@ function StudyHub() {
   const isGsSlotDone = !gsTask || gsTask.status?.toUpperCase() === "COMPLETED";
   const isOptionalSlotDone = !optionalTask || optionalTask.status?.toUpperCase() === "COMPLETED";
   const isMidnightLockActive = tasks.length === 0;
+
+  // Track if Optional subtasks array is explicitly non-existent or empty
+  const hasOptionalAllocated = !!(optionalTask && optionalTask.subtasks && optionalTask.subtasks.length > 0);
+
+  // Auto fallback extension context choice dropdown mapping if selected slot gets removed
+  useEffect(() => {
+    if (!hasOptionalAllocated && (extensionSlotChoice === "OPTIONAL" || extensionSlotChoice === "BOTH")) {
+      setExtensionSlotChoice("GS");
+    }
+  }, [hasOptionalAllocated, extensionSlotChoice]);
 
   const toggleTag = (tag) => {
     setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
@@ -542,8 +558,8 @@ function StudyHub() {
               className="text-[11px] font-bold text-slate-600 bg-white border border-[#DCE3FA] rounded-xl px-2 py-2 outline-none focus:border-indigo-500 cursor-pointer shadow-3xs min-w-[105px] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="GS">GS Slot</option>
-              <option value="OPTIONAL">Optional Slot</option>
-              <option value="BOTH">Split Balanced</option>
+              {hasOptionalAllocated && <option value="OPTIONAL">Optional Slot</option>}
+              {hasOptionalAllocated && <option value="BOTH">Split Balanced</option>}
             </select>
             <button
               disabled={isMidnightLockActive}
