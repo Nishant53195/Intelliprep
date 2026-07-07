@@ -164,7 +164,8 @@ function AdminCAForm() {
         subtopicTag: formData.subtopicTags[0] || "", // Now successfully submits composite ID format!
         issueEvolutionIds: formData.parentIssueId ? [formData.parentIssueId] : [],
         createdBy: user?.email || "nishant53195@gmail.com",
-        createdAt: new Date()
+        createdAt: new Date(),
+        isCreatedByAdminLocally: true
       };
 
       console.log("💾 Writing record array payload down to Dexie storage context:", newCAEntry);

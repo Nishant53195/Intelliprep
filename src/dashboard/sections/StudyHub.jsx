@@ -443,7 +443,7 @@ function StudyHub() {
   if (loading) return <div className="py-12 text-center text-xs text-slate-400 font-mono">Loading Operating System...</div>;
 
   return (
-    <div className="space-y-6 text-left font-sans antialiased bg-[#FAFBFD] min-h-screen p-2">
+    <div className="space-y-3 text-left font-sans antialiased bg-[#f3f6fc] min-h p-1">
       
       {/* 1. DYNAMIC INTEGRATED ROW: ALL THREE VELOCITY METRICS DISPLAYED SIDE-BY-SIDE ON TOP */}
       {velocityReport && (

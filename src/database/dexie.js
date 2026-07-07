@@ -79,6 +79,11 @@ Object.keys(databaseStores).forEach((tableName) => {
 
   // 1. Creation Interceptor (Traps .add, .put, .bulkAdd, and .bulkPut operations natively)
   targetTable.hook('creating', function (primKey, obj) {
+
+    if (tableName === "current_affairs" && !obj.isCreatedByAdminLocally) {
+      return; 
+    }
+
     const finalKey = primKey || obj.id || obj.userId;
     if (finalKey) {
       // queueMicrotask pushes the execution out of the current call stack, making bulk operations bulletproof
@@ -88,6 +93,10 @@ Object.keys(databaseStores).forEach((tableName) => {
 
   // 2. Update Interceptor (Traps direct object modifications via .update)
   targetTable.hook('updating', function (modifications, primKey, obj) {
+    if (tableName === "current_affairs" && !obj.isCreatedByAdminLocally) {
+      return; 
+    }
+    
     const finalKey = primKey || (obj ? (obj.id || obj.userId) : null);
     if (finalKey) {
       queueMicrotask(() => enqueueSyncMutation(tableName, finalKey, "PUT"));
