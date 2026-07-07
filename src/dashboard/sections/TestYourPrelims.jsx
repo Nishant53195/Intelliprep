@@ -98,7 +98,6 @@ function TestYourPrelims() {
     const harvestCoachingMetadataFromCloud = async () => {
       setLoadingCoachingMetaData(true);
       try {
-        console.log("[Coaching Remote Engine] Pulling metrics from master_questions_bank...");
         const qBankRef = collection(firestoreDb, "master_questions_bank");
         const coachingQuery = query(qBankRef, where("type", "==", "COACHING_TEST"));
         const snapshot = await getDocs(coachingQuery);
@@ -171,10 +170,8 @@ function TestYourPrelims() {
     const recordId = `${activeChip}_prac_${selectedSubjectId}_${selectedTopicId}`;
 
     try {
-      // 🔥 CHECK LOCAL DB FIRST FOR MCQ/PYQ TOPIC RECORD
       let existingRegistryDoc = await db[targetTableStr].get(recordId);
 
-      // 🔥 IF DATA DOES NOT EXIST LOCALLY, THEN CHECK FIRESTORE COLLECTION
       if (!existingRegistryDoc) {
         const cloudDocRef = doc(firestoreDb, "users", activeUserId, targetTableStr, recordId);
         const cloudSnapshot = await getDoc(cloudDocRef);
@@ -208,6 +205,7 @@ function TestYourPrelims() {
       }
       const selectedTopicMetadata = await db.topics.get(selectedTopicId);
       setQuestionPool(fetchedBatch);
+      setFinalSelectedQuestions(fetchedBatch); // Fixed Bug: Prevents simulator from throwing fatal rendering exception
       setActiveTopicName(selectedTopicMetadata ? selectedTopicMetadata.name : "Selected Module");
       setHasLoadedPool(true);
     } catch (err) {
@@ -224,10 +222,8 @@ function TestYourPrelims() {
     const recordId = `coaching_${selectedCoachingBundle.toLowerCase().replace(/\s+/g, '_')}_${testItem.testName.toLowerCase().replace(/\s+/g, '_')}`;
     
     try {
-      // 🔥 CHECK LOCAL DB FIRST FOR COACHING TESTS RECORD
       let existingRecord = await db.coaching_test_prelims.get(recordId);
 
-      // 🔥 IF DATA DOES NOT EXIST LOCALLY, THEN CHECK FIRESTORE COLLECTION
       if (!existingRecord) {
         const cloudDocRef = doc(firestoreDb, "users", activeUserId, "coaching_test_prelims", recordId);
         const cloudSnapshot = await getDoc(cloudDocRef);
@@ -277,7 +273,7 @@ function TestYourPrelims() {
         const currentSelection = prev[questionItem.id];
         if (currentSelection === optionIdx) {
           const nextAnswers = { ...prev };
-          delete nextAnswers[nextAnswers];
+          delete nextAnswers[questionItem.id]; // Fixed Bug: Prevent reference parsing type crashes
           return nextAnswers;
         } else {
           return { ...prev, [questionItem.id]: optionIdx };
@@ -313,7 +309,7 @@ function TestYourPrelims() {
     });
 
     const calculatedScore = (correctCount * 2) - (incorrectCount * (2 / 3));
-    const accuracyPercentage = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+    const accuracyPercentage = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0; // Fixed Bug: Base precision on metrics handled rather than aggregate pool
     const runtimeReportObj = {
       total: totalCount, attempted: answeredCount, correct: correctCount, incorrect: incorrectCount, omitted: totalCount - answeredCount,
       score: Number(calculatedScore.toFixed(2)), accuracy: accuracyPercentage
@@ -376,7 +372,6 @@ function TestYourPrelims() {
     });
 
     try {
-      // 1. RUN NATIVE DB WRITES EXCLUSIVELY INSIDE TRANSACTION
       await db.transaction("rw", [db[targetTableStr], db.weak_topics, db.topic_intelligence], async () => {
         const existingRecord = await db[targetTableStr].get(recordId);
 
@@ -407,7 +402,6 @@ function TestYourPrelims() {
           });
         }
 
-        // --- APPLY EXCLUSIVE CONFIDENCE ADJUSTMENTS PASSTHROUGH RULES ---
         for (const [targetTopicIdKey, counts] of Object.entries(topicConfidenceAdjustmentsMap)) {
           let topicIntel = await db.topic_intelligence
             .where("[userId+topicId]")
@@ -486,7 +480,6 @@ function TestYourPrelims() {
         }
       });
 
-      // 2. RUN TELEMETRY SYNC OUTSIDE TRANSACTION TO PREVENT PREMATURE COMMIT ERRORS
       try {
         const { syncTopicIntelligence } = await import("../../syllabus/services/intelligenceSyncService");
         for (const targetTopicIdKey of Object.keys(topicConfidenceAdjustmentsMap)) {
@@ -897,49 +890,46 @@ function TestYourPrelims() {
                       <span className="text-xl font-black text-indigo-600 block mt-1 font-mono">{questionPool.length} MCQs</span>
                     </div>
                     <button
-  type="button"
-  onClick={async () => {
-    // 1. Guard rule: coaching series bypasses this block automatically
-    if (subSection !== "coaching_series" && selectedTopicId) {
-      const activeUserId = user?.uid || "local_user";
-      let topicIntel = await db.topic_intelligence
-        .where("[userId+topicId]")
-        .equals([activeUserId, selectedTopicId])
-        .first();
+                      type="button"
+                      onClick={async () => {
+                        if (subSection !== "coaching_series" && selectedTopicId) {
+                          const activeUserId = user?.uid || "local_user";
+                          let topicIntel = await db.topic_intelligence
+                            .where("[userId+topicId]")
+                            .equals([activeUserId, selectedTopicId])
+                            .first();
 
-      if (!topicIntel) {
-        topicIntel = await db.topic_intelligence
-          .where("topicId")
-          .equals(selectedTopicId)
-          .filter(r => r.userId === activeUserId)
-          .first();
-      }
+                          if (!topicIntel) {
+                            topicIntel = await db.topic_intelligence
+                              .where("topicId")
+                              .equals(selectedTopicId)
+                              .filter(r => r.userId === activeUserId)
+                              .first();
+                          }
 
-      // Check if topic hasn't reached 100% completion yet
-      if (!topicIntel || topicIntel.completionScore < 100) {
-        alert("🔒 Cannot start test! This topic must be marked 100% complete in your syllabus configuration before practice runs can be initiated.");
-        return;
-      }
-    }
+                          if (!topicIntel || topicIntel.completionScore < 100) {
+                            alert("🔒 Cannot start test! This topic must be marked 100% complete in your syllabus configuration before practice runs can be initiated.");
+                            return;
+                          }
+                        }
 
-    // 2. Existing launch setup code runs exactly as before
-    const randomDeck = [...questionPool];
-    for (let i = randomDeck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [randomDeck[i], randomDeck[j]] = [randomDeck[j], randomDeck[i]];
-    }
-    setFinalSelectedQuestions(randomDeck);
-    setCurrentQuestionIdx(0);
-    setSelectedAnswersMap({}); 
-    setQuestionAnsweredState({});
-    setErrorClassificationsMap({});
-    setShowSummary(false);
-    setTestActive(true);
-  }}
-  className="px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-xs rounded-xl tracking-wider uppercase transition-all shadow-md flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
->
-  <Play size={12} fill="currentColor" /> {lastAttemptData ? "Reattempt" : "Attempt"}
-</button>
+                        const randomDeck = [...questionPool];
+                        for (let i = randomDeck.length - 1; i > 0; i--) {
+                          const j = Math.floor(Math.random() * (i + 1));
+                          [randomDeck[i], randomDeck[j]] = [randomDeck[j], randomDeck[i]];
+                        }
+                        setFinalSelectedQuestions(randomDeck);
+                        setCurrentQuestionIdx(0);
+                        setSelectedAnswersMap({}); 
+                        setQuestionAnsweredState({});
+                        setErrorClassificationsMap({});
+                        setShowSummary(false);
+                        setTestActive(true);
+                      }}
+                      className="px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-xs rounded-xl tracking-wider uppercase transition-all shadow-md flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+                    >
+                      <Play size={12} fill="currentColor" /> {lastAttemptData ? "Reattempt" : "Attempt"}
+                    </button>
                   </div>
                 </div>
               )}

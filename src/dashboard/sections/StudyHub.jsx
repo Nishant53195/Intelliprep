@@ -238,7 +238,6 @@ function StudyHub() {
     }
   }
 
-  
   const isGsSlotDone = !gsTask || gsTask.status?.toUpperCase() === "COMPLETED";
   const isOptionalSlotDone = !optionalTask || optionalTask.status?.toUpperCase() === "COMPLETED";
   const isMidnightLockActive = tasks.length === 0;
@@ -502,34 +501,22 @@ function StudyHub() {
 
       </div>
 
-      {/* 3. HORIZONTAL RUNTIME WORKFLOW ACTIONS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-        <button onClick={loadTodaySchedule} className="py-3.5 bg-white hover:bg-slate-50 border border-[#DCE3FA] text-xs font-black text-slate-700 rounded-2xl transition-all shadow-2xs flex items-center justify-center gap-2">
-          Regenerate Schedule
-        </button>
-        <button 
-          disabled={isMidnightLockActive}
-          onClick={() => setShowReflection(true)}
-          className={`py-3.5 text-xs font-black rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 ${isMidnightLockActive ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none" : "bg-[#2A52BE] hover:bg-[#1E3F96] text-white"}`}
-        >
-          End the Day
-        </button>
-      </div>
-
-      {/* 4. EXTEND STUDY STUDY BLOCK PANEL */}
-      <div className="bg-white border border-[#E9EFFD] rounded-2xl p-4 shadow-[0_8px_30px_rgba(223,230,245,0.3)]">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="text-left flex items-center gap-2.5 shrink-0">
-            <div className="h-9 w-9 rounded-xl bg-[#F6F4FF] text-[#6366F1] text-lg font-bold flex items-center justify-center border border-[#EBE6FF] shadow-3xs">
+      {/* 3. THE REORGANIZED WORKFLOW ACTIONS GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+        
+        {/* EXTEND SESSION PORTION PLACED INSTEAD OF REGENERATE BUTTON */}
+        <div className="bg-white border border-[#E9EFFD] rounded-2xl p-4 shadow-[0_8px_30px_rgba(223,230,245,0.3)] flex flex-col justify-between gap-3">
+          <div className="text-left flex items-center gap-2.5">
+            <div className="h-7 w-7 rounded-xl bg-[#F6F4FF] text-[#6366F1] text-xs font-bold flex items-center justify-center border border-[#EBE6FF] shadow-3xs">
               ⏱️
             </div>
             <div>
-              <h3 className="text-xs font-black uppercase text-slate-800 tracking-wider">Extend Session</h3>
-              <p className="text-[10px] font-bold text-amber-600 uppercase tracking-tight">Pending target locks active</p>
+              <h3 className="text-xs font-black uppercase text-slate-800 tracking-wider">Extend Active Session</h3>
             </div>
           </div>
-          <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full">
-            <div className="flex-1 flex items-center gap-3 bg-[#F8FAFD] border border-slate-200/50 px-4 py-2 rounded-xl">
+          
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full">
+            <div className="flex-1 flex items-center gap-2 bg-[#F8FAFD] border border-slate-200/50 px-3 py-1.5 rounded-xl">
               <input
                 type="range"
                 min="1"
@@ -540,7 +527,7 @@ function StudyHub() {
                 onChange={(e) => setSessionHours(parseInt(e.target.value))}
                 className="flex-1 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#4F46E5] disabled:cursor-not-allowed"
               />
-              <span className="shrink-0 text-xs font-mono font-black text-[#4F46E5] bg-white border border-slate-200 px-2 py-0.5 rounded shadow-3xs min-w-[50px] text-center">
+              <span className="shrink-0 text-[11px] font-mono font-black text-[#4F46E5] bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-3xs min-w-[42px] text-center">
                 +{sessionHours}h
               </span>
             </div>
@@ -548,7 +535,7 @@ function StudyHub() {
               disabled={isMidnightLockActive}
               value={extensionSlotChoice}
               onChange={(e) => setExtensionSlotChoice(e.target.value)}
-              className="text-xs font-bold text-slate-600 bg-white border border-[#DCE3FA] rounded-xl px-3 py-2.5 outline-none focus:border-indigo-500 cursor-pointer shadow-3xs min-w-[130px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-[11px] font-bold text-slate-600 bg-white border border-[#DCE3FA] rounded-xl px-2 py-2 outline-none focus:border-indigo-500 cursor-pointer shadow-3xs min-w-[105px] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="GS">GS Slot</option>
               <option value="OPTIONAL">Optional Slot</option>
@@ -557,11 +544,30 @@ function StudyHub() {
             <button
               disabled={isMidnightLockActive}
               onClick={handleReassembleCapacity}
-              className="px-6 py-2.5 bg-[#101726] hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-400 text-white font-black text-xs rounded-xl transition-all shadow-2xs shrink-0 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-[#101726] hover:bg-indigo-600 disabled:bg-slate-100 disabled:text-slate-400 text-white font-black text-xs rounded-xl transition-all shadow-2xs shrink-0 disabled:cursor-not-allowed"
             >
               Add Time
             </button>
           </div>
+        </div>
+
+        {/* REDUCED END THE DAY BUTTON PANEL BLOCK */}
+        <div className="bg-white border border-[#E9EFFD] rounded-2xl p-4 shadow-[0_8px_30px_rgba(223,230,245,0.3)] flex flex-col justify-between gap-3">
+          <div className="text-left flex items-center gap-2.5">
+            <div className="h-7 w-7 rounded-xl bg-blue-50 text-[#2A52BE] text-xs font-bold flex items-center justify-center border border-blue-100 shadow-3xs">
+              🏁
+            </div>
+            <div>
+              <h3 className="text-xs font-black uppercase text-slate-800 tracking-wider">Session Lifecycle</h3>
+            </div>
+          </div>
+          <button 
+            disabled={isMidnightLockActive}
+            onClick={() => setShowReflection(true)}
+            className={`w-full py-2.5 text-xs font-black rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 ${isMidnightLockActive ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none" : "bg-[#2A52BE] hover:bg-[#1E3F96] text-white cursor-pointer"}`}
+          >
+            End the Day
+          </button>
         </div>
       </div>
 
