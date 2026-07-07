@@ -34,11 +34,14 @@ const databaseStores = {
   mains_log_marks: "id, userId, questionId, timestamp",
   
   // Track 4: Granular Error-Aware Core Weak Topic Engine
-  weak_topics: 'id,userId,subjectId,topicId,state,[userId+topicId]'
+  weak_topics: 'id,userId,subjectId,topicId,state,[userId+topicId]',
+
+  // NEW CACHE TABLE STRUCTURE FOR INSTANT RELOADS
+  master_bank_availability: 'id,topicId,type,hasQuestions,[topicId+type]'
 };
 
 // BUMPED TO VERSION 10 TO FORCE RE-INDEX CLEANSE IN BROWSER
-db.version(11).stores(databaseStores);
+db.version(13).stores(databaseStores);
 
 /*
 |--------------------------------------------------------------------------

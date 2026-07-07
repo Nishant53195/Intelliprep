@@ -96,7 +96,7 @@ function StudyHub() {
     return resolvedSet;
   }
 
-  // Scans topic records, wraps fetches inside strict error handlings, and polls Firestore with fallback rules
+  // Scans topic records, utilizes a local Dexie cache layer, and queries Firestore only when necessary
   async function computeDynamicPracticeSuite(userId) {
     try {
       setPracticeSlotLoading(true);
@@ -116,7 +116,7 @@ function StudyHub() {
         const subjectRecord = await db.subjects.get(record.subjectId);
         if (!topicRecord || !subjectRecord) continue;
 
-        // Step A: Local Dexie Index Lookups
+        // Step A: Local Dexie Index Lookups for MCQ
         const mcqMatches = await db.topic_test_prelims
           .where("[userId+topicId]")
           .equals([userId, record.topicId])
@@ -124,34 +124,50 @@ function StudyHub() {
         const hasNoMcqAttempts = mcqMatches.length === 0;
 
         if (hasNoMcqAttempts) {
-          let mcqCount = 0;
+          // Check local cache table first
+          let mcqCache = await db.master_bank_availability
+            .where({ topicId: record.topicId, type: "MCQ_PRELIMS" })
+            .first();
+
+          let hasMcqQuestions = false;
           let failedFetch = false;
 
-          try {
-            // Promise wrapper to force execute a 5-second maximum timeout limit rule
-            const cloudFetchPromise = async () => {
-              const q = query(
-                collection(firestoreInstance, "master_questions_bank"),
-                where("topicId", "==", record.topicId),
-                where("type", "==", "MCQ_PRELIMS")
+          if (mcqCache) {
+            hasMcqQuestions = mcqCache.hasQuestions;
+          } else {
+            // Hit Firestore only if not cached locally
+            try {
+              const cloudFetchPromise = async () => {
+                const q = query(
+                  collection(firestoreInstance, "master_questions_bank"),
+                  where("topicId", "==", record.topicId),
+                  where("type", "==", "MCQ_PRELIMS")
+                );
+                const snapshot = await getDocs(q);
+                return snapshot.size > 0;
+              };
+
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Timeout")), 4000)
               );
-              const snapshot = await getDocs(q);
-              return snapshot.size;
-            };
 
-            const timeoutPromise = new Promise((_, reject) =>
-              setTimeout(() => reject(new Error("Timeout")), 5000)
-            );
-
-            mcqCount = await Promise.race([cloudFetchPromise(), timeoutPromise]);
-          } catch (cloudErr) {
-            console.warn("Firestore MCQ verification network failure, using dynamic safety fallback:", cloudErr);
-            failedFetch = true;
-            setPracticeNetworkError(true);
+              hasMcqQuestions = await Promise.race([cloudFetchPromise(), timeoutPromise]);
+              
+              // Store result in local cache table
+              await db.master_bank_availability.put({
+                id: `cache_mcq_${record.topicId}`,
+                topicId: record.topicId,
+                type: "MCQ_PRELIMS",
+                hasQuestions: hasMcqQuestions
+              });
+            } catch (cloudErr) {
+              console.warn("Firestore MCQ cache verification timeout/error:", cloudErr);
+              failedFetch = true;
+              setPracticeNetworkError(true);
+            }
           }
 
-          // SAFE FALLBACK: If network drops or times out, assume questions exist so user is never stuck infinitely!
-          if (mcqCount > 0 || failedFetch) {
+          if (hasMcqQuestions || failedFetch) {
             generatedPracticeItems.push({
               id: `practice_mcq_${record.topicId}`,
               topicId: record.topicId,
@@ -172,33 +188,50 @@ function StudyHub() {
         const hasNoPyqAttempts = pyqMatches.length === 0;
 
         if (hasNoPyqAttempts) {
-          let pyqCount = 0;
+          // Check local cache table first
+          let pyqCache = await db.master_bank_availability
+            .where({ topicId: record.topicId, type: "PYQ_PRELIMS" })
+            .first();
+
+          let hasPyqQuestions = false;
           let failedFetch = false;
 
-          try {
-            const cloudFetchPromise = async () => {
-              const q = query(
-                collection(firestoreInstance, "master_questions_bank"),
-                where("topicId", "==", record.topicId),
-                where("type", "==", "PYQ_PRELIMS")
+          if (pyqCache) {
+            hasPyqQuestions = pyqCache.hasQuestions;
+          } else {
+            // Hit Firestore only if not cached locally
+            try {
+              const cloudFetchPromise = async () => {
+                const q = query(
+                  collection(firestoreInstance, "master_questions_bank"),
+                  where("topicId", "==", record.topicId),
+                  where("type", "==", "PYQ_PRELIMS")
+                );
+                const snapshot = await getDocs(q);
+                return snapshot.size > 0;
+              };
+
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Timeout")), 4000)
               );
-              const snapshot = await getDocs(q);
-              return snapshot.size;
-            };
 
-            const timeoutPromise = new Promise((_, reject) =>
-              setTimeout(() => reject(new Error("Timeout")), 5000)
-            );
-
-            pyqCount = await Promise.race([cloudFetchPromise(), timeoutPromise]);
-          } catch (cloudErr) {
-            console.warn("Firestore PYQ verification network failure, using dynamic safety fallback:", cloudErr);
-            failedFetch = true;
-            setPracticeNetworkError(true);
+              hasPyqQuestions = await Promise.race([cloudFetchPromise(), timeoutPromise]);
+              
+              // Store result in local cache table
+              await db.master_bank_availability.put({
+                id: `cache_pyq_${record.topicId}`,
+                topicId: record.topicId,
+                type: "PYQ_PRELIMS",
+                hasQuestions: hasPyqQuestions
+              });
+            } catch (cloudErr) {
+              console.warn("Firestore PYQ cache verification timeout/error:", cloudErr);
+              failedFetch = true;
+              setPracticeNetworkError(true);
+            }
           }
 
-          // SAFE FALLBACK: If network drops or times out, assume questions exist so user is never stuck infinitely!
-          if (pyqCount > 0 || failedFetch) {
+          if (hasPyqQuestions || failedFetch) {
             generatedPracticeItems.push({
               id: `practice_pyq_${record.topicId}`,
               topicId: record.topicId,
@@ -639,7 +672,7 @@ function StudyHub() {
           </div>
         </div>
 
-        {/* SLOT D: COMPILATION PRACTICE SLOT CARD - WITH EMBEDDED INTEGRATED LOADING HANDLERS */}
+        {/* SLOT D: COMPILATION PRACTICE SLOT CARD - AUTOMATED WITH CACHING */}
         <div className="relative bg-white border border-[#EBEFF8] rounded-[2.25rem] p-6 shadow-[0_12px_40px_rgba(235,240,248,0.5)] flex flex-col justify-between min-h-[230px] group transition-all duration-300 hover:shadow-md">
           {practiceSlotLoading ? (
             <div className="flex-1 flex flex-col items-center justify-center py-10 space-y-3">
