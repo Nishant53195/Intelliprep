@@ -8,11 +8,17 @@ import CAFilterConsole from "../../currentaffairs/components/CAFilterConsole";
 // IMPORT TARGETED BACKGROUND SYNC ENGINE CONTROL NODE
 import { syncCentralCA } from "../../currentaffairs/services/syncCentralCA";
 
+// IMPORT COLLAPSIBLE CONTROL ICONS
+import { SlidersHorizontal, ChevronUp, ChevronDown } from "lucide-react";
+
 function CurrentAffairsHub() {
   const user = useLoginStore((state) => state.user); // Checks authenticated user object context
   const isAdmin = user?.email === "nishant53195@gmail.com"; // Enforces secure email guard boundary
 
   const { activeTab, setActiveTab, timeChip, setTimeChip } = useCAStore();
+  
+  // NEW STATE: Tracks visibility of the collapsible dimensions filter console panel
+  const [isFilterExpanded, setIsFilterExpanded] = useState(true);
 
   // AUTOMATED TARGETED BACKGROUND SYNCHRONIZATION HANDSHAKE
   useEffect(() => {
@@ -88,33 +94,48 @@ function CurrentAffairsHub() {
       ) : (
         <div className="space-y-4 animate-in fade-in duration-200">
           {/* USER CHIP VIEW SELECTORS FILTER DECK STRIP */}
-          <div className="flex items-center gap-2 border-b border-slate-200/60 pb-2.5">
-            <button 
-              type="button"
-              onClick={() => setTimeChip("today")} 
-              className={`px-4 py-1.5 text-xs font-black rounded-xl border transition-all cursor-pointer ${
-                timeChip === "today" 
-                  ? "bg-[#E8EEFF] border-transparent text-indigo-600 shadow-3xs" 
-                  : "bg-white border-slate-200 text-slate-500 hover:text-slate-800"
-              }`}
-            >
-              Today's CA
-            </button>
-            <button 
-              type="button"
-              onClick={() => setTimeChip("all")} 
-              className={`px-4 py-1.5 text-xs font-black rounded-xl border transition-all cursor-pointer ${
-                timeChip === "all" 
-                  ? "bg-[#E8EEFF] border-transparent text-indigo-600 shadow-3xs" 
-                  : "bg-white border-slate-200 text-slate-500 hover:text-slate-800"
-              }`}
-            >
-              All CA Deck Matrix
-            </button>
+          <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5 gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <button 
+                type="button"
+                onClick={() => setTimeChip("today")} 
+                className={`px-4 py-1.5 text-xs font-black rounded-xl border transition-all cursor-pointer ${
+                  timeChip === "today" 
+                    ? "bg-[#E8EEFF] border-transparent text-indigo-600 shadow-3xs" 
+                    : "bg-white border-slate-200 text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                Today's CA
+              </button>
+              <button 
+                type="button"
+                onClick={() => setTimeChip("all")} 
+                className={`px-4 py-1.5 text-xs font-black rounded-xl border transition-all cursor-pointer ${
+                  timeChip === "all" 
+                    ? "bg-[#E8EEFF] border-transparent text-indigo-600 shadow-3xs" 
+                    : "bg-white border-slate-200 text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                All CA Deck Matrix
+              </button>
+            </div>
+
+            {/* DYNAMIC SHOWN COLLAPSIBLE TRIGGER CONTROLS BUTTON */}
+            {timeChip === "all" && (
+              <button
+                type="button"
+                onClick={() => setIsFilterExpanded(prev => !prev)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-all shadow-3xs cursor-pointer"
+              >
+                <SlidersHorizontal size={13} />
+                <span>{isFilterExpanded ? "Hide Filters" : "Show Filters"}</span>
+                {isFilterExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+              </button>
+            )}
           </div>
 
-          {/* Conditional Query Filters Row Deck Module */}
-          {timeChip === "all" && (
+          {/* Conditional Query Filters Row Deck Module with active collapsible layout gating */}
+          {timeChip === "all" && isFilterExpanded && (
             <div className="bg-white border border-[#EBEFF8] rounded-2xl p-4 shadow-3xs animate-in slide-in-from-top-2 duration-200">
               <CAFilterConsole />
             </div>

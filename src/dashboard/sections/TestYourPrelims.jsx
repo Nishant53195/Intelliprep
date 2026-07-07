@@ -581,7 +581,7 @@ function TestYourPrelims() {
 
       {/* MAIN DISPLAY STAGING PORT WRAPPER */}
       {!testActive ? (
-        <div className="bg-white border border-[#EBEFF8] rounded-[2rem] p-6 shadow-[0_8px_24px_rgba(235,240,248,0.35)] min-h-[22rem]">
+        <div className="bg-white border border-[#EBEFF8] rounded-[2.2rem] p-6 shadow-[0_8px_24px_rgba(235,240,248,0.35)] min-h-[22rem]">
           {subSection === "admin_creator" && isAdmin ? (
             <AdminQuestionForm onComplete={() => setSubSection("take_test")} />
           ) : subSection === "coaching_series" && activeChip === "mcq" ? (
@@ -701,50 +701,51 @@ function TestYourPrelims() {
                       onClick={() => setSelectedCoachingBundle("")}
                       className="text-xs font-black text-indigo-600 flex items-center gap-1 cursor-pointer"
                     >
-                      ← Return to Test Selection
+                      Cancel
                     </button>
-                    <span className="text-xs font-mono font-black text-zinc-500 uppercase">Active Provider: {selectedCoachingBundle}</span>
                   </div>
 
-                  <div className="space-y-3">
-                    {coachingTestsList.map((test) => {
-                      const recordId = `coaching_${selectedCoachingBundle.toLowerCase().replace(/\s+/g, '_')}_${test.testName.toLowerCase().replace(/\s+/g, '_')}`;
-                      const matchRecord = localCoachingHistoryRecords?.find(r => r.id === recordId);
-                      const pastAttempt = matchRecord?.Attempts?.length > 0 ? matchRecord.Attempts[matchRecord.Attempts.length - 1] : null;
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {localCoachingHistoryRecords && localCoachingHistoryRecords.length > 0 && !loadingCoachingMetaData && (
+                      coachingTestsList.map((test) => {
+                        const recordId = `coaching_${selectedCoachingBundle.toLowerCase().replace(/\s+/g, '_')}_${test.testName.toLowerCase().replace(/\s+/g, '_')}`;
+                        const matchRecord = localCoachingHistoryRecords?.find(r => r.id === recordId);
+                        const pastAttempt = matchRecord?.Attempts?.length > 0 ? matchRecord.Attempts[matchRecord.Attempts.length - 1] : null;
 
-                      return (
-                        <div
-                          key={test.testName}
-                          className="border border-blue-300 bg-white p-5 rounded-2xl shadow-3xs flex flex-col sm:flex-row sm:items-start justify-between gap-4 hover:shadow-2xs transition-all"
-                        >
-                          <div className="space-y-1">
-                            <span className="text-[11px] font-black font-mono px-2 py-0.5 bg-green-100 text-green-800 rounded uppercase tracking-wider">
-                              {test.testType.replace(/_/g, ' ')}
-                            </span>
-                           
-                            <h2 className="text-xl font-black text-zinc-900 tracking-tight pt-1">{test.testName}</h2>
-                            <p className="text-[14px] text-blue-600 font-mono font-bold">{test.questions.length} Questions</p>
-                            
-                            {pastAttempt && (
-                              <div className="mt-2 text-xs bg-zinc-50 border p-3 rounded-xl flex flex-wrap gap-x-4 gap-y-1 text-zinc-700 font-black max-w-xl shadow-3xs">
-                                <span>Accuracy: <strong className="text-blue-600">{pastAttempt.accuracy}%</strong></span>
-                                <span>Score: <strong className="text-zinc-900 font-mono">{pastAttempt.obtainedMarks}/{test.questions.length * 2}M</strong></span>
-                                <span>Correct: <strong className="text-emerald-600">+{pastAttempt.correctCount}</strong></span>
-                                <span>Wrong: <strong className="text-rose-600">-{pastAttempt.wrongCount}</strong></span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          <button
-                            type="button"
-                            onClick={() => handleLoadCoachingTestExecutionWorkspace(test)}
-                            className={`px-4 py-2 text-white font-black text-xs rounded-xl uppercase tracking-wider transition-all cursor-pointer shadow-3xs shrink-0 ${pastAttempt ? "bg-indigo-600 hover:bg-indigo-700" : "bg-zinc-900 hover:bg-blue-800"}`}
+                        return (
+                          <div
+                            key={test.testName}
+                            className="border border-blue-300 bg-white p-5 rounded-2xl shadow-3xs flex flex-col justify-between gap-4 hover:shadow-2xs transition-all"
                           >
-                            {pastAttempt ? "Reattempt Test" : "Start Test"}
-                          </button>
-                        </div>
-                      );
-                    })}
+                            <div className="space-y-1">
+                              <span className="text-[11px] font-black font-mono px-2 py-0.5 bg-green-100 text-green-800 rounded uppercase tracking-wider">
+                                {test.testType.replace(/_/g, ' ')}
+                              </span>
+                             
+                              <h2 className="text-xl font-black text-zinc-900 tracking-tight pt-1">{test.testName}</h2>
+                              <p className="text-[14px] text-blue-600 font-mono font-bold">{test.questions.length} Questions</p>
+                              
+                              {pastAttempt && (
+                                <div className="mt-2 text-xs bg-zinc-50 border p-3 rounded-xl flex flex-col gap-y-1 text-zinc-700 font-black shadow-3xs">
+                                  <span>Accuracy: <strong className="text-blue-600">{pastAttempt.accuracy}%</strong></span>
+                                  <span>Score: <strong className="text-zinc-900 font-mono">{pastAttempt.obtainedMarks}/{test.questions.length * 2}M</strong></span>
+                                  <span>Correct: <strong className="text-emerald-600">+{pastAttempt.correctCount}</strong></span>
+                                  <span>Wrong: <strong className="text-rose-600">-{pastAttempt.wrongCount}</strong></span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <button
+                              type="button"
+                              onClick={() => handleLoadCoachingTestExecutionWorkspace(test)}
+                              className={`px-4 py-2 text-white font-black text-xs rounded-xl uppercase tracking-wider transition-all cursor-pointer shadow-3xs shrink-0 ${pastAttempt ? "bg-indigo-600 hover:bg-indigo-700" : "bg-zinc-900 hover:bg-blue-800"}`}
+                            >
+                              {pastAttempt ? "Reattempt" : "Start Test"}
+                            </button>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               )}
@@ -1027,7 +1028,7 @@ function TestYourPrelims() {
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
               
-              <div className="lg:col-span-3 bg-white border border-[#EBEFF8] rounded-[2rem] p-6 md:p-8 shadow-[0_12px_35px_rgba(223,230,245,0.5)] flex flex-col justify-between min-h-[460px]">
+              <div className="lg:col-span-3 bg-white border border-[#EBEFF8] rounded-[2.2rem] p-6 md:p-8 shadow-[0_12px_35px_rgba(223,230,245,0.5)] flex flex-col justify-between min-h-[460px]">
                 {activeQuestionItem ? (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3">
