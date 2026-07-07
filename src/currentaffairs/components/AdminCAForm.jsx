@@ -151,8 +151,10 @@ function AdminCAForm() {
     }
 
     try {
+      const generatedEntryId = `ca_${Date.now()}_${crypto.randomUUID()}`;
+
       const newCAEntry = {
-        id: `ca_${Date.now()}_${crypto.randomUUID()}`,
+        id: generatedEntryId,
         title: formData.title.trim(),
         summary: formData.summary,
         source: formData.source.trim() || "Prescribed Document Node",
@@ -161,17 +163,29 @@ function AdminCAForm() {
         paperTag: formData.paperTags[0] || "",
         subjectTag: formData.subjectTags[0] || "", 
         topicTag: formData.topicTags[0] || "",
-        subtopicTag: formData.subtopicTags[0] || "", // Now successfully submits composite ID format!
+        subtopicTag: formData.subtopicTags[0] || "", 
         issueEvolutionIds: formData.parentIssueId ? [formData.parentIssueId] : [],
         createdBy: user?.email || "nishant53195@gmail.com",
-        createdAt: new Date(),
-        isCreatedByAdminLocally: true
+        createdAt: new Date()
       };
 
-      console.log("💾 Writing record array payload down to Dexie storage context:", newCAEntry);
-      
-      await db.current_affairs.put(newCAEntry);
-      console.log("✅ Success: Context committed securely.");
+      // Execute a synchronized atomic transaction to put the item in CA and push to sync_queue explicitly
+      await db.transaction("rw", [db.current_affairs, db.sync_queue], async () => {
+        // 1. Store locally for the admin view
+        await db.current_affairs.put(newCAEntry);
+
+        // 2. Manually queue it for cloud replication securely
+        await db.sync_queue.put({
+          id: `current_affairs_${generatedEntryId}`,
+          tableName: "current_affairs",
+          recordId: generatedEntryId,
+          operation: "PUT",
+          createdAt: Date.now(),
+          status: "PENDING"
+        });
+      });
+
+      console.log("✅ Success: Context committed and manual sync mutation queued securely.");
       alert("Intelligence context node committed securely to index registry.");
       
       setFormData({

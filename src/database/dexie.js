@@ -72,17 +72,15 @@ const enqueueSyncMutation = (tableName, recordId, operation) => {
 
 // Bind active listeners explicitly across all mapped stores to intercept direct statements
 Object.keys(databaseStores).forEach((tableName) => {
-  if (tableName === "sync_queue") return;
+  if (tableName === "sync_queue" || 
+    tableName === "current_affairs" || 
+    tableName === "master_bank_availability"){ return;}
 
   const targetTable = db[tableName];
   if (!targetTable) return;
 
   // 1. Creation Interceptor (Traps .add, .put, .bulkAdd, and .bulkPut operations natively)
   targetTable.hook('creating', function (primKey, obj) {
-
-    if (tableName === "current_affairs" && !obj.isCreatedByAdminLocally) {
-      return; 
-    }
 
     const finalKey = primKey || obj.id || obj.userId;
     if (finalKey) {
@@ -93,10 +91,8 @@ Object.keys(databaseStores).forEach((tableName) => {
 
   // 2. Update Interceptor (Traps direct object modifications via .update)
   targetTable.hook('updating', function (modifications, primKey, obj) {
-    if (tableName === "current_affairs" && !obj.isCreatedByAdminLocally) {
-      return; 
-    }
-    
+   
+
     const finalKey = primKey || (obj ? (obj.id || obj.userId) : null);
     if (finalKey) {
       queueMicrotask(() => enqueueSyncMutation(tableName, finalKey, "PUT"));
