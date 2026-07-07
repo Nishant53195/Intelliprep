@@ -333,7 +333,7 @@ function StudyHub() {
                 GS Slot
               </span>
               <span className="text-xs font-mono font-bold text-slate-500">
-                {gsIndex + 1} / {gsTask?.subtasks?.length || 0}
+                {gsTask?.subtasks?.length ? gsIndex + 1 : 0} / {gsTask?.subtasks?.length || 0}
               </span>
             </div>
             {currentGsSubtask ? (
@@ -369,13 +369,15 @@ function StudyHub() {
                 {currentGsSubtask?.duration || 0} Mins
               </span>
             <button
-              disabled={isGsSlotDone || !currentGsSubtask || isGsSubtaskDone || isPreviousGsTaskPending}
+              disabled={isGsSlotDone || !currentGsSubtask || isGsSubtaskDone || isPreviousGsTaskPending || !gsTask?.subtasks?.length}
               onClick={() => handleSubtaskComplete(gsTask, currentGsSubtask)}
               className={`px-4 py-2 text-xs font-bold rounded-xl transition-all shadow-3xs flex items-center gap-1 ${
                 isGsSubtaskDone
                   ? "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed shadow-none"
                   : isPreviousGsTaskPending
                   ? "bg-amber-50 border border-amber-200 text-amber-600 font-semibold cursor-not-allowed"
+                  : !gsTask?.subtasks?.length
+                  ? "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed shadow-none"
                   : "bg-[#EFF4FF] hover:bg-[#E2ECFF] text-[#1E75FF]"
               }`}
             >
@@ -402,7 +404,7 @@ function StudyHub() {
                 Optional Slot
               </span>
               <span className="text-xs font-mono font-bold text-slate-500">
-                {optionalIndex + 1} / {optionalTask?.subtasks?.length || 0}
+                {optionalTask?.subtasks?.length ? optionalIndex + 1 : 0} / {optionalTask?.subtasks?.length || 0}
               </span>
             </div>
             {currentOptionalSubtask ? (
@@ -436,13 +438,15 @@ function StudyHub() {
                 {currentOptionalSubtask?.duration || 0} Mins
               </span>
             <button
-              disabled={isOptionalSlotDone || !currentOptionalSubtask || isOptionalSubtaskDone || isPreviousOptionalTaskPending}
+              disabled={isOptionalSlotDone || !currentOptionalSubtask || isOptionalSubtaskDone || isPreviousOptionalTaskPending || !optionalTask?.subtasks?.length}
               onClick={() => handleSubtaskComplete(optionalTask, currentOptionalSubtask)}
               className={`px-4 py-2 text-xs font-bold rounded-xl transition-all shadow-3xs flex items-center gap-1 ${
                 isOptionalSubtaskDone
                   ? "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed shadow-none"
                   : isPreviousOptionalTaskPending
                   ? "bg-amber-50 border border-amber-200 text-amber-600 font-semibold cursor-not-allowed"
+                  : !optionalTask?.subtasks?.length
+                  ? "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed shadow-none"
                   : "bg-[#F4F3FF] hover:bg-[#EBE9FF] text-[#5851ED]"
               }`}
             >
