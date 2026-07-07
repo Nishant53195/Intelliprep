@@ -101,24 +101,21 @@ function SyllabusProgressView() {
     : 0;
 
   return (
-    <div className="space-y-6 text-left font-sans antialiased bg-[#FAFBFD] min-h-screen">
+    <div className="space-y-1 text-left font-sans antialiased bg-[#f3f5fa] min-h-screen">
       
       {/* 1. LAYOUT SECTION TITLE AND HIGH-DENSITY METRIC MONITOR OVERLAY */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-2">
         <div>
           <h2 className="text-2xl font-black text-[#111625] tracking-tight">Syllabus Progress</h2>
-          <p className="text-xs font-medium text-slate-400 mt-1 max-w-xl leading-relaxed">
-            Review core completion tracking, coverage depth, and subject pacing markers across your profile.
-          </p>
         </div>
 
         {/* OVERALL PROGRESS PROFILE FRAME PIN */}
-        <div className="flex items-center bg-white border border-[#E9EFFD] rounded-2xl p-3 shadow-[0_8px_24px_rgba(225,231,245,0.4)] min-w-[240px]">
-          <div className="h-10 w-10 rounded-xl bg-[#F0F4FF] flex items-center justify-center text-indigo-600 font-bold shrink-0">
+        <div className="flex items-center bg-white border border-[#E9EFFD] rounded-2xl p-2 shadow-[0_8px_24px_rgba(225,231,245,0.4)] min-w-[240px]">
+          <div className="h-10 w-10 rounded-xl bg-[#fdfdfd] flex items-center justify-center text-indigo-600 font-bold shrink-0">
             📈
           </div>
           <div className="ml-3 text-left">
-            <h4 className="text-[11px] font-black uppercase text-slate-400 tracking-wide">Overall Progress ({papers.find(p => p.value === activePaper)?.label || "GS I"})</h4>
+            <h4 className="text-[11px] font-black uppercase text-red-600 tracking-wide">Overall Progress ({papers.find(p => p.value === activePaper)?.label || "GS I"})</h4>
             <span className="text-xs font-black text-indigo-600 block mt-0.5">{overallPercentage}% Completed</span>
           </div>
         </div>
@@ -138,7 +135,7 @@ function SyllabusProgressView() {
               className={`text-xs px-4 py-2 font-black transition-all relative border-b-2 -mb-px whitespace-nowrap outline-none ${
                 isSelected
                   ? "border-indigo-600 text-indigo-600 bg-[#F0F4FF]/50 rounded-t-xl"
-                  : "border-transparent text-slate-400 hover:text-slate-700"
+                  : "border-transparent text-black-400 hover:text-slate-700"
               }`}
             >
               {paper.label}
@@ -149,21 +146,19 @@ function SyllabusProgressView() {
 
       {/* 3. CORE CONDITIONAL CANVAS SHELL PORT VIEWPORT */}
       {!selectedSubject ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pt-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3 pt-1">
           {enrichedSubjects?.map((subject) => (
             <div
               key={subject.id}
               onClick={() => setSelectedSubject(subject)}
-              className="group bg-white border border-[#EBEFF8] rounded-[2rem] p-5 shadow-[0_10px_30px_rgba(235,240,248,0.4)] hover:shadow-md hover:border-slate-200/80 transition-all duration-200 cursor-pointer relative flex flex-col justify-between"
+              className="group bg-white border border-[#EBEFF8] rounded-[2rem] p-4 shadow-[0_10px_30px_rgba(235,240,248,0.4)] hover:shadow-md hover:border-slate-200/80 transition-all duration-200 cursor-pointer relative flex flex-col justify-between"
             >
               <div className="space-y-4">
                 {/* Subject Identity Header Tag */}
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-[9px] font-black px-2.5 py-0.5 rounded-md border uppercase tracking-wider bg-[#EDF2FF] border-[#E0E7FF] text-[#4F46E5]">
-                    {activePaper === "OPTIONAL" ? "Optional" : "GS Core"}
-                  </span>
-                  <span className="text-sm font-black text-slate-700">
-                    {subject.completionProgress || 0}%
+                  
+                  <span className="text-sm font-black text-blue-600">
+                    Completion  : {subject.completionProgress || 0}%
                   </span>
                 </div>
 
@@ -182,38 +177,33 @@ function SyllabusProgressView() {
               <div className="mt-5 pt-3 border-t border-slate-50 space-y-4">
                 <div className="grid grid-cols-2 gap-3 text-left">
                   <div className="rounded-xl bg-[#F8FAFD] border border-[#EFF2F9] p-2.5">
-                    <p className="text-[9px] font-extrabold uppercase text-slate-400 tracking-tight">Effective</p>
-                    <p className="text-xs font-black text-indigo-600 mt-0.5">
+                    <p className="text-[9px] font-extrabold uppercase text-black-700 tracking-tight">Effective</p>
+                    <p className="text-s font-black text-indigo-600 mt-0.5">
                       {subject.effectiveProgress || 0}%
                     </p>
                   </div>
                   <div className="rounded-xl bg-[#F8FAFD] border border-[#EFF2F9] p-2.5">
-                    <p className="text-[9px] font-extrabold uppercase text-slate-400 tracking-tight">Health</p>
-                    <p className="text-xs font-black text-emerald-600 mt-0.5">
+                    <p className="text-[9px] font-extrabold uppercase text-black-700 tracking-tight">Health</p>
+                    <p className="text-s font-black text-emerald-600 mt-0.5">
                       {subject.healthScore || 0}
                     </p>
                   </div>
                   <div className="rounded-xl bg-[#F8FAFD] border border-[#EFF2F9] p-2.5">
-                    <p className="text-[9px] font-extrabold uppercase text-slate-400 tracking-tight">Confidence</p>
-                    <p className="text-xs font-black text-amber-600 mt-0.5">
+                    <p className="text-[9px] font-extrabold uppercase text-black-700 tracking-tight">Confidence</p>
+                    <p className="text-s font-black text-amber-600 mt-0.5">
                       {subject.confidenceScore || 0}%
                     </p>
                   </div>
                   <div className="rounded-xl bg-[#F8FAFD] border border-[#EFF2F9] p-2.5">
-                    <p className="text-[9px] font-extrabold uppercase text-slate-400 tracking-tight">Weak Topics</p>
-                    <p className="text-xs font-black text-rose-600 mt-0.5">
+                    <p className="text-[9px] font-extrabold uppercase text-red-700 tracking-tight">Weak Topics</p>
+                    <p className="text-s font-black text-rose-600 mt-0.5">
                       {subject.weakTopicsCount || 0}
                     </p>
                   </div>
                 </div>
 
                 {/* Sub Card Footer Anchors layout row */}
-                <div className="flex items-center justify-between text-[10px] font-bold pt-1 text-slate-400 border-t border-slate-50/50">
-                  <span className="font-mono">Direct Data Stream</span>
-                  <span className="text-indigo-600 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
-                    Explore Chapters <span className="text-xs">→</span>
-                  </span>
-                </div>
+                
               </div>
             </div>
           ))}
