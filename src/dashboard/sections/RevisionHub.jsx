@@ -58,7 +58,7 @@ function RevisionHub() {
       const hydrateList = async (list) => {
         return await Promise.all(list.map(async (item) => {
           let subName = "Macro Subject Review";
-          let topicName = "Unified Framework";
+          let topicName = "Full Subject Review";
           let subjName = "Core Hub";
 
           if (item.subtopicId) {

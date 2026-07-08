@@ -7,7 +7,7 @@ import AdminQuestionForm from "../../prelims/components/AdminQuestionForm";
 import { prelimsQueryService } from "../../prelims/services/prelimsQueryService";
 import { firestoreDb } from "../../firebase/firestore/config";
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { Play, BookOpen, Layers, RefreshCw, ChevronLeft, ChevronRight, CheckCircle2, LogOut, Award, Percent, XCircle, AlertCircle, RotateCcw, Sparkles, TrendingUp, CheckSquare, History } from "lucide-react";
+import { Play, BookOpen, Layers, RefreshCw, ChevronLeft, ChevronRight, CheckCircle2, LogOut, Award, Percent, XCircle, AlertCircle, RotateCcw, Sparkles, TrendingUp, CheckSquare, History, BarChart2 } from "lucide-react";
 
 function TestYourPrelims() {
   const user = useLoginStore((state) => state.user);
@@ -35,6 +35,9 @@ function TestYourPrelims() {
   const [testActive, setTestActive] = useState(false);
   const [showSummary, setShowSummary] = useState(false); 
   const [auditModeActive, setAuditModeActive] = useState(false); 
+  
+  // NEW STATE: Activates read-only historical analysis review viewport
+  const [analysisModeActive, setAnalysisModeActive] = useState(false);
 
   // RETAKE RECOVERY LOGS MAPS
   const [lastAttemptData, setLastAttemptData] = useState(null);
@@ -88,6 +91,31 @@ function TestYourPrelims() {
   const localCoachingHistoryRecords = useLiveQuery(async () => {
     return await db.coaching_test_prelims.toArray();
   }, [testActive, showSummary]);
+
+  // HELPER METHOD: Accepts an array of questions, shuffles the inner options list, and recalculates target keys
+  const shuffleOptionsForQuestionDeck = (questionsDeck) => {
+    return questionsDeck.map(q => {
+      if (!q.options || q.options.length === 0) return q;
+      
+      const pairedOptions = q.options.map((opt, idx) => ({
+        text: opt,
+        isCorrect: Number(idx) === Number(q.correctAnswerIndex)
+      }));
+
+      for (let i = pairedOptions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pairedOptions[i], pairedOptions[j]] = [pairedOptions[j], pairedOptions[i]];
+      }
+
+      const recalculatedIdx = pairedOptions.findIndex(o => o.isCorrect);
+
+      return {
+        ...q,
+        options: pairedOptions.map(o => o.text),
+        correctAnswerIndex: recalculatedIdx !== -1 ? recalculatedIdx : q.correctAnswerIndex
+      };
+    });
+  };
 
   /* --------------------------------------------------------------------------
    * FIRESTORE DYNAMIC INVENTORY FETCH (Coaching Catalog Handshake)
@@ -205,7 +233,7 @@ function TestYourPrelims() {
       }
       const selectedTopicMetadata = await db.topics.get(selectedTopicId);
       setQuestionPool(fetchedBatch);
-      setFinalSelectedQuestions(fetchedBatch); // Fixed Bug: Prevents simulator from throwing fatal rendering exception
+      setFinalSelectedQuestions(fetchedBatch); 
       setActiveTopicName(selectedTopicMetadata ? selectedTopicMetadata.name : "Selected Module");
       setHasLoadedPool(true);
     } catch (err) {
@@ -251,13 +279,17 @@ function TestYourPrelims() {
       }
 
       setActiveTopicName(`${selectedCoachingBundle} - ${testItem.testName}`);
-      setFinalSelectedQuestions(testItem.questions);
+      
+      const randomizedOptionsCoachingDeck = shuffleOptionsForQuestionDeck(testItem.questions);
+      setFinalSelectedQuestions(randomizedOptionsCoachingDeck);
+      
       setCurrentQuestionIdx(0);
       setSelectedAnswersMap({});
       setQuestionAnsweredState({});
       setErrorClassificationsMap({});
       setShowSummary(false);
       setAuditModeActive(false);
+      setAnalysisModeActive(false);
       setTestActive(true);
     } catch (err) {
       alert(`Failed preparing simulator metrics: ${err.message}`);
@@ -268,12 +300,13 @@ function TestYourPrelims() {
    * INTERACTIVE OPTION MUTATION LIFECYCLES
    * -------------------------------------------------------------------------- */
   const handleOptionToggleSelect = (questionItem, optionIdx) => {
+    if (analysisModeActive) return; // Freeze selections in analysis mode viewports
     if (subSection === "coaching_series") {
       setSelectedAnswersMap(prev => {
         const currentSelection = prev[questionItem.id];
         if (currentSelection === optionIdx) {
           const nextAnswers = { ...prev };
-          delete nextAnswers[questionItem.id]; // Fixed Bug: Prevent reference parsing type crashes
+          delete nextAnswers[questionItem.id]; 
           return nextAnswers;
         } else {
           return { ...prev, [questionItem.id]: optionIdx };
@@ -288,6 +321,7 @@ function TestYourPrelims() {
   };
 
   const handleLogErrorClassification = (questionId, classificationId) => {
+    if (analysisModeActive) return;
     setErrorClassificationsMap(prev => ({ ...prev, [questionId]: classificationId }));
   };
 
@@ -309,7 +343,7 @@ function TestYourPrelims() {
     });
 
     const calculatedScore = (correctCount * 2) - (incorrectCount * (2 / 3));
-    const accuracyPercentage = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0; // Fixed Bug: Base precision on metrics handled rather than aggregate pool
+    const accuracyPercentage = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0; 
     const runtimeReportObj = {
       total: totalCount, attempted: answeredCount, correct: correctCount, incorrect: incorrectCount, omitted: totalCount - answeredCount,
       score: Number(calculatedScore.toFixed(2)), accuracy: accuracyPercentage
@@ -366,7 +400,9 @@ function TestYourPrelims() {
         wrongQuestionBatch.push({
           questionId: q.id,
           subtopicId: q.subtopicId || "",
-          errorType: errorClassificationsMap[q.id] || "UNCLASSIFIED"
+          errorType: errorClassificationsMap[q.id] || "UNCLASSIFIED",
+          // Track index choices explicitly inside snapshot batch
+          selectedOptionIndex: choice
         });
       }
     });
@@ -383,7 +419,10 @@ function TestYourPrelims() {
           wrongCount: finalReport.incorrect,
           obtainedMarks: finalReport.score,
           accuracy: finalReport.accuracy,
-          wrongQuestion: wrongQuestionBatch
+          wrongQuestion: wrongQuestionBatch,
+          // Store entire question state mapping snapshot locally for total recall analysis
+          questionStateSnapshot: finalSelectedQuestions,
+          selectedAnswersSnapshot: selectedAnswersMap
         };
 
         const updatedAttempts = existingRecord?.Attempts ? [...existingRecord.Attempts, newAttempt] : [newAttempt];
@@ -491,6 +530,7 @@ function TestYourPrelims() {
 
       setTestActive(false);
       setAuditModeActive(false);
+      setAnalysisModeActive(false);
       setShowSummary(true);
     } catch (err) {
       console.error("Critical submission telemetry validation failed:", err);
@@ -498,15 +538,71 @@ function TestYourPrelims() {
     }
   };
 
+  // HANDLER MODULE: Restores the state map definitions from historical index nodes directly
+  const handleActivateDetailedAnalysisMode = () => {
+    if (!lastAttemptData) return;
+    
+    // Reconstruct question state pool array mapping
+    let restoredQuestions = lastAttemptData.questionStateSnapshot || questionPool;
+    let restoredAnswers = lastAttemptData.selectedAnswersSnapshot || {};
+
+    // Fallback parser loop if older attempt documents do not have explicit array snapshot
+    if (!lastAttemptData.questionStateSnapshot) {
+      const answersMap = {};
+      restoredQuestions.forEach(q => {
+        const wasWrong = lastAttemptData.wrongQuestion?.find(w => w.questionId === q.id);
+        if (wasWrong) {
+          answersMap[q.id] = wasWrong.selectedOptionIndex !== undefined ? wasWrong.selectedOptionIndex : -1;
+        } else {
+          answersMap[q.id] = q.correctAnswerIndex; // If not in error log array, user got it correct
+        }
+      });
+      restoredAnswers = answersMap;
+    }
+
+    const compiledAnsweredState = {};
+    const compiledErrorTypesMap = {};
+    restoredQuestions.forEach(q => {
+      if (restoredAnswers[q.id] !== undefined) {
+        compiledAnsweredState[q.id] = true;
+      }
+      const matchError = lastAttemptData.wrongQuestion?.find(w => w.questionId === q.id);
+      if (matchError) {
+        compiledErrorTypesMap[q.id] = matchError.errorType;
+      }
+    });
+
+    setFinalSelectedQuestions(restoredQuestions);
+    setSelectedAnswersMap(restoredAnswers);
+    setQuestionAnsweredState(compiledAnsweredState);
+    setErrorClassificationsMap(compiledErrorTypesMap);
+    setCurrentQuestionIdx(0);
+    setAnalysisModeActive(true);
+    setTestActive(true); 
+  };
+
   const handleForcedExitCancelTest = () => {
+    if (analysisModeActive) {
+      setTestActive(false); setAnalysisModeActive(false); setShowSummary(false); return;
+    }
     if (window.confirm("Abort session entirely? Performance matrices will be discarded.")) {
-      setTestActive(false); setAuditModeActive(false); setQuestionPool([]); setHasLoadedPool(false); setShowSummary(false);
+      setTestActive(false); setAuditModeActive(false); setAnalysisModeActive(false); setQuestionPool([]); setHasLoadedPool(false); setShowSummary(false);
     }
   };
 
   const activeQuestionItem = finalSelectedQuestions[currentQuestionIdx] || null;
   const auditQuestionsList = finalSelectedQuestions.filter(q => selectedAnswersMap[q.id] !== undefined && Number(selectedAnswersMap[q.id]) !== Number(q.correctAnswerIndex));
   const totalAuditItemsRemaining = auditQuestionsList.filter(q => !errorClassificationsMap[q.id]).length;
+
+  // --- COMPULSORY PROGRESS LOCK EVALUATOR ---
+  const isCurrentQuestionWrong = activeQuestionItem && 
+    selectedAnswersMap[activeQuestionItem.id] !== undefined && 
+    Number(selectedAnswersMap[activeQuestionItem.id]) !== Number(activeQuestionItem.correctAnswerIndex);
+
+  const isNavigationLocked = !analysisModeActive && 
+    subSection !== "coaching_series" && 
+    isCurrentQuestionWrong && 
+    !errorClassificationsMap[activeQuestionItem.id];
 
   return (
     <div className="space-y-5 text-left font-sans antialiased text-zinc-800">
@@ -706,20 +802,19 @@ function TestYourPrelims() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {localCoachingHistoryRecords && localCoachingHistoryRecords.length > 0 && !loadingCoachingMetaData && (
-                      coachingTestsList.map((test) => {
-                        const recordId = `coaching_${selectedCoachingBundle.toLowerCase().replace(/\s+/g, '_')}_${test.testName.toLowerCase().replace(/\s+/g, '_')}`;
-                        const matchRecord = localCoachingHistoryRecords?.find(r => r.id === recordId);
-                        const pastAttempt = matchRecord?.Attempts?.length > 0 ? matchRecord.Attempts[matchRecord.Attempts.length - 1] : null;
+                    {coachingTestsList.map((test) => {
+                      const recordId = `coaching_${selectedCoachingBundle.toLowerCase().replace(/\s+/g, '_')}_${test.testName.toLowerCase().replace(/\s+/g, '_')}`;
+                      const matchRecord = localCoachingHistoryRecords?.find(r => r.id === recordId);
+                      const pastAttempt = matchRecord?.Attempts?.length > 0 ? matchRecord.Attempts[matchRecord.Attempts.length - 1] : null;
 
-                        return (
-                          <div
-                            key={test.testName}
-                            className="border border-blue-300 bg-white p-5 rounded-2xl shadow-3xs flex flex-col justify-between gap-4 hover:shadow-2xs transition-all"
-                          >
-                            <div className="space-y-1">
-                              <span className="text-[11px] font-black font-mono px-2 py-0.5 bg-green-100 text-green-800 rounded uppercase tracking-wider">
-                                {test.testType.replace(/_/g, ' ')}
+                      return (
+                        <div
+                          key={test.testName}
+                          className="border border-blue-300 bg-white p-5 rounded-2xl shadow-3xs flex flex-col justify-between gap-4 hover:shadow-2xs transition-all"
+                        >
+                          <div className="space-y-1">
+                            <span className="text-[11px] font-black font-mono px-2 py-0.5 bg-green-100 text-green-800 rounded uppercase tracking-wider">
+                              {test.testType.replace(/_/g, ' ')}
                               </span>
                              
                               <h2 className="text-xl font-black text-zinc-900 tracking-tight pt-1">{test.testName}</h2>
@@ -735,17 +830,63 @@ function TestYourPrelims() {
                               )}
                             </div>
                             
-                            <button
-                              type="button"
-                              onClick={() => handleLoadCoachingTestExecutionWorkspace(test)}
-                              className={`px-4 py-2 text-white font-black text-xs rounded-xl uppercase tracking-wider transition-all cursor-pointer shadow-3xs shrink-0 ${pastAttempt ? "bg-indigo-600 hover:bg-indigo-700" : "bg-zinc-900 hover:bg-blue-800"}`}
-                            >
-                              {pastAttempt ? "Reattempt" : "Start Test"}
-                            </button>
+                            <div className="flex gap-2 shrink-0 flex-wrap">
+                              {pastAttempt && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    // Trigger evaluation snapshot directly for coaching tests
+                                    setActiveTopicName(`${selectedCoachingBundle} - ${test.testName}`);
+                                    setLastAttemptData(pastAttempt);
+                                    
+                                    let restoredQuestions = pastAttempt.questionStateSnapshot || test.questions;
+                                    let restoredAnswers = pastAttempt.selectedAnswersSnapshot || {};
+
+                                    if (!pastAttempt.questionStateSnapshot) {
+                                      const answersMap = {};
+                                      restoredQuestions.forEach(q => {
+                                        const wasWrong = pastAttempt.wrongQuestion?.find(w => w.questionId === q.id);
+                                        if (wasWrong) {
+                                          answersMap[q.id] = wasWrong.selectedOptionIndex !== undefined ? wasWrong.selectedOptionIndex : -1;
+                                        } else {
+                                          answersMap[q.id] = q.correctAnswerIndex;
+                                        }
+                                      });
+                                      restoredAnswers = answersMap;
+                                    }
+
+                                    const compiledAnsweredState = {};
+                                    const compiledErrorTypesMap = {};
+                                    restoredQuestions.forEach(q => {
+                                      if (restoredAnswers[q.id] !== undefined) compiledAnsweredState[q.id] = true;
+                                      const matchError = pastAttempt.wrongQuestion?.find(w => w.questionId === q.id);
+                                      if (matchError) compiledErrorTypesMap[q.id] = matchError.errorType;
+                                    });
+
+                                    setFinalSelectedQuestions(restoredQuestions);
+                                    setSelectedAnswersMap(restoredAnswers);
+                                    setQuestionAnsweredState(compiledAnsweredState);
+                                    setErrorClassificationsMap(compiledErrorTypesMap);
+                                    setCurrentQuestionIdx(0);
+                                    setAnalysisModeActive(true);
+                                    setTestActive(true);
+                                  }}
+                                  className="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-black text-xs rounded-xl flex items-center gap-1 transition-all shadow-3xs cursor-pointer"
+                                >
+                                  <BarChart2 size={13} /> Analysis
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => handleLoadCoachingTestExecutionWorkspace(test)}
+                                className={`px-4 py-2 text-white font-black text-xs rounded-xl uppercase tracking-wider transition-all cursor-pointer shadow-3xs flex-1 ${pastAttempt ? "bg-indigo-600 hover:bg-indigo-700" : "bg-zinc-900 hover:bg-blue-800"}`}
+                              >
+                                {pastAttempt ? "Reattempt" : "Start Test"}
+                              </button>
+                            </div>
                           </div>
                         );
-                      })
-                    )}
+                    })}
                   </div>
                 </div>
               )}
@@ -780,7 +921,7 @@ function TestYourPrelims() {
                 </div>
                 <div className="col-span-2 lg:col-span-1 bg-gradient-to-br from-slate-900 to-indigo-950 p-4 rounded-2xl flex flex-col justify-between shadow-2xs text-white">
                   <span className="text-[10px] font-black uppercase text-indigo-300 tracking-wider flex items-center gap-1">Accuracy</span>
-                  <span className="text-2xl font-black text-cyan-400 leading-none mt-3 font-mono">{testReport.accuracy}%</span>
+                  <span className="text-cyan-400 font-mono text-2xl font-black">{testReport.accuracy}%</span>
                 </div>
               </div>
 
@@ -868,7 +1009,15 @@ function TestYourPrelims() {
                           Historical Accuracy: <span className="text-indigo-600 font-bold">{lastAttemptData.accuracy}%</span> | Obtained Marks: <span className="text-indigo-600 font-bold font-mono">{lastAttemptData.obtainedMarks}M</span>
                         </p>
                       </div>
-                      <div className="flex gap-2 font-mono text-xs font-bold text-zinc-500 self-stretch sm:self-auto justify-start sm:justify-end">
+                      <div className="flex gap-2 font-mono text-xs font-bold text-zinc-500 self-stretch sm:self-auto justify-start sm:justify-end items-center">
+                        <button
+                          type="button"
+                          onClick={handleActivateDetailedAnalysisMode}
+                          className="px-4 py-2 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-black rounded-xl transition-all shadow-3xs flex items-center gap-1 h-fit uppercase tracking-wider cursor-pointer mr-1"
+                        >
+                          <BarChart2 size={13} /> Detailed Analysis
+                        </button>
+                        
                         <div className="bg-white border px-3 py-1.5 rounded-xl text-center min-w-[70px]">
                           <span className="text-[9px] block text-zinc-400 uppercase font-black font-sans leading-none">Correct</span>
                           <span className="text-emerald-600 font-black text-sm block mt-1">+{lastAttemptData.correctCount}</span>
@@ -919,7 +1068,11 @@ function TestYourPrelims() {
                           const j = Math.floor(Math.random() * (i + 1));
                           [randomDeck[i], randomDeck[j]] = [randomDeck[j], randomDeck[i]];
                         }
-                        setFinalSelectedQuestions(randomDeck);
+                        
+                        const balancedOptionsDeck = shuffleOptionsForQuestionDeck(randomDeck);
+                        setFinalSelectedQuestions(balancedOptionsDeck);
+                        setAnalysisModeActive(false);
+                        
                         setCurrentQuestionIdx(0);
                         setSelectedAnswersMap({}); 
                         setQuestionAnsweredState({});
@@ -1013,7 +1166,9 @@ function TestYourPrelims() {
               <div className="flex items-center gap-3">
                 <div className="h-9 w-9 rounded-xl bg-indigo-600 text-white text-base font-black flex items-center justify-center shadow-md">⚖️</div>
                 <div>
-                  <h3 className="text-sm font-black text-zinc-900 tracking-tight uppercase leading-none">TEST WORKSPACE</h3>
+                  <h3 className="text-sm font-black text-zinc-900 tracking-tight uppercase leading-none">
+                    {analysisModeActive ? "ANALYSIS ARCHIVE MATRIX" : "TEST WORKSPACE"}
+                  </h3>
                   <p className="text-[11px] font-bold font-mono text-indigo-500 uppercase tracking-wider mt-1">{activeTopicName}</p>
                 </div>
               </div>
@@ -1022,7 +1177,7 @@ function TestYourPrelims() {
                 onClick={handleForcedExitCancelTest}
                 className="px-3 py-2 text-[13px] font-black bg-white border border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-zinc-700 rounded-xl transition-all shadow-3xs flex items-center gap-1 cursor-pointer uppercase tracking-wider"
               >
-                <LogOut size={14} /> Quit 
+                <LogOut size={14} /> {analysisModeActive ? "Exit Review" : "Quit"}
               </button>
             </div>
 
@@ -1035,9 +1190,15 @@ function TestYourPrelims() {
                       <span className="text-xs font-mono font-black uppercase text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded border border-indigo-100 tracking-wider">
                         Question No. {currentQuestionIdx + 1}/{finalSelectedQuestions.length}
                       </span>
-                      {subSection !== "coaching_series" && questionAnsweredState[activeQuestionItem.id] && (
-                        <span className="text-xs font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded flex items-center gap-1">
-                          <CheckCircle2 size={11} /> Response Evaluated
+                      {questionAnsweredState[activeQuestionItem.id] && (
+                        <span className={`text-xs font-black uppercase px-2 py-0.5 rounded flex items-center gap-1 ${
+                          analysisModeActive 
+                            ? Number(selectedAnswersMap[activeQuestionItem.id]) === Number(activeQuestionItem.correctAnswerIndex)
+                              ? "bg-emerald-50 text-emerald-600" 
+                              : "bg-rose-50 text-rose-600"
+                            : "bg-emerald-50 text-emerald-600"
+                        }`}>
+                          <CheckCircle2 size={11} /> {analysisModeActive ? Number(selectedAnswersMap[activeQuestionItem.id]) === Number(activeQuestionItem.correctAnswerIndex) ? "Passed Node" : "Failed Node" : "Response Evaluated"}
                         </span>
                       )}
                     </div>
@@ -1057,7 +1218,8 @@ function TestYourPrelims() {
                         let containerStyleRules = "bg-white border-slate-200/80 text-zinc-700 hover:bg-slate-50";
                         let badgeStyleRules = "bg-slate-50 text-zinc-500 font-black border-slate-200";
 
-                        if (subSection !== "coaching_series" && hasUserAnsweredQuestion) {
+                        // SHARED RECYCLING STYLING LOGIC: Triggers highlights when evaluated OR when auditing historical data arrays
+                        if (hasUserAnsweredQuestion || analysisModeActive) {
                           if (isThisOptionTrueAnswer) {
                             containerStyleRules = "bg-emerald-50 border-emerald-500 text-emerald-950 font-black shadow-3xs";
                             badgeStyleRules = "bg-emerald-600 border-emerald-600 text-white font-black";
@@ -1078,7 +1240,7 @@ function TestYourPrelims() {
                           <div
                             key={oIdx}
                             onClick={() => handleOptionToggleSelect(activeQuestionItem, oIdx)}
-                            className={`w-full border-2 p-5 rounded-2xl flex items-center gap-4 transition-all text-left ${containerStyleRules} ${subSection !== "coaching_series" && hasUserAnsweredQuestion ? "cursor-default" : "cursor-pointer"}`}
+                            className={`w-full border-2 p-5 rounded-2xl flex items-center gap-4 transition-all text-left ${containerStyleRules} ${(hasUserAnsweredQuestion || analysisModeActive) ? "cursor-default" : "cursor-pointer"}`}
                           >
                             <div className={`h-8 w-8 rounded-xl border-2 flex items-center justify-center font-mono text-sm tracking-wide shrink-0 transition-colors ${badgeStyleRules}`}>
                               {String.fromCharCode(65 + oIdx)}
@@ -1089,7 +1251,15 @@ function TestYourPrelims() {
                       })}
                     </div>
 
-                    {subSection !== "coaching_series" && questionAnsweredState[activeQuestionItem.id] && lastAttemptData && (
+                    {/* DYNAMIC ERROR METRIC STATUS CARD: Shows assigned root cause values during read-only lookups */}
+                    {analysisModeActive && errorClassificationsMap[activeQuestionItem.id] && (
+                      <div className="bg-rose-50/50 border border-rose-200 p-4 rounded-xl flex items-center gap-2 text-rose-800 text-xs font-bold shadow-3xs animate-in fade-in duration-200">
+                        <AlertCircle className="text-rose-500 shrink-0" size={14} />
+                        <span>Logged Root Cause: <strong>{errorCategories.find(c => c.id === errorClassificationsMap[activeQuestionItem.id])?.label || "Unclassified Variable"}</strong></span>
+                      </div>
+                    )}
+
+                    {!analysisModeActive && subSection !== "coaching_series" && questionAnsweredState[activeQuestionItem.id] && lastAttemptData && (
                       <div className="animate-in fade-in zoom-in-95 duration-200">
                         {(() => {
                           const userChoice = selectedAnswersMap[activeQuestionItem.id];
@@ -1117,7 +1287,7 @@ function TestYourPrelims() {
                       </div>
                     )}
 
-                    {subSection !== "coaching_series" && questionAnsweredState[activeQuestionItem.id] && 
+                    {!analysisModeActive && subSection !== "coaching_series" && questionAnsweredState[activeQuestionItem.id] && 
                      Number(selectedAnswersMap[activeQuestionItem.id]) !== Number(activeQuestionItem.correctAnswerIndex) && 
                      selectedAnswersMap[activeQuestionItem.id] !== undefined && (
                       <div className="bg-rose-50/40 border border-rose-200 p-5 rounded-2xl space-y-3 animate-in slide-in-from-top-2 duration-200 mt-6 text-left">
@@ -1146,17 +1316,17 @@ function TestYourPrelims() {
 
                 <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between shrink-0">
                   <button
-                    disabled={currentQuestionIdx === 0}
+                    disabled={currentQuestionIdx === 0 || isNavigationLocked}
                     onClick={() => setCurrentQuestionIdx(p => Math.max(0, p - 1))}
-                    className="px-5 py-2.5 border border-slate-200 bg-white text-zinc-600 hover:bg-slate-50 font-bold text-xs rounded-xl transition-all shadow-3xs flex items-center gap-1 cursor-pointer"
+                    className="px-5 py-2.5 border border-slate-200 bg-white text-zinc-600 hover:bg-slate-50 font-bold text-xs rounded-xl transition-all shadow-3xs flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <ChevronLeft size={14} strokeWidth={2.5} /> Previous
                   </button>
                   
                   <button
-                    disabled={currentQuestionIdx === finalSelectedQuestions.length - 1}
+                    disabled={currentQuestionIdx === finalSelectedQuestions.length - 1 || isNavigationLocked}
                     onClick={() => setCurrentQuestionIdx(p => Math.min(finalSelectedQuestions.length - 1, p + 1))}
-                    className="px-6 py-2.5 bg-slate-900 text-white hover:bg-zinc-800 font-black text-xs rounded-xl transition-all shadow-3xs flex items-center gap-1 cursor-pointer"
+                    className="px-6 py-2.5 bg-slate-900 text-white hover:bg-zinc-800 font-black text-xs rounded-xl transition-all shadow-3xs flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Next <ChevronRight size={14} strokeWidth={2.5} />
                   </button>
@@ -1173,14 +1343,14 @@ function TestYourPrelims() {
                     {finalSelectedQuestions.map((q, idx) => {
                       const isCurrentIdx = currentQuestionIdx === idx;
                       const hasUserAnswered = selectedAnswersMap[q.id] !== undefined;
-                      const isLockVerified = !!questionAnsweredState[q.id];
+                      const isLockVerified = !!questionAnsweredState[q.id] || analysisModeActive;
                       const isUserAnswerCorrect = isLockVerified && Number(selectedAnswersMap[q.id]) === Number(q.correctAnswerIndex);
                       
                       let pinStyleClasses = "bg-slate-50 border-slate-200 text-zinc-600 hover:bg-slate-100";
                       
                       if (isCurrentIdx) {
                         pinStyleClasses = "bg-indigo-600 border-indigo-600 text-white shadow-3xs ring-4 ring-indigo-50";
-                      } else if (subSection === "coaching_series") {
+                      } else if (!analysisModeActive && subSection === "coaching_series") {
                         if (hasUserAnswered) pinStyleClasses = "bg-indigo-950 border-indigo-900 text-white font-bold ring-2 ring-indigo-100";
                       } else if (isLockVerified) {
                         pinStyleClasses = isUserAnswerCorrect ? "bg-emerald-500 border-emerald-500 text-white font-black" : "bg-rose-500 border-rose-500 text-white font-black";
@@ -1189,8 +1359,9 @@ function TestYourPrelims() {
                       return (
                         <button
                           key={q.id}
+                          disabled={isNavigationLocked && currentQuestionIdx !== idx}
                           onClick={() => setCurrentQuestionIdx(idx)}
-                          className={`h-11 w-11 rounded-xl border-2 flex items-center justify-center font-mono text-sm font-black tracking-tight transition-all cursor-pointer ${pinStyleClasses}`}
+                          className={`h-11 w-11 rounded-xl border-2 flex items-center justify-center font-mono text-sm font-black tracking-tight transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${pinStyleClasses}`}
                         >
                           {String(idx + 1).padStart(2, '0')}
                         </button>
@@ -1200,13 +1371,24 @@ function TestYourPrelims() {
                 </div>
 
                 <div className="pt-6 mt-6 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={handlePreSubmitEvaluationRollup}
-                    className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs rounded-xl tracking-wider uppercase transition-all shadow-md hover:scale-102 flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    Submit Test Paper
-                  </button>
+                  {analysisModeActive ? (
+                    <button
+                      type="button"
+                      onClick={() => { setTestActive(false); setAnalysisModeActive(false); }}
+                      className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl tracking-wider uppercase transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      Close Review Window
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={isNavigationLocked}
+                      onClick={handlePreSubmitEvaluationRollup}
+                      className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs rounded-xl tracking-wider uppercase transition-all shadow-md hover:scale-102 flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Submit Test Paper
+                    </button>
+                  )}
                 </div>
               </div>
 
